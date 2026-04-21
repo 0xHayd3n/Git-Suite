@@ -54,17 +54,20 @@ export default function DiscoverTopNav(props: DiscoverSidebarProps) {
     onActivePanelChange(resolvedPanel === panel ? null : panel)
   }
 
+  const onActivePanelChangeRef = useRef(onActivePanelChange)
+  useEffect(() => { onActivePanelChangeRef.current = onActivePanelChange })
+
   // Single pill ref covers both pill and panels (panels are absolute children of pill)
   useEffect(() => {
     if (!resolvedPanel) return
     const handler = (e: MouseEvent) => {
       if (pillRef.current && !pillRef.current.contains(e.target as Node)) {
-        onActivePanelChange(null)
+        onActivePanelChangeRef.current(null)
       }
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
-  }, [resolvedPanel, onActivePanelChange])
+  }, [resolvedPanel])
 
   return (
     <div ref={pillRef} className="discover-top-nav">
@@ -99,6 +102,8 @@ export default function DiscoverTopNav(props: DiscoverSidebarProps) {
         className={`dtn-btn${resolvedPanel === 'filters' ? ' dtn-btn-active' : ''}`}
         onClick={() => toggle('filters')}
         aria-label="Blocks"
+        aria-expanded={resolvedPanel === 'filters'}
+        aria-controls="dtn-filters-panel"
       >
         <BlocksIcon />
         <span>Blocks</span>
@@ -112,6 +117,8 @@ export default function DiscoverTopNav(props: DiscoverSidebarProps) {
         className={`dtn-btn${resolvedPanel === 'advanced' ? ' dtn-btn-active' : ''}`}
         onClick={() => toggle('advanced')}
         aria-label="Filters"
+        aria-expanded={resolvedPanel === 'advanced'}
+        aria-controls="dtn-advanced-panel"
       >
         <SlidersHorizontal size={13} />
         <span>Filters</span>
@@ -121,7 +128,7 @@ export default function DiscoverTopNav(props: DiscoverSidebarProps) {
       </button>
 
       {resolvedPanel === 'filters' && (
-        <div className="dtn-panel">
+        <div id="dtn-filters-panel" className="dtn-panel">
           <FilterPanel
             selectedLanguages={selectedLanguages}
             onSelectedLanguagesChange={onSelectedLanguagesChange}
@@ -133,13 +140,13 @@ export default function DiscoverTopNav(props: DiscoverSidebarProps) {
       )}
 
       {resolvedPanel === 'advanced' && (
-        <div className="dtn-panel">
+        <div id="dtn-advanced-panel" className="dtn-panel">
           <AdvancedPanel
             filters={filters}
             activeVerification={activeVerification}
             onFilterChange={onFilterChange}
             onVerificationToggle={onVerificationToggle}
-            mode={mode ?? 'discover'}
+            mode={mode}
             skillStatus={skillStatus}
             onSkillStatusChange={onSkillStatusChange}
           />
