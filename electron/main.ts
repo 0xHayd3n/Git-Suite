@@ -2072,24 +2072,26 @@ app.whenReady().then(() => {
     db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('color_extractor_version', '3')").run()
   }
 
-  // Backfill type_bucket/type_sub for repos classified before Phase 16
-  const unclassified = db.prepare(
-    'SELECT id, name, description, topics FROM repos WHERE type_bucket IS NULL'
-  ).all() as { id: number; name: string; description: string | null; topics: string }[]
-  if (unclassified.length > 0) {
-    const updateType = db.prepare(
-      'UPDATE repos SET type_bucket = ?, type_sub = ? WHERE id = ?'
-    )
-    const backfill = db.transaction(() => {
-      for (const row of unclassified) {
-        const classified = classifyRepoBucket({ name: row.name, description: row.description, topics: row.topics ?? '[]' })
-        updateType.run(classified?.bucket ?? null, classified?.subType ?? null, row.id)
-      }
-    })
-    backfill()
-  }
+  // Backfill type_bucket/type_sub for repos classified before Phase 16 — deferred so window opens immediately
+  setImmediate(() => {
+    const unclassified = db.prepare(
+      'SELECT id, name, description, topics FROM repos WHERE type_bucket IS NULL'
+    ).all() as { id: number; name: string; description: string | null; topics: string }[]
+    if (unclassified.length > 0) {
+      const updateType = db.prepare(
+        'UPDATE repos SET type_bucket = ?, type_sub = ? WHERE id = ?'
+      )
+      const backfill = db.transaction(() => {
+        for (const row of unclassified) {
+          const classified = classifyRepoBucket({ name: row.name, description: row.description, topics: row.topics ?? '[]' })
+          updateType.run(classified?.bucket ?? null, classified?.subType ?? null, row.id)
+        }
+      })
+      backfill()
+    }
+  })
 
-  startMCPServer()
+  setImmediate(() => startMCPServer())
   createWindow()
   if (mainWindow) {
     startVerificationService(db, mainWindow)
