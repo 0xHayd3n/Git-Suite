@@ -4,18 +4,18 @@ import DiscoverTopNav from './DiscoverTopNav'
 
 const baseProps = {
   selectedSubtypes: [],
-  onSelectedSubtypesChange: vi.fn(),
+  onSelectedSubtypesChange: () => {},
   filters: {},
   selectedLanguages: [],
   activeVerification: new Set<'verified' | 'likely'>(),
-  onFilterChange: vi.fn(),
-  onSelectedLanguagesChange: vi.fn(),
-  onVerificationToggle: vi.fn(),
+  onFilterChange: () => {},
+  onSelectedLanguagesChange: () => {},
+  onVerificationToggle: () => {},
   activePanel: null as 'buckets' | 'filters' | 'advanced' | null,
-  onActivePanelChange: vi.fn(),
+  onActivePanelChange: () => {},
   showLanding: false,
-  onHomeClick: vi.fn(),
-  onBrowseClick: vi.fn(),
+  onHomeClick: () => {},
+  onBrowseClick: () => {},
 }
 
 describe('DiscoverTopNav — rendering', () => {
@@ -72,6 +72,7 @@ describe('DiscoverTopNav — panel toggle', () => {
 
   it('treats activePanel="buckets" as null (no panel rendered)', () => {
     render(<DiscoverTopNav {...baseProps} activePanel="buckets" />)
+    expect(screen.getByRole('button', { name: /blocks/i })).toBeInTheDocument()
     expect(screen.queryByText('Language')).not.toBeInTheDocument()
     expect(screen.queryByText('Stars')).not.toBeInTheDocument()
   })
