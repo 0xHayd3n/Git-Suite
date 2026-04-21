@@ -1709,58 +1709,52 @@ ipcMain.handle('projects:openFolder', async (_event, folderPath: string) => {
 })
 
 ipcMain.handle('projects:readFile', async (_event, folderPath: string, filename: string) => {
-  const fs = require('fs') as typeof import('fs')
-  const path = require('path') as typeof import('path')
   const fullPath = path.join(folderPath, filename)
   try {
-    return fs.readFileSync(fullPath, 'utf8')
+    return await fs.readFile(fullPath, 'utf8')
   } catch {
     return null
   }
 })
 
 ipcMain.handle('projects:listDir', async (_event, folderPath: string, subPath: string) => {
-  const fs = require('fs') as typeof import('fs')
-  const path = require('path') as typeof import('path')
   const targetDir = subPath ? path.join(folderPath, subPath) : folderPath
   try {
-    const names = fs.readdirSync(targetDir)
-    const entries = names
-      .filter(n => !n.startsWith('.') || n === '.env')
-      .map(name => {
-        const full = path.join(targetDir, name)
-        try {
-          const stat = fs.statSync(full)
-          return { name, path: subPath ? `${subPath}/${name}` : name, type: stat.isDirectory() ? 'dir' : 'file', size: stat.isFile() ? stat.size : null }
-        } catch {
-          return null
-        }
-      })
-      .filter(Boolean) as { name: string; path: string; type: 'dir' | 'file'; size: number | null }[]
-    entries.sort((a, b) => {
+    const names = await fs.readdir(targetDir)
+    const entries = await Promise.all(
+      names
+        .filter(n => !n.startsWith('.') || n === '.env')
+        .map(async name => {
+          const full = path.join(targetDir, name)
+          try {
+            const stat = await fs.stat(full)
+            return { name, path: subPath ? `${subPath}/${name}` : name, type: stat.isDirectory() ? 'dir' as const : 'file' as const, size: stat.isFile() ? stat.size : null }
+          } catch {
+            return null
+          }
+        })
+    )
+    const filtered = entries.filter((e): e is NonNullable<typeof e> => e !== null)
+    filtered.sort((a, b) => {
       if (a.type !== b.type) return a.type === 'dir' ? -1 : 1
       return a.name.localeCompare(b.name)
     })
-    return entries
+    return filtered
   } catch {
     return []
   }
 })
 
 ipcMain.handle('projects:renameFolder', async (_event, folderPath: string, newName: string) => {
-  const path = require('path') as typeof import('path')
-  const fs = require('fs') as typeof import('fs')
   const parent = path.dirname(folderPath)
   const dest = path.join(parent, newName)
-  fs.renameSync(folderPath, dest)
+  await fs.rename(folderPath, dest)
   return dest
 })
 
 ipcMain.handle('projects:writeFile', async (_event, folderPath: string, filename: string, content: string) => {
-  const path = require('path') as typeof import('path')
-  const fs = require('fs') as typeof import('fs')
   const fullPath = path.join(folderPath, filename)
-  fs.writeFileSync(fullPath, content, 'utf8')
+  await fs.writeFile(fullPath, content, 'utf8')
 })
 
 ipcMain.handle('profile:getStarred', async (_, username: string) => {
