@@ -56,11 +56,11 @@ function DiscoverRowCardItem({
   const isActive = posIndex === 0
   const GAP = 16 // must match discover-grid gap
   // Card width = (100% - (N-1)*16px) / N  — identical to grid 1fr columns
-  // Position of slot i = i * (card_width + gap) = i * (100% + 16px) / N
+  // translateX: 100% = element's own width (= parent/N), so no /N divisor needed
   const cardWidth = `calc((100% - ${(columns - 1) * GAP}px) / ${columns})`
   const cardLeft = isPrev
-    ? `calc(-1 * (100% + ${GAP}px) / ${columns})`
-    : `calc(${posIndex} * (100% + ${GAP}px) / ${columns})`
+    ? `calc(-1 * (100% + ${GAP}px))`
+    : posIndex === 0 ? '0px' : `calc(${posIndex} * (100% + ${GAP}px))`
   const targetOpacity = isPrev ? 0.22 : 1
   const topics = parseTopics(repo.topics).slice(0, 3)
   const recency = formatRecency(repo.pushed_at)
@@ -75,7 +75,7 @@ function DiscoverRowCardItem({
     <button
       key={repo.id}
       className={`discover-row-card${isPrev ? ' discover-row-card--prev' : isActive ? ' discover-row-card--p0' : ''}${starred ? ' discover-row-card--starred' : ''}`}
-      style={{ width: cardWidth, left: cardLeft, opacity: targetOpacity, '--target-opacity': targetOpacity } as React.CSSProperties}
+      style={{ width: cardWidth, transform: `translateX(${cardLeft})`, opacity: targetOpacity, '--target-opacity': targetOpacity } as React.CSSProperties}
       onClick={!isPrev ? () => onNavigate(`/repo/${repo.owner}/${repo.name}`) : undefined}
       aria-label={`${repo.owner}/${repo.name}`}
       tabIndex={isPrev ? -1 : undefined}

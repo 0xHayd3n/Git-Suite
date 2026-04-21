@@ -49,14 +49,11 @@
 }
 
 /* ── Card base ── */
-@keyframes carousel-enter {
-  from { opacity: 0; transform: translateX(30px); }
-  to   { opacity: var(--target-opacity, 1); transform: translateX(0); }
-}
 
 .discover-row-card {
   position: absolute;
   top: 0;
+  left: 0;
   height: 100%;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.03);
@@ -68,17 +65,15 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
               opacity 0.45s ease,
-              width 0.5s cubic-bezier(0.4, 0, 0.2, 1),
               border-color 0.25s,
               background 0.2s;
-  animation: carousel-enter 0.4s ease-out both;
+  will-change: transform, opacity;
 }
 
-/* ── Position slots — width/left/opacity set via inline styles ── */
+/* ── Position slots — width/transform/opacity set via inline styles ── */
 .discover-row-card--prev {
-  animation: none;
   pointer-events: none;
 }
 
