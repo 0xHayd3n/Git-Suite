@@ -16,17 +16,11 @@
   overflow: hidden;
 }
 
-/* Sticky container — holds the entire top panel + tabs. The top-panel collapses
-   via max-height so the sticky element itself never transforms, keeping the
-   backdrop-filter static (animating a backdrop-blur via transform is very
-   expensive on Windows/Electron). */
 .article-layout-sticky-top {
   position: sticky;
   top: 0;
   z-index: 10;
   background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   flex-shrink: 0;
 }
 
@@ -121,8 +115,6 @@
 
 .article-layout-dither .corner-glass {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
 }
 
 .article-layout-title-row {

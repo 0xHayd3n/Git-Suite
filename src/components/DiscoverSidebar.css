@@ -16,8 +16,6 @@
   border: 1px solid var(--glass-border);
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   -webkit-app-region: drag;
 }
 
@@ -118,8 +116,6 @@
   border: 1px solid var(--glass-border);
   border-radius: 14px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   opacity: 1;
   transform: translateX(0);
   visibility: visible;
