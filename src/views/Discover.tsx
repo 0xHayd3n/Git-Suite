@@ -10,6 +10,7 @@ import { LANGUAGES } from '../lib/languages'
 import { classifyRepoBucket } from '../lib/classifyRepoType'
 import { REPO_BUCKETS } from '../constants/repoTypes'
 import DiscoverSidebar, { type SearchFilters } from '../components/DiscoverSidebar'
+import DiscoverTopNav from '../components/DiscoverTopNav'
 import DiscoverLanding from '../components/DiscoverLanding'
 import DiscoverHero from '../components/DiscoverHero'
 import DiscoverRow from '../components/DiscoverRow'
@@ -911,7 +912,7 @@ export default function Discover() {
       />
 
       <div className="discover-layout">
-        <DiscoverSidebar
+        <DiscoverTopNav
           selectedSubtypes={selectedSubtypes}
           onSelectedSubtypesChange={(s) => { setShowLanding(false); setSelectedSubtypes(s) }}
           filters={appliedFilters}
