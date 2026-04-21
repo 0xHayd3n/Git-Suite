@@ -92,14 +92,13 @@ export interface SubSkillRow {
 }
 
 /** Returned by library:getAll — repos INNER JOIN skills.
- *  filename and content are non-null per DB schema. version and generated_at are nullable per DB schema. */
+ *  version and generated_at are nullable per DB schema.
+ *  content/filename are fetched on-demand via skill:getContent. */
 export interface LibraryRow extends RepoRow {
   installed: number  // 0 | 1 — whether a skill is installed (always 1 in library:getAll, 0 for uninstalled discover rows)
   active: number
   version: string | null
   generated_at: string | null
-  filename: string
-  content: string
   enabled_components: string | null  // JSON string[] | null; null means all enabled
   enabled_tools: string | null       // JSON string[] | null; null means all enabled
   tier?: number  // 1 | 2 — skill generation quality tier

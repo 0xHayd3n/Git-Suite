@@ -32,7 +32,7 @@ const mockRows = [
     verification_score: null, verification_tier: null, verification_signals: null,
     verification_checked_at: null, type_bucket: 'frameworks', type_sub: 'web-framework',
     version: 'v18.0.0', generated_at: '2026-01-01T00:00:00.000Z',
-    filename: 'react.skill.md', enabled_components: null, enabled_tools: null, tier: 1, installed: 1 },
+    enabled_components: null, enabled_tools: null, tier: 1, installed: 1 },
 ]
 
 function renderLibrary(initialPath = '/library') {

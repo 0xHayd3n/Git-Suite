@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ExternalLink } from 'lucide-react'
 import Toggle from './Toggle'
@@ -21,9 +22,19 @@ export default function GenericDetail({
   componentsSubSkill: SubSkillRow | null
   versionedInstalls: string[]
 }) {
+  const [skillContent, setSkillContent] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    window.api.skill.getContent(row.owner, row.name).then(result => {
+      if (!cancelled && result) setSkillContent(result.content)
+    })
+    return () => { cancelled = true }
+  }, [row.owner, row.name])
+
   const lang = row.language ?? ''
   const cfg = getLangConfig(lang)
-  const skillSizeKb = (row.content.length / 1024).toFixed(1)
+  const skillSizeKb = ((skillContent?.length ?? 0) / 1024).toFixed(1)
   const collectionsStr = collections.length > 0 ? collections.map(c => c.name).join(', ') : '\u2014'
   const { openProfile } = useProfileOverlay()
   const navigate = useNavigate()
@@ -69,7 +80,7 @@ export default function GenericDetail({
             <span className="lib-skill-panel-status-ok">{'\u2713'} current</span>
           </div>
           <div className="lib-skill-panel-body">
-            <SkillDepthBars content={row.content} />
+            <SkillDepthBars content={skillContent ?? ''} />
             <p className="lib-skill-note">
               Generated from v{row.version ?? '\u2014'} {'\u00B7'} {row.generated_at ? daysSince(row.generated_at) : '\u2014'}
             </p>

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ExternalLink, AlertTriangle } from 'lucide-react'
 import Toggle from './Toggle'
@@ -33,6 +34,16 @@ export default function MCPToolsDetail({
   scanResult, onRescan, onToggleTool, onSelectAll, onRebuild,
   onToggleActive, onEnhance, regenerating, mcpToolsSubSkill, versionedInstalls,
 }: MCPToolsDetailProps) {
+  const [skillContent, setSkillContent] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    window.api.skill.getContent(row.owner, row.name).then(result => {
+      if (!cancelled && result) setSkillContent(result.content)
+    })
+    return () => { cancelled = true }
+  }, [row.owner, row.name])
+
   const lang = row.language ?? ''
   const cfg  = getLangConfig(lang)
   const { openProfile } = useProfileOverlay()
@@ -49,9 +60,9 @@ export default function MCPToolsDetail({
 
   const filtered = tools.filter(t => t.name.toLowerCase().includes(toolSearch.toLowerCase()))
   const categories = Array.from(new Set(filtered.map(t => t.category ?? '(uncategorized)')))
-  const skillSizeKb = (row.content.length / 1024).toFixed(1)
+  const skillSizeKb = ((skillContent?.length ?? 0) / 1024).toFixed(1)
   const collectionsStr = collections.length > 0 ? collections.map(c => c.name).join(', ') : '\u2014'
-  const skillLineCount = row.content.split('\n').length
+  const skillLineCount = (skillContent ?? '').split('\n').length
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
@@ -188,7 +199,7 @@ export default function MCPToolsDetail({
               <span className="lib-skill-panel-status-ok">{'\u2713'} current</span>
             </div>
             <div className="lib-skill-panel-body">
-              <SkillDepthBars content={row.content} />
+              <SkillDepthBars content={skillContent ?? ''} />
               <p className="lib-skill-note">
                 Generated from v{row.version ?? '\u2014'} {'\u00B7'} {row.generated_at ? daysSince(row.generated_at) : '\u2014'}
               </p>

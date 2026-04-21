@@ -118,6 +118,7 @@ declare global {
         offLoginProgress(cb: (event: { message: string; isError?: boolean; done?: boolean }) => void): void
         getSubSkill(owner: string, name: string, skillType: string): Promise<SubSkillRow | null>
         getVersionedInstalls(owner: string, name: string): Promise<string[]>
+        getContent(owner: string, name: string): Promise<{ filename: string; content: string } | undefined>
       }
       library: {
         getAll(): Promise<LibraryRow[]>

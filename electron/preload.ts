@@ -105,6 +105,8 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.invoke('skill:getSubSkill', owner, name, skillType),
     getVersionedInstalls: (owner: string, name: string): Promise<string[]> =>
       ipcRenderer.invoke('skill:get-versioned-installs', owner, name),
+    getContent: (owner: string, name: string) =>
+      ipcRenderer.invoke('skill:getContent', owner, name),
   },
 
   library: {

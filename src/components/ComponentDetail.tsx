@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ExternalLink } from 'lucide-react'
 import Toggle from './Toggle'
@@ -30,11 +31,21 @@ export default function ComponentDetail({
   componentsSubSkill: SubSkillRow | null
   versionedInstalls: string[]
 }) {
+  const [skillContent, setSkillContent] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    window.api.skill.getContent(row.owner, row.name).then(result => {
+      if (!cancelled && result) setSkillContent(result.content)
+    })
+    return () => { cancelled = true }
+  }, [row.owner, row.name])
+
   const lang = row.language ?? ''
   const cfg = getLangConfig(lang)
   const { openProfile } = useProfileOverlay()
   const navigate = useNavigate()
-  const allComponents: ComponentEntry[] = parseComponents(row.content)
+  const allComponents: ComponentEntry[] = parseComponents(skillContent ?? '')
   const enabledNames: string[] | null = row.enabled_components
     ? (() => { try { return JSON.parse(row.enabled_components) as string[] } catch { return null } })()
     : null
@@ -42,9 +53,9 @@ export default function ComponentDetail({
   const isEnabled = (name: string) => enabledSet === null ? true : enabledSet.has(name)
   const enabledCount = enabledSet === null ? allComponents.length : enabledNames!.length
   const totalCount = allComponents.length
-  const skillSizeKb = (row.content.length / 1024).toFixed(1)
+  const skillSizeKb = ((skillContent?.length ?? 0) / 1024).toFixed(1)
   const collectionsStr = collections.length > 0 ? collections.map(c => c.name).join(', ') : '\u2014'
-  const skillLineCount = row.content.split('\n').length
+  const skillLineCount = (skillContent ?? '').split('\n').length
 
   // Group by category
   const categories = Array.from(new Set(allComponents.map((c) => c.category)))
@@ -172,7 +183,7 @@ export default function ComponentDetail({
               <span className="lib-skill-panel-status-ok">{'\u2713'} current</span>
             </div>
             <div className="lib-skill-panel-body">
-              <SkillDepthBars content={row.content} />
+              <SkillDepthBars content={skillContent ?? ''} />
               <p className="lib-skill-note">
                 Generated from v{row.version ?? '\u2014'} {'\u00B7'} {row.generated_at ? daysSince(row.generated_at) : '\u2014'}
               </p>

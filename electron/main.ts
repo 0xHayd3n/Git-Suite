@@ -1182,12 +1182,22 @@ ipcMain.handle('skill:getSubSkill', (_event, owner: string, name: string, skillT
 ipcMain.handle('library:getAll', async () => {
   const db = getDb(app.getPath('userData'))
   return db.prepare(`
-    SELECT r.*, s.active, s.version, s.generated_at, s.filename, s.content,
-           s.enabled_components, s.enabled_tools, s.tier
+    SELECT r.*, s.active, s.version, s.generated_at, s.tier,
+           s.enabled_components, s.enabled_tools
     FROM repos r
     INNER JOIN skills s ON r.id = s.repo_id
     ORDER BY s.generated_at DESC
   `).all()
+})
+
+ipcMain.handle('skill:getContent', async (_, owner: string, name: string) => {
+  const db = getDb(app.getPath('userData'))
+  return db.prepare(`
+    SELECT s.filename, s.content
+    FROM skills s
+    JOIN repos r ON s.repo_id = r.id
+    WHERE r.owner = ? AND r.name = ?
+  `).get(owner, name) as { filename: string; content: string } | undefined
 })
 
 ipcMain.handle('skill:toggle', async (_, owner: string, name: string, active: number) => {
