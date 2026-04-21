@@ -1395,20 +1395,13 @@ a {
   background: var(--bg3);
 }
 
-/* Real drag strip (not a pseudo-element) — Electron's drag-region
-   hit-test uses elementFromPoint, which skips pseudo-elements, so
-   `::before` alone is not reliably draggable. Fixed to the viewport
-   top so it sits above every discover-page element regardless of
-   state (landing/hero/empty) and regardless of scroll. z-index 150
-   is below the pill (200) and window controls (max) but above
-   everything else. */
+/* Real drag strip — Electron's drag-region hit-test uses elementFromPoint,
+   which skips pseudo-elements, so `::before` alone is not draggable. A
+   simple in-flow flex item above all page content is the most reliable
+   setup — no stacking/transform complications. */
 .discover-drag-strip {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
   height: 32px;
-  z-index: 150;
+  flex-shrink: 0;
   -webkit-app-region: drag;
 }
 

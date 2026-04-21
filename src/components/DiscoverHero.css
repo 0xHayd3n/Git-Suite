@@ -3,7 +3,6 @@
   height: 504px;
   flex-shrink: 0;
   overflow: hidden;
-  margin-top: -32px;
   cursor: pointer;
   -webkit-app-region: no-drag;
 }
