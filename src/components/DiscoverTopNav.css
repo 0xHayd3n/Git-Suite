@@ -1,0 +1,123 @@
+/* ── Pill container ──────────────────────────────────────────── */
+
+.discover-top-nav {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  padding: 5px 6px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  z-index: 200;
+  -webkit-app-region: drag;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────── */
+
+.dtn-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: inherit;
+  color: rgba(255, 255, 255, 0.5);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  -webkit-app-region: no-drag;
+  white-space: nowrap;
+  position: relative;
+}
+
+.dtn-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.dtn-btn.dtn-btn-active {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dtn-btn svg {
+  flex-shrink: 0;
+}
+
+/* ── Separator ───────────────────────────────────────────────── */
+
+.dtn-sep {
+  width: 1px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* ── Logo ────────────────────────────────────────────────────── */
+
+.dtn-logo {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  margin: 0 3px;
+  flex-shrink: 0;
+  -webkit-app-region: no-drag;
+}
+
+/* ── Badge ───────────────────────────────────────────────────── */
+
+.dtn-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--t1);
+  color: var(--bg);
+  font-size: 9px;
+  font-weight: 700;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* ── Drop panel ──────────────────────────────────────────────── */
+
+/*
+  The pill is position:fixed — its absolute children are positioned
+  relative to the pill's own box, not the viewport.
+*/
+.dtn-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 14px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 10;
+}
