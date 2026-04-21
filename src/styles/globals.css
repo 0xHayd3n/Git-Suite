@@ -1396,12 +1396,16 @@ a {
 }
 
 /* Real drag strip — Electron's drag-region hit-test uses elementFromPoint,
-   which skips pseudo-elements, so `::before` alone is not draggable. A
-   simple in-flow flex item above all page content is the most reliable
-   setup — no stacking/transform complications. */
+   which skips pseudo-elements, so `::before` alone is not draggable.
+   Absolutely positioned as an overlay at the top of .discover-main, and
+   rendered AFTER the hero in DOM so it paints on top without z-index
+   tricks. Transparent so the hero's dither shows through. */
 .discover-drag-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 32px;
-  flex-shrink: 0;
   -webkit-app-region: drag;
 }
 
