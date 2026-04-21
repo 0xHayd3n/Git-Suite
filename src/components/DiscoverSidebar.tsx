@@ -1,5 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
-import { createPortal } from 'react-dom'
+import { useState, useEffect, useRef } from 'react'
 import {
   X, ShieldCheck, Shield, SlidersHorizontal, Search, ChevronDown, Star,
 } from 'lucide-react'
@@ -150,7 +149,7 @@ type FilterTab = 'language' | 'type'
 
 /* ── Main Filter Panel (Language + Repo Type tabs) ──── */
 
-function FilterPanel({
+export function FilterPanel({
   selectedLanguages,
   onSelectedLanguagesChange,
   selectedSubtypes,
@@ -579,7 +578,7 @@ function FilterPanel({
 
 /* ── Advanced Filters Panel ─────────────────────────── */
 
-function AdvancedPanel({
+export function AdvancedPanel({
   filters,
   activeVerification,
   onFilterChange,
@@ -765,15 +764,6 @@ export default function DiscoverSidebar({
   const advancedCount = (filters.stars ? 1 : 0) + (filters.activity ? 1 : 0) + (filters.license ? 1 : 0) + activeVerification.size
   const hasAdvancedSelections = advancedCount > 0
 
-  const [railTip, setRailTip] = useState<{ text: string; x: number; y: number } | null>(null)
-  const showRailTip = useCallback((text: string, e: React.MouseEvent) => {
-    setRailTip({ text, x: e.clientX, y: e.clientY })
-  }, [])
-  const moveRailTip = useCallback((e: React.MouseEvent) => {
-    setRailTip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null)
-  }, [])
-  const hideRailTip = useCallback(() => setRailTip(null), [])
-
   // Close panel on click outside sidebar
   const railRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
@@ -798,9 +788,7 @@ export default function DiscoverSidebar({
         <button
           className={`rail-icon${showLanding ? ' rail-icon-active' : ''}`}
           onClick={onHomeClick}
-          onMouseEnter={e => showRailTip('Home', e)}
-          onMouseMove={moveRailTip}
-          onMouseLeave={hideRailTip}
+          title="Home"
         >
           <HomeIcon />
         </button>
@@ -808,9 +796,7 @@ export default function DiscoverSidebar({
         <button
           className={`rail-icon${!showLanding ? ' rail-icon-active' : ''}`}
           onClick={onBrowseClick}
-          onMouseEnter={e => showRailTip('Browse', e)}
-          onMouseMove={moveRailTip}
-          onMouseLeave={hideRailTip}
+          title="Browse"
         >
           <BrowseIcon />
         </button>
@@ -820,9 +806,7 @@ export default function DiscoverSidebar({
         <button
           className={`rail-icon${activePanel === 'filters' ? ' rail-icon-active' : ''}`}
           onClick={() => togglePanel('filters')}
-          onMouseEnter={e => showRailTip('Blocks', e)}
-          onMouseMove={moveRailTip}
-          onMouseLeave={hideRailTip}
+          title="Blocks"
         >
           <BlocksIcon />
           {activePanel !== 'filters' && hasFilterSelections && (
@@ -833,9 +817,7 @@ export default function DiscoverSidebar({
         <button
           className={`rail-icon${activePanel === 'advanced' ? ' rail-icon-active' : ''}`}
           onClick={() => togglePanel('advanced')}
-          onMouseEnter={e => showRailTip('Advanced', e)}
-          onMouseMove={moveRailTip}
-          onMouseLeave={hideRailTip}
+          title="Advanced"
         >
           <SlidersHorizontal size={20} />
           {activePanel !== 'advanced' && hasAdvancedSelections && (
@@ -868,13 +850,6 @@ export default function DiscoverSidebar({
         )}
       </div>
 
-      {/* Cursor-following rail tooltip */}
-      {railTip && createPortal(
-        <div className="blocks-tooltip" style={{ left: railTip.x, top: railTip.y }}>
-          {railTip.text}
-        </div>,
-        document.body,
-      )}
     </>
   )
 }
