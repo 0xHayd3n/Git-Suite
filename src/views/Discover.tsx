@@ -9,9 +9,9 @@ import { useProfileOverlay } from '../contexts/ProfileOverlay'
 import { LANGUAGES } from '../lib/languages'
 import { classifyRepoBucket } from '../lib/classifyRepoType'
 import { REPO_BUCKETS } from '../constants/repoTypes'
+import { getSubTypeConfig } from '../config/repoTypeConfig'
 import { type SearchFilters } from '../components/DiscoverSidebar'
 import DiscoverTopNav from '../components/DiscoverTopNav'
-import DiscoverLanding from '../components/DiscoverLanding'
 import DiscoverHero from '../components/DiscoverHero'
 import DiscoverRow from '../components/DiscoverRow'
 import GridHeader from '../components/GridHeader'
@@ -29,6 +29,7 @@ import {
 import DiscoverSuggestions, { type Suggestion, type SubtypeSuggestion, type TopicSuggestion } from '../components/DiscoverSuggestions'
 import DiscoverGrid from '../components/DiscoverGrid'
 import { useKeyboardNav } from '../hooks/useKeyboardNav'
+import { setDitherScrollHint } from '../hooks/useBayerDither'
 
 // ── Layout prefs loader ───────────────────────────────────────────
 
@@ -58,7 +59,8 @@ function loadLayoutPrefs(): LayoutPrefs {
 // ── Discover view ─────────────────────────────────────────────────
 export default function Discover() {
   const navigationType = useNavigationType()
-  const { query: contextQuery, setQuery: setContextQuery, inputRef: globalInputRef } = useSearch()
+  const { query: contextQuery, setQuery: setContextQuery } = useSearch()
+  const topNavInputRef = useRef<HTMLInputElement>(null)
   const [searchParams, setSearchParams] = useSearchParams()
 
   const restoredSnapshot = useRef(navigationType === 'POP' ? peekDiscoverSnapshot() : null)
@@ -88,6 +90,7 @@ export default function Discover() {
   const [detectedTags, setDetectedTags] = useState<string[]>(() => restoredSnapshot.current?.detectedTags ?? [])
   const [activeTags, setActiveTags] = useState<string[]>(() => restoredSnapshot.current?.activeTags ?? [])
   const [relatedTags, setRelatedTags] = useState<string[]>(() => restoredSnapshot.current?.relatedTags ?? [])
+  const [topicMode, setTopicMode] = useState(() => restoredSnapshot.current?.topicMode ?? false)
   const [analysing, setAnalysing] = useState(false)
   const [allTopics, setAllTopics] = useState<string[]>([])
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
@@ -102,16 +105,12 @@ export default function Discover() {
   const [activePanel, setActivePanel] = useState<'buckets' | 'filters' | 'advanced' | null>(
     () => restoredSnapshot.current?.activePanel ?? null
   )
-  const [showLanding, setShowLanding] = useState(
-    () => restoredSnapshot.current ? (restoredSnapshot.current.showLanding ?? false) : true
-  )
   const [aiChatVisible, setAiChatVisible] = useState(false)
   const [aiInitialQuery, setAiInitialQuery] = useState<string | undefined>()
   const searchHistory = useSearchHistory()
   const showHistory = showSuggestions && discoverQuery.trim() === '' && searchHistory.entries.length > 0
 
-  // Use a local ref alias for code that previously referenced discoverInputRef
-  const discoverInputRef = globalInputRef
+  const discoverInputRef = topNavInputRef
 
   const ensureClassified = useCallback((repos: RepoRow[]) => {
     for (const r of repos) {
@@ -137,15 +136,22 @@ export default function Discover() {
 
   const [layoutPrefs, setLayoutPrefs] = useState<LayoutPrefs>(loadLayoutPrefs)
 
-  // Halve grid columns when window is narrow (split-screen)
+  // Halve grid columns when window is narrow (split-screen).
+  // ResizeObserver on the scroll container fires reliably on Windows snap,
+  // unlike window.resize which can miss Electron snap events.
   const screenHalf = Math.round(window.screen.availWidth / 2)
   const narrowThreshold = Math.max(1200, screenHalf + 50)
-  const [isNarrow, setIsNarrow] = useState(() => window.innerWidth <= narrowThreshold)
+  const [containerWidth, setContainerWidth] = useState(window.innerWidth)
   useEffect(() => {
-    const onResize = () => setIsNarrow(window.innerWidth <= narrowThreshold)
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [narrowThreshold])
+    const el = scrollRef.current
+    if (!el) return
+    const ro = new ResizeObserver(entries => {
+      setContainerWidth(Math.floor(entries[0].contentRect.width))
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, []) // observer stays for lifetime of component
+  const isNarrow = containerWidth > 0 && containerWidth <= narrowThreshold
   const effectiveCols = isNarrow
     ? Math.max(2, Math.round(layoutPrefs.columns / 2))
     : layoutPrefs.columns
@@ -233,10 +239,10 @@ export default function Discover() {
   useEffect(() => {
     liveSnapshotRef.current = {
       query: discoverQuery, repos, viewMode, selectedLanguages, appliedFilters,
-      selectedSubtypes, activePanel, showLanding, mode,
+      selectedSubtypes, activePanel, showLanding: false, mode,
       detectedTags, activeTags, relatedTags,
       scrollTop: scrollRef.current?.scrollTop ?? 0,
-      page, hasMore, searchPath,
+      page, hasMore, searchPath, topicMode,
     }
   })
 
@@ -427,13 +433,12 @@ export default function Discover() {
   useEffect(() => {
     if (!hasMounted.current) {
       hasMounted.current = true
-      if (restoredFromSnapshot.current || showLanding) return
+      if (restoredFromSnapshot.current) return
     }
-    if (showLanding) return
     recommendedCache.current = null
     recommendedItemsCache.current = null
-    // Clear any active search when switching view modes via tabs/pills
-    if (discoverQuery.trim()) {
+    setTopicMode(false)
+    if (discoverQuery.trim() || activeTags.length) {
       setDiscoverQuery('')
       setContextQuery('')
       setDetectedTags([])
@@ -470,6 +475,7 @@ export default function Discover() {
     if (!scroller) return
     let timer: ReturnType<typeof setTimeout>
     const onScroll = () => {
+      setDitherScrollHint(true)
       clearTimeout(timer)
       timer = setTimeout(() => {
         const ids = repos.map(r => r.id).filter(Boolean)
@@ -517,7 +523,7 @@ export default function Discover() {
     }
   }, [showSuggestions]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const hasSentinel = !loading && !error && repos.length > 0 && !showLanding
+  const hasSentinel = !loading && !error && repos.length > 0
   useEffect(() => {
     const sentinel = sentinelRef.current
     const root = scrollRef.current
@@ -557,7 +563,7 @@ export default function Discover() {
   }, [selectedLanguages, discoverQuery, appliedFilters, extractMissingColors])
 
   const handleSearch = async (overrideFilters?: SearchFilters, overrideQuery?: string) => {
-    setShowLanding(false)
+    setTopicMode(false)
     const filters = overrideFilters ?? appliedFilters
     const q = overrideQuery ?? discoverQuery
     const langFilter = selectedLanguages.length === 1 ? selectedLanguages[0] : undefined
@@ -764,30 +770,8 @@ export default function Discover() {
   // ── Filter logic ─────────────────────────────────────────────────
 
   function handleFilterChange(newFilters: SearchFilters) {
-    setShowLanding(false)
     setAppliedFilters(newFilters)
     handleSearch(newFilters)
-  }
-
-  function exitLanding() {
-    if (showLanding) {
-      setShowLanding(false)
-      loadTrending(appliedFilters)
-    }
-  }
-
-  function handleHomeClick() {
-    setSelectedSubtypes([])
-    setAppliedFilters({})
-    setSelectedLanguages([])
-    setActiveVerification(new Set())
-    setActivePanel(null)
-    setDiscoverQuery('')
-    setContextQuery('')
-    setDetectedTags([])
-    setActiveTags([])
-    setRelatedTags([])
-    setShowLanding(true)
   }
 
   // ── Keyboard / focus handlers ───────────────────────────────────
@@ -815,12 +799,7 @@ export default function Discover() {
         setDiscoverQuery(''); setContextQuery('')
         setShowSuggestions(false); setSuggestionIndex(-1)
       } else if (suggestionIndex >= 0 && suggestions[suggestionIndex]?.kind === 'topic') {
-        const words = discoverQuery.trimEnd().split(/\s+/)
-        words[words.length - 1] = (suggestions[suggestionIndex] as TopicSuggestion).label
-        const completed = words.join(' ')
-        setDiscoverQuery(completed + ' '); setContextQuery(completed + ' ')
-        setShowSuggestions(false); setSuggestionIndex(-1)
-        handleSearch(undefined, completed)
+        handleSelectTopic((suggestions[suggestionIndex] as TopicSuggestion).label)
       } else {
         setShowSuggestions(false)
         handleSearch()
@@ -844,8 +823,7 @@ export default function Discover() {
     ? (discoverInputRef?.current?.getBoundingClientRect() ?? null)
     : null
 
-  // When anchored to the Dock (bottom of screen), suggestions should appear above
-  const suggestionsAbove = true
+  const suggestionsAbove = false
 
   // ── Suggestion callbacks ────────────────────────────────────────
 
@@ -870,18 +848,34 @@ export default function Discover() {
   }, [viewMode])
 
   const handleLanguageClick = useCallback((lang: string) => {
-    setShowLanding(false)
     setSelectedLanguages(prev => prev.includes(lang) ? prev : [...prev, lang])
   }, [])
 
+  const handleBackFromTopicMode = useCallback(() => {
+    setTopicMode(false)
+    setActiveTags([])
+    setDetectedTags([])
+    setRelatedTags([])
+    loadTrending(appliedFilters)
+  }, [loadTrending, appliedFilters]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleBackFromSubtypeMode = useCallback(() => {
+    setSelectedSubtypes([])
+  }, [])
+
   const handleSelectTopic = (label: string) => {
-    const words = discoverQuery.trimEnd().split(/\s+/)
-    words[words.length - 1] = label
-    const completed = words.join(' ')
-    setDiscoverQuery(completed + ' '); setContextQuery(completed + ' ')
     setShowSuggestions(false)
     setSuggestionIndex(-1)
-    handleSearch(undefined, completed)
+    setDiscoverQuery('')
+    setContextQuery('')
+    setTopicMode(true)
+    const currentTags = liveSnapshotRef.current?.activeTags ?? []
+    if (!currentTags.includes(label)) {
+      const next = [...currentTags, label]
+      setActiveTags(next)
+      setDetectedTags(next)
+      runTagSearch(next)
+    }
   }
 
   // ── Render ───────────────────────────────────────────────────────
@@ -914,112 +908,129 @@ export default function Discover() {
       <div className="discover-layout">
         <DiscoverTopNav
           selectedSubtypes={selectedSubtypes}
-          onSelectedSubtypesChange={(s) => { setShowLanding(false); setSelectedSubtypes(s) }}
+          onSelectedSubtypesChange={setSelectedSubtypes}
           filters={appliedFilters}
           selectedLanguages={selectedLanguages}
           activeVerification={activeVerification}
           onFilterChange={handleFilterChange}
-          onSelectedLanguagesChange={(langs) => { setShowLanding(false); setSelectedLanguages(langs) }}
+          onSelectedLanguagesChange={setSelectedLanguages}
           onVerificationToggle={handleVerificationToggle}
           activePanel={activePanel}
           onActivePanelChange={setActivePanel}
-          showLanding={showLanding}
-          onHomeClick={handleHomeClick}
-          onBrowseClick={exitLanding}
+          query={discoverQuery}
+          onQueryChange={(q) => { setDiscoverQuery(q); setContextQuery(q) }}
+          onSearch={handleSearch}
+          inputRef={topNavInputRef}
+          layoutPrefs={layoutPrefs}
+          onLayoutChange={handleLayoutChange}
         />
         <div className="discover-main">
-          {showLanding ? (
-            <DiscoverLanding
-              query={discoverQuery}
-              onQueryChange={(q) => { setDiscoverQuery(q); setContextQuery(q) }}
-              onSearch={(q) => { setDiscoverQuery(q); setContextQuery(q); handleSearch(undefined, q) }}
-              onBrowse={exitLanding}
-              inputRef={discoverInputRef as React.RefObject<HTMLInputElement>}
-            />
-          ) : (
-            <>
-              {rowRepos.length > 0 && (
-                <DiscoverHero repo={rowRepos[heroIndex] ?? null} onNavigate={navigateToRepo} />
-              )}
-              {rowRepos.length > 0 && (
-                <DiscoverRow
-                  repos={rowRepos}
-                  activeIndex={heroIndex}
-                  onNavigate={navigateToRepo}
-                  onMore={() => setViewMode('recommended')}
-                  onHoverIndex={(i) => {
-                    if (i === null) {
-                      setHeroPaused(false)
-                    } else {
-                      setHeroPaused(true)
-                      setHeroIndex(i)
-                    }
-                  }}
-                />
-              )}
-              <GridHeader
-                hideViewMode
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
-                layoutPrefs={layoutPrefs}
-                onLayoutChange={handleLayoutChange}
-                activeFilters={{
-                  languages: selectedLanguages.length ? selectedLanguages : undefined,
-                  subtypes: selectedSubtypes.length ? selectedSubtypes : undefined,
-                  tags: activeTags.length ? activeTags : undefined,
-                }}
-                onRemoveLanguage={(lang) => setSelectedLanguages(prev => prev.filter(l => l !== lang))}
-                onRemoveSubtype={(id) => setSelectedSubtypes(prev => prev.filter(s => s !== id))}
-                onRemoveTag={(tag) => {
-                  const next = activeTags.filter(t => t !== tag)
-                  setActiveTags(next)
-                  if (next.length > 0) runTagSearch(next)
-                  else loadTrending(appliedFilters)
-                }}
-              />
-              {/* Content */}
-              <div ref={scrollRef} className={`discover-content ${aiChatVisible ? 'discover-content-dimmed' : ''}`} onKeyDown={kbNav.containerProps.onKeyDown} tabIndex={-1}>
-                {/* Related tags row */}
-                {relatedTags.length > 0 && !loading && (
-                  <div className="related-tags-row">
-                    <span className="related-tags-label">Related:</span>
-                    {relatedTags.map(tag => (
-                      <button
-                        key={tag}
-                        className="related-tag-chip"
-                        onClick={() => addTag(tag)}
-                      >
-                        + {tag}
-                      </button>
-                    ))}
-                  </div>
+          <div ref={scrollRef} className={`discover-content ${aiChatVisible ? 'discover-content-dimmed' : ''}`} onKeyDown={kbNav.containerProps.onKeyDown} tabIndex={-1}>
+                {viewMode !== 'recommended' && !topicMode && selectedSubtypes.length === 0 && (
+                  rowRepos.length > 0
+                    ? <DiscoverHero repo={rowRepos[heroIndex] ?? null} onNavigate={navigateToRepo} />
+                    : <div className="discover-hero discover-hero--skeleton" />
                 )}
+                {viewMode !== 'recommended' && !topicMode && selectedSubtypes.length === 0 && (
+                  rowRepos.length > 0
+                    ? <DiscoverRow
+                        repos={rowRepos}
+                        activeIndex={heroIndex}
+                        columns={effectiveCols}
+                        onNavigate={navigateToRepo}
+                        onMore={() => setViewMode('recommended')}
+                        onPause={setHeroPaused}
+                        onAdvance={(delta) => {
+                          setHeroIndex((i) => (i + delta + rowRepos.length) % rowRepos.length)
+                        }}
+                      />
+                    : <div className="discover-row discover-row--skeleton">
+                        <div className="discover-row-header">
+                          <span className="discover-row-skeleton-title" />
+                        </div>
+                        <div className="discover-row-carousel discover-row-skeleton-carousel" />
+                      </div>
+                )}
+                <div className="discover-content-inner">
+                  <GridHeader
+                    hideViewMode
+                    title={
+                      topicMode
+                        ? (activeTags.length === 1 ? activeTags[0] : 'Custom Search')
+                        : selectedSubtypes.length > 0
+                          ? (selectedSubtypes.length === 1 && selectedLanguages.length === 0
+                              ? (getSubTypeConfig(selectedSubtypes[0])?.label ?? 'Custom Search')
+                              : 'Custom Search')
+                          : (viewMode === 'recommended' ? 'Recommended for You' : 'Most Popular')
+                    }
+                    onBack={
+                      topicMode
+                        ? handleBackFromTopicMode
+                        : selectedSubtypes.length > 0
+                          ? handleBackFromSubtypeMode
+                          : (viewMode === 'recommended' ? () => setViewMode('all') : undefined)
+                    }
+                    onTitleClick={!topicMode && selectedSubtypes.length === 0 && viewMode !== 'recommended' ? () => setViewMode('all') : undefined}
+                    viewMode={viewMode}
+                    onViewModeChange={setViewMode}
+                    activeFilters={{
+                      languages: selectedLanguages.length ? selectedLanguages : undefined,
+                      subtypes: selectedSubtypes.length ? selectedSubtypes : undefined,
+                      tags: (!topicMode || activeTags.length > 1) && activeTags.length ? activeTags : undefined,
+                    }}
+                    onRemoveLanguage={(lang) => setSelectedLanguages(prev => prev.filter(l => l !== lang))}
+                    onRemoveSubtype={(id) => setSelectedSubtypes(prev => prev.filter(s => s !== id))}
+                    onRemoveTag={(tag) => {
+                      const next = activeTags.filter(t => t !== tag)
+                      setActiveTags(next)
+                      if (next.length === 0) {
+                        setTopicMode(false)
+                        loadTrending(appliedFilters)
+                      } else {
+                        runTagSearch(next)
+                      }
+                    }}
+                  />
+                  {/* Related tags row */}
+                  {relatedTags.length > 0 && !loading && (
+                    <div className="related-tags-row">
+                      <span className="related-tags-label">Related:</span>
+                      {relatedTags.map(tag => (
+                        <button
+                          key={tag}
+                          className="related-tag-chip"
+                          onClick={() => addTag(tag)}
+                        >
+                          + {tag}
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
-                {error && <div className="discover-status">Failed to load — {error}</div>}
+                  {error && <div className="discover-status">Failed to load — {error}</div>}
 
-                <DiscoverGrid
-                  loading={loading}
-                  loadingMore={loadingMore}
-                  error={error}
-                  visibleRepos={visibleRepos}
-                  discoverQuery={discoverQuery}
-                  layoutPrefs={effectiveLayoutPrefs}
-                  sentinelRef={sentinelRef}
-                  gridRef={gridRef}
-                  verification={verification}
-                  onNavigate={navigateToRepo}
-                  onTagClick={addTag}
-                  onOwnerClick={openProfile}
-                  focusIndex={kbFocusIndex}
-                  viewMode={viewMode}
-                  onStar={handleStar}
-                  onLanguageClick={handleLanguageClick}
-                  onSubtypeClick={handleSelectSubtype}
-                  anchorsByRepoId={anchorsByRepoId}
-                />
-              </div>
-            </>
-          )}
+                  <DiscoverGrid
+                    loading={loading}
+                    loadingMore={loadingMore}
+                    error={error}
+                    visibleRepos={visibleRepos}
+                    discoverQuery={discoverQuery}
+                    layoutPrefs={effectiveLayoutPrefs}
+                    sentinelRef={sentinelRef}
+                    gridRef={gridRef}
+                    verification={verification}
+                    onNavigate={navigateToRepo}
+                    onTagClick={addTag}
+                    onOwnerClick={openProfile}
+                    focusIndex={kbFocusIndex}
+                    viewMode={viewMode}
+                    onStar={handleStar}
+                    onLanguageClick={handleLanguageClick}
+                    onSubtypeClick={handleSelectSubtype}
+                    anchorsByRepoId={anchorsByRepoId}
+                  />
+                </div>
+          </div>
           <div className="discover-drag-strip" aria-hidden="true" />
         </div>
       </div>

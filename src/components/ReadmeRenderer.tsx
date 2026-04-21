@@ -773,8 +773,15 @@ function CodeBlock({ children }: { children: React.ReactNode }) {
 interface LightboxState { src: string; alt: string }
 
 // ── Link preview popover ──────────────────────────────────────────────────
-// `data` is always defined by the time this renders — setHoverLink is only
-// called after fetchLinkPreview has resolved and stored the result in cache.
+// `data` may be a skeleton (empty title/description/image + derived domain)
+// on first hover of an uncached URL — the popover is shown immediately and
+// the parent triggers a re-render once the IPC fetch populates the cache.
+
+function makeSkeletonPreview(url: string): LinkPreviewResult {
+  let domain = ''
+  try { domain = new URL(url).hostname } catch { /* ignore */ }
+  return { title: '', description: '', imageUrl: '', faviconUrl: '', domain }
+}
 
 interface LinkPreviewPopoverProps {
   url:          string
@@ -993,6 +1000,8 @@ export default function ReadmeRenderer({ content, repoOwner, repoName, branch = 
   // Link preview popover state — independent from the YouTube popover system
   const [hoverLink, setHoverLink]         = useState<string | null>(null)
   const [hoverLinkRect, setHoverLinkRect] = useState<DOMRect | null>(null)
+  // Bumped when an async fetchLinkPreview resolves so the popover re-reads the cache.
+  const [, setLinkPreviewTick]            = useState(0)
   const linkHoverTimerRef                  = useRef<ReturnType<typeof setTimeout> | null>(null)
   const currentHoverHrefRef                = useRef<string | null>(null)
 
@@ -1408,17 +1417,19 @@ export default function ReadmeRenderer({ content, repoOwner, repoName, branch = 
             }}
             onMouseEnter={(e) => {
               setHoverGhRepo(null)
-              currentGhHoverRef.current = `${ghOwner}/${ghName}`
+              const key = `${ghOwner}/${ghName}`
+              currentGhHoverRef.current = key
               if (ghHoverTimerRef.current) clearTimeout(ghHoverTimerRef.current)
-              const el = e.currentTarget as HTMLElement   // capture before async gap
+              const el = e.currentTarget as HTMLElement
+              fetchRepoPreview(ghOwner, ghName) // start IPC immediately
               ghHoverTimerRef.current = setTimeout(async () => {
                 const rect = el.getBoundingClientRect()
                 await fetchRepoPreview(ghOwner, ghName)
-                if (currentGhHoverRef.current === `${ghOwner}/${ghName}`) {
-                  setHoverGhRepo(`${ghOwner}/${ghName}`)
+                if (currentGhHoverRef.current === key) {
+                  setHoverGhRepo(key)
                   setHoverGhRepoRect(rect)
                 }
-              }, 300)
+              }, 50)
             }}
             onMouseLeave={() => {
               currentGhHoverRef.current = null
@@ -1528,19 +1539,23 @@ export default function ReadmeRenderer({ content, repoOwner, repoName, branch = 
           }}
           {...(isExternal && !hasImgOnly ? {
             onMouseEnter: (e: React.MouseEvent) => {
-              setHoverLink(null)
               currentHoverHrefRef.current = href!
               if (linkHoverTimerRef.current) clearTimeout(linkHoverTimerRef.current)
               const el = e.currentTarget as HTMLElement
+              const key = href!
+              fetchLinkPreview(key)
               linkHoverTimerRef.current = setTimeout(() => {
-                const rect = el.getBoundingClientRect()
-                fetchLinkPreview(href!).then(() => {
-                  if (currentHoverHrefRef.current === href) {
-                    setHoverLink(href!)
-                    setHoverLinkRect(rect)
-                  }
-                })
-              }, 300)
+                if (currentHoverHrefRef.current !== key) return
+                setHoverLink(key)
+                setHoverLinkRect(el.getBoundingClientRect())
+                if (!getCachedPreview(key)) {
+                  fetchLinkPreview(key).then(() => {
+                    if (currentHoverHrefRef.current === key) {
+                      setLinkPreviewTick(n => n + 1)
+                    }
+                  })
+                }
+              }, 50)
             },
             onMouseLeave: () => {
               currentHoverHrefRef.current = null
@@ -1721,7 +1736,7 @@ export default function ReadmeRenderer({ content, repoOwner, repoName, branch = 
         <LinkPreviewPopover
           url={hoverLink}
           rect={hoverLinkRect}
-          data={getCachedPreview(hoverLink)!}
+          data={getCachedPreview(hoverLink) ?? makeSkeletonPreview(hoverLink)}
           onMouseEnter={() => {
             if (linkHoverTimerRef.current) clearTimeout(linkHoverTimerRef.current)
           }}

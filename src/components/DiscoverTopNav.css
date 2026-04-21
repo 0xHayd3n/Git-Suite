@@ -1,78 +1,109 @@
-/* ── Pill container ──────────────────────────────────────────── */
+/* ── Wrapper ─────────────────────────────────────────────────── */
 
 .discover-top-nav {
   position: fixed;
-  top: 40px;
+  top: 20px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 2px;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 14px;
-  padding: 5px 6px;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  gap: 6px;
   z-index: 200;
   -webkit-app-region: drag;
 }
 
-/* ── Buttons ─────────────────────────────────────────────────── */
+/* ── Search bar ──────────────────────────────────────────────── */
 
-.dtn-btn {
+.dtn-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 560px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  padding: 7px 12px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  -webkit-app-region: no-drag;
+}
+
+.dtn-search-logo {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.dtn-search-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--t1);
+  caret-color: var(--t1);
+}
+
+.dtn-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Filter row ──────────────────────────────────────────────── */
+
+.dtn-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+  -webkit-app-region: no-drag;
+}
+
+.dtn-filter-btn {
   display: flex;
   align-items: center;
   gap: 5px;
   padding: 5px 10px;
-  border-radius: 9px;
+  border-radius: 10px;
   font-size: 11px;
   font-weight: 500;
   font-family: inherit;
   color: rgba(255, 255, 255, 0.5);
-  background: none;
-  border: none;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
-  -webkit-app-region: no-drag;
   white-space: nowrap;
   position: relative;
 }
 
-.dtn-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.75);
+.dtn-filter-btn:hover {
+  background: rgba(255, 255, 255, 0.92);
+  color: #111;
 }
 
-.dtn-btn.dtn-btn-active {
-  background: rgba(255, 255, 255, 0.1);
+.dtn-filter-btn.dtn-filter-btn-active {
+  background: rgba(255, 255, 255, 0.13);
   color: rgba(255, 255, 255, 0.9);
 }
 
-.dtn-btn svg {
-  flex-shrink: 0;
+.dtn-filter-btn.dtn-filter-btn-active:hover {
+  background: rgba(255, 255, 255, 0.92);
+  color: #111;
 }
 
-/* ── Separator ───────────────────────────────────────────────── */
-
-.dtn-sep {
-  width: 1px;
-  height: 18px;
-  background: rgba(255, 255, 255, 0.12);
-  margin: 0 4px;
-  flex-shrink: 0;
+.dtn-filter-icon-btn {
+  padding: 5px 7px;
 }
 
-/* ── Logo ────────────────────────────────────────────────────── */
-
-.dtn-logo {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  margin: 0 3px;
+.dtn-filter-btn svg {
   flex-shrink: 0;
-  -webkit-app-region: no-drag;
 }
 
 /* ── Badge ───────────────────────────────────────────────────── */
@@ -97,20 +128,79 @@
   pointer-events: none;
 }
 
+/* ── Filter row separator ────────────────────────────────────── */
+
+.dtn-filter-sep {
+  width: 1px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
+/* ── Combined view/layout group ──────────────────────────────── */
+
+.dtn-view-group {
+  display: flex;
+  align-items: center;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.dtn-view-group > .dtn-view-btn:first-child {
+  border-top-left-radius: 9px;
+  border-bottom-left-radius: 9px;
+}
+
+.dtn-view-group > .dtn-settings-anchor:last-child .dtn-view-btn {
+  border-top-right-radius: 9px;
+  border-bottom-right-radius: 9px;
+}
+
+.dtn-view-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 8px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-family: inherit;
+}
+
+.dtn-view-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dtn-view-btn.active {
+  background: rgba(255, 255, 255, 0.13);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dtn-view-sep {
+  width: 1px;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+}
+
 /* ── Drop panel ──────────────────────────────────────────────── */
 
-/*
-  The pill is position:fixed — its absolute children are positioned
-  relative to the pill's own box, not the viewport.
-*/
 .dtn-panel {
   position: absolute;
   top: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
   width: 300px;
-  max-height: calc(100vh - 80px);
-  overflow-y: auto;
+  max-height: calc(100vh - 160px);
+  overflow-y: overlay;
   overflow-x: hidden;
   padding: 0 14px;
   background: var(--glass-bg);
@@ -120,4 +210,18 @@
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   z-index: 10;
+}
+
+.dtn-settings-anchor {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.dtn-layout-panel {
+  width: 240px;
+  padding: 0;
+  left: auto;
+  right: 0;
+  transform: none;
 }

@@ -82,10 +82,20 @@ export interface DiscoverSidebarProps {
   activePanel: 'buckets' | 'filters' | 'advanced' | null
   onActivePanelChange: (panel: 'buckets' | 'filters' | 'advanced' | null) => void
 
-  // Navigation
-  showLanding: boolean
-  onHomeClick: () => void
-  onBrowseClick: () => void
+  // Navigation (optional — omit to hide Home button)
+  showLanding?: boolean
+  onHomeClick?: () => void
+  onBrowseClick?: () => void
+
+  // Search bar (optional — renders inline search when provided)
+  query?: string
+  onQueryChange?: (q: string) => void
+  onSearch?: () => void
+  inputRef?: React.RefObject<HTMLInputElement>
+
+  // Layout controls (optional — renders grid/list/cog when provided)
+  layoutPrefs?: import('./LayoutDropdown').LayoutPrefs
+  onLayoutChange?: (prefs: import('./LayoutDropdown').LayoutPrefs) => void
 
   // Library mode extensions
   mode?: 'discover' | 'library'
@@ -796,18 +806,7 @@ export default function DiscoverSidebar({
         <img src={logoSrc} alt="Git Suite" className="rail-logo" />
 
         <button
-          className={`rail-icon${showLanding ? ' rail-icon-active' : ''}`}
-          onClick={onHomeClick}
-          onMouseEnter={e => showRailTip('Home', e)}
-          onMouseMove={moveRailTip}
-          onMouseLeave={hideRailTip}
-        >
-          <HomeIcon />
-        </button>
-
-        <button
-          className={`rail-icon${!showLanding ? ' rail-icon-active' : ''}`}
-          onClick={onBrowseClick}
+          className="rail-icon rail-icon-active"
           onMouseEnter={e => showRailTip('Browse', e)}
           onMouseMove={moveRailTip}
           onMouseLeave={hideRailTip}

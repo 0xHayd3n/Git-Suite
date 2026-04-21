@@ -30,6 +30,7 @@ export interface DiscoverSnapshot {
   selectedSubtypes?: string[]
   activePanel?: 'buckets' | 'filters' | 'advanced' | null
   showLanding?: boolean
+  topicMode?: boolean
 }
 
 let _snapshot: DiscoverSnapshot | null = null

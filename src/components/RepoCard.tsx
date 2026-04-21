@@ -10,6 +10,16 @@ import VerificationBadge from './VerificationBadge'
 import { getViewModeAccent } from '../lib/discoverQueries'
 import { getLangColor } from '../lib/languages'
 
+// ── Module-level IPC caches (shared across all card instances) ────
+const _orgVerifiedCache = new Map<string, boolean>()
+let _preferredLangPromise: Promise<string> | null = null
+function getPreferredLang(): Promise<string> {
+  if (!_preferredLangPromise) {
+    _preferredLangPromise = window.api.settings.getPreferredLanguage().catch(() => 'en')
+  }
+  return _preferredLangPromise
+}
+
 // ── Format helpers ─────────────────────────────────────────────────
 
 export function formatCount(n: number | null | undefined): string {
@@ -29,7 +39,7 @@ function formatAge(dateStr: string): string {
   return `${Math.floor(days / 30)} months old`
 }
 
-function formatRecency(dateStr: string | null | undefined): string | null {
+export function formatRecency(dateStr: string | null | undefined): string | null {
   if (!dateStr) return null
   const ms = Date.now() - new Date(dateStr).getTime()
   const mins = Math.floor(ms / 60000)
@@ -166,8 +176,12 @@ const RepoCard = memo(function RepoCard({ repo, onNavigate, onTagClick, onOwnerC
   const _accentColor = viewMode ? getViewModeAccent(viewMode) : 'var(--accent-light)'
 
   useEffect(() => {
+    if (_orgVerifiedCache.has(repo.owner)) {
+      setIsVerified(_orgVerifiedCache.get(repo.owner)!)
+      return
+    }
     window.api.org.getVerified(repo.owner)
-      .then(v => { if (v) setIsVerified(true) })
+      .then(v => { _orgVerifiedCache.set(repo.owner, !!v); if (v) setIsVerified(true) })
       .catch(() => {})
   }, [repo.owner])
 
@@ -176,7 +190,7 @@ const RepoCard = memo(function RepoCard({ repo, onNavigate, onTagClick, onOwnerC
     async function checkAndTranslate() {
       if (!repo.description || repo.description.length < 6) return
 
-      const preferredLang = await window.api.settings.getPreferredLanguage().catch(() => 'en')
+      const preferredLang = await getPreferredLang()
 
       // Check SQLite cache first
       if (repo.translated_description && repo.translated_description_lang === preferredLang) {

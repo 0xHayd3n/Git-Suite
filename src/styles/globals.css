@@ -88,13 +88,12 @@
   --weight-semibold: 600;
 }
 
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+/* ── Scrollbar — fully hidden, takes no space ── */
+::-webkit-scrollbar { width: 0; height: 0; background: transparent; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; transition: background 0.2s; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.5); }
-::-webkit-scrollbar-thumb:active { background: rgba(255, 255, 255, 0.7); }
-* { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.15) transparent; }
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-thumb { background: transparent; }
+* { scrollbar-width: none; }
 
 /* ── Reset ── */
 *,
@@ -772,7 +771,7 @@ a {
 
 .ai-dialogue-messages {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: overlay;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1424,6 +1423,44 @@ a {
   flex-shrink: 0;
 }
 
+.grid-header-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--t2);
+}
+
+.grid-header-page-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 20px 14px 8px;
+}
+
+.grid-header-page-title span {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--t1);
+  letter-spacing: -0.5px;
+}
+
+.grid-header-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 4px;
+  color: var(--t2);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.grid-header-back-btn:hover {
+  background: var(--hover-bg, rgba(255,255,255,0.08));
+  color: var(--t1);
+}
+
 /* ── Active Filters Bar ────────────────────────────────────────── */
 
 .active-filters-bar {
@@ -1432,6 +1469,12 @@ a {
   gap: 6px;
   padding: 6px 14px;
   flex-wrap: wrap;
+}
+
+.active-filters-bar--indented {
+  padding-left: 48px; /* 14px container + 28px back-btn + 6px gap */
+  padding-top: 0;
+  padding-bottom: 10px;
 }
 
 .active-filter-chip {
@@ -1622,8 +1665,15 @@ a {
 
 .discover-content {
   flex: 1;
-  overflow-y: auto;
-  padding: 4px 12px 24px 14px;
+  overflow-y: overlay;
+}
+
+.discover-content-inner {
+  padding: 4px 20px 24px 20px;
+}
+
+.discover-content-inner .grid-header {
+  padding: 6px 0;
 }
 
 /* ── Discover Landing ──────────────────────────────────────────── */
@@ -1783,7 +1833,6 @@ a {
   background: rgba(255, 255, 255, 0.03);
   cursor: pointer;
   animation: card-in 0.18s ease forwards;
-  transition: transform 0.2s, border-color 0.2s, background 0.2s;
   display: flex;
   flex-direction: column;
 }
@@ -1892,7 +1941,6 @@ a {
   background: rgba(0,0,0,0.75); padding: 4px 6px 3px; border-radius: 5px;
   font-size: 9px; color: rgba(255,255,255,0.9);
   border: 1px solid transparent; cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
 .repo-card-badge-br:hover { background: rgba(0,0,0,0.9); border-color: rgba(255,255,255,0.3); }
 .repo-card-badge-br.starred { color: #f59e0b; }
@@ -1902,14 +1950,14 @@ a {
 /* Golden glow for starred cards */
 .repo-card-starred { border-color: rgba(245,158,11,0.35); box-shadow: 0 0 12px rgba(245,158,11,0.15), inset 0 0 12px rgba(245,158,11,0.04); }
 .repo-card-starred:hover { border-color: rgba(245,158,11,0.55); box-shadow: 0 0 18px rgba(245,158,11,0.25), inset 0 0 12px rgba(245,158,11,0.06); }
-.repo-card-info { padding: 10px 10px 10px; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); flex: 1; display: flex; flex-direction: column; transition: background 0.2s; }
+.repo-card-info { padding: 10px 10px 10px; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); flex: 1; display: flex; flex-direction: column; }
 .repo-card:hover .repo-card-info { background: rgba(0, 0, 0, 0.88); }
 .repo-card-top { display: flex; gap: 8px; margin-bottom: 2px; }
 .repo-card-top-text { flex: 1; min-width: 0; }
 .repo-card-avatar { width: 36px; height: 36px; border-radius: 6px; flex-shrink: 0; object-fit: cover; }
-.repo-card-name { font-size: 12.5px; font-weight: 700; color: var(--t1); margin-bottom: 3px; display: flex; align-items: center; gap: 5px; transition: color 0.2s; }
+.repo-card-name { font-size: 12.5px; font-weight: 700; color: var(--t1); margin-bottom: 3px; display: flex; align-items: center; gap: 5px; }
 .repo-card-name .vb-wrap { flex-shrink: 0; }
-.repo-card-desc { font-size: 10px; color: var(--t3); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 2px; transition: color 0.2s; }
+.repo-card-desc { font-size: 10px; color: var(--t3); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 2px; }
 .repo-card-stat-owner { cursor: pointer; max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
 .repo-card-stat-owner:hover { color: var(--t1); }
 .repo-card-grow { flex: 1; min-height: 8px; }
@@ -1979,7 +2027,6 @@ a {
   align-items: stretch;
   margin-top: 8px;
   border-top: 1px solid var(--border);
-  transition: border-top-color 0.2s;
 }
 .repo-card-footer-left {
   flex: 1;
@@ -2006,7 +2053,6 @@ a {
   white-space: nowrap;
   flex-shrink: 0;
   line-height: 1;
-  transition: color 0.2s;
 }
 .repo-card-lang-dot {
   width: 7px;
@@ -2524,7 +2570,7 @@ a {
   flex-shrink: 0;
   max-width: 50%;
   border-right: 1px solid var(--border);
-  overflow-y: auto;
+  overflow-y: overlay;
   overflow-x: hidden;
 }
 /* ── Resize handle ──────────────────────────────────────────────────── */
@@ -2567,7 +2613,7 @@ a {
 }
 .files-tab__content {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: overlay;
   min-width: 0;
 }
 .files-tab__loading,
@@ -2930,7 +2976,7 @@ a {
   min-width: 180px;
   max-width: 280px;
   border-right: 1px solid var(--border);
-  overflow-y: auto;
+  overflow-y: overlay;
   flex-shrink: 0;
   padding: 12px 0;
 }
@@ -3153,7 +3199,7 @@ a {
 /* ── Readme TOC nav ── */
 .rm-toc {
   padding: 18px 12px;
-  overflow-y: auto;
+  overflow-y: overlay;
   overflow-x: hidden;
   scrollbar-width: none;
   flex: 1;
@@ -4265,7 +4311,7 @@ a {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  overflow-y: auto;
+  overflow-y: overlay;
 }
 
 .settings-title {
@@ -4327,7 +4373,7 @@ a {
 .settings-content {
   flex: 1;
   min-width: 0;
-  overflow-y: auto;
+  overflow-y: overlay;
   padding: 32px 40px 48px;
 }
 
@@ -4630,7 +4676,7 @@ a {
   border: 1px solid var(--border);
   border-radius: 6px;
   max-height: 140px;
-  overflow-y: auto;
+  overflow-y: overlay;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -5637,7 +5683,7 @@ a {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   margin: 0;
-  overflow-y: auto;
+  overflow-y: overlay;
   max-height: 600px;
   user-select: text;
   cursor: text;
@@ -5723,7 +5769,7 @@ a {
 
 .library-list-scroll {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: overlay;
   padding: 8px 0;
 }
 
@@ -6026,7 +6072,7 @@ a {
 
 .lib-detail-body {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: overlay;
   padding: 16px 18px;
   display: flex;
   flex-direction: column;
@@ -6349,7 +6395,7 @@ a {
 
 .lib-comp-body {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: overlay;
   padding: 10px 14px;
 }
 
@@ -6507,7 +6553,7 @@ a {
   width: 240px;
   flex-shrink: 0;
   border-right: 1px solid var(--border);
-  overflow-y: auto;
+  overflow-y: overlay;
   padding: 8px 0;
 }
 
@@ -6726,7 +6772,7 @@ a {
 
 .coll-tab-content {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: overlay;
   padding: 14px 16px;
 }
 
@@ -6995,7 +7041,7 @@ a {
 
 .coll-modal-repo-list {
   max-height: 200px;
-  overflow-y: auto;
+  overflow-y: overlay;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   margin-bottom: 16px;
@@ -7250,7 +7296,7 @@ a {
 /* List area */
 .starred-list {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: overlay;
 }
 
 /* Section headers — sticky with blur glass effect */
@@ -7645,7 +7691,7 @@ a {
 
 .profile-tab-content {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: overlay;
   min-height: 0;
 }
 
@@ -8331,7 +8377,7 @@ a {
 
 .ai-chat-messages {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: overlay;
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -8532,7 +8578,7 @@ a {
 .ai-chat-new-btn:hover { background: rgba(168, 85, 247, 0.1); }
 .ai-chat-history-list {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: overlay;
   padding: 6px;
 }
 .ai-chat-history-item {
@@ -9190,7 +9236,7 @@ a {
 }
 .pdf-viewer__container {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: overlay;
   overflow-x: auto;
   display: flex;
   flex-direction: column;
@@ -9415,7 +9461,7 @@ a {
   .coll-modal {
     max-height: 90vh;
     max-width: 90vw;
-    overflow-y: auto;
+    overflow-y: overlay;
   }
 
   /* General */
@@ -9689,7 +9735,7 @@ a {
   width: 120px;
   min-width: 120px;
   max-height: 440px;
-  overflow-y: auto;
+  overflow-y: overlay;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   padding: 4px;
   scrollbar-width: thin;
@@ -9868,7 +9914,7 @@ a {
 }
 .lang-popover-grid-body {
   max-height: 400px;
-  overflow-y: auto;
+  overflow-y: overlay;
 }
 .lang-popover-family-row {
   display: grid;
@@ -10294,7 +10340,7 @@ a {
 }
 .library-grid-scroll {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: overlay;
   min-width: 0;
 }
 .library-empty {
@@ -10357,7 +10403,7 @@ a {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  overflow-y: auto;
+  overflow-y: overlay;
   background: var(--bg);
 }
 
@@ -10520,7 +10566,7 @@ a {
 
 .profile-view-tab-panel {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: overlay;
 }
 
 .profile-view-sort-bar {

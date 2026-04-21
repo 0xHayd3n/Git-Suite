@@ -5,7 +5,7 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow-y: overlay;
   overflow-x: hidden;
   background: var(--glass-bg);
 }
@@ -16,10 +16,10 @@
   overflow: hidden;
 }
 
-/* Sticky container — holds the entire top panel + tabs. Translates upward
-   by the top-panel height when collapsed so the tabs remain flush with the
-   top of the scroll viewport while the navbar/byline/dither/title/actions
-   slide out of view. */
+/* Sticky container — holds the entire top panel + tabs. The top-panel collapses
+   via max-height so the sticky element itself never transforms, keeping the
+   backdrop-filter static (animating a backdrop-blur via transform is very
+   expensive on Windows/Electron). */
 .article-layout-sticky-top {
   position: sticky;
   top: 0;
@@ -28,55 +28,17 @@
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   flex-shrink: 0;
-  transition: transform 260ms ease-out;
-  will-change: transform;
 }
 
-.article-layout-sticky-top[data-collapsed="true"] {
-  transform: translateY(calc(-1 * var(--top-panel-height, 0px)));
-}
-
-/* In fullbleed mode (Files / Components):
-   - Override position:sticky → relative so the element can't reach an outer scroll
-     ancestor and overlap the content below it.
-   - Collapse only the top-panel via max-height (navBar + tabs stay visible).
-   - The top-panel shrinking reduces the sticky-top's flex footprint, so the body
-     naturally fills the freed space — no margin-top hacks needed. */
-.article-layout--fullbleed .article-layout-sticky-top {
-  position: relative;
-}
-.article-layout--fullbleed .article-layout-sticky-top[data-collapsed="true"] {
-  transform: none;
-}
-.article-layout--fullbleed .article-layout-top-panel {
-  max-height: 500px;
-  overflow: hidden;
-  transition: max-height 280ms ease-out;
-}
-.article-layout--fullbleed .article-layout-sticky-top[data-collapsed="true"] .article-layout-top-panel {
-  max-height: 0;
-}
-/* Hide the divider between top-panel and tabs when panel is collapsed */
-.article-layout--fullbleed .article-layout-sticky-top[data-collapsed="true"] .article-layout-top-panel + .article-layout-divider {
-  display: none;
-}
-
-/* In has-toc mode (README tab): same max-height collapse as fullbleed — the body-content
-   is its own scroll container so transform-based sticky collapses leave dead layout space. */
+/* In fullbleed / has-toc modes: override position:sticky → relative so the element
+   can't reach an outer scroll ancestor and overlap content below it. */
+.article-layout--fullbleed .article-layout-sticky-top,
 .article-layout--has-toc .article-layout-sticky-top {
   position: relative;
 }
-.article-layout--has-toc .article-layout-sticky-top[data-collapsed="true"] {
-  transform: none;
-}
-.article-layout--has-toc .article-layout-top-panel {
-  max-height: 500px;
-  overflow: hidden;
-  transition: max-height 280ms ease-out;
-}
-.article-layout--has-toc .article-layout-sticky-top[data-collapsed="true"] .article-layout-top-panel {
-  max-height: 0;
-}
+
+/* Hide the divider between top-panel and tabs when panel is collapsed */
+.article-layout--fullbleed .article-layout-sticky-top[data-collapsed="true"] .article-layout-top-panel + .article-layout-divider,
 .article-layout--has-toc .article-layout-sticky-top[data-collapsed="true"] .article-layout-top-panel + .article-layout-divider {
   display: none;
 }
@@ -84,6 +46,13 @@
 .article-layout-top-panel {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  max-height: var(--top-panel-height, 800px);
+  transition: max-height 240ms ease-out;
+}
+
+.article-layout-sticky-top[data-collapsed="true"] .article-layout-top-panel {
+  max-height: 0;
 }
 
 .article-layout-navbar-slot {
@@ -280,12 +249,12 @@
   width: 200px;
   flex-shrink: 0;
   border-right: 1px solid var(--glass-border);
-  overflow-y: auto;
+  overflow-y: overlay;
 }
 
 .article-layout-body--with-toc > .article-layout-stats-slot {
   width: 220px;
   flex-shrink: 0;
   border-left: 1px solid var(--glass-border);
-  overflow-y: auto;
+  overflow-y: overlay;
 }

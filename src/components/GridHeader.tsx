@@ -1,7 +1,4 @@
-import { useState } from 'react'
-import { Grid3X3, List, Settings, X } from 'lucide-react'
-import LayoutPopover from './LayoutPopover'
-import type { LayoutPrefs } from './LayoutDropdown'
+import { X, ChevronLeft } from 'lucide-react'
 import { VIEW_MODES } from '../lib/discoverQueries'
 import type { ViewModeKey } from '../lib/discoverQueries'
 import { getSubTypeConfig } from '../config/repoTypeConfig'
@@ -17,38 +14,42 @@ export interface ActiveFilters {
 interface GridHeaderProps {
   viewMode: ViewModeKey
   onViewModeChange: (mode: ViewModeKey) => void
-  layoutPrefs: LayoutPrefs
-  onLayoutChange: (prefs: LayoutPrefs) => void
   activeFilters?: ActiveFilters
   onRemoveLanguage?: (lang: string) => void
   onRemoveSubtype?: (id: string) => void
   onRemoveTag?: (tag: string) => void
   hideViewMode?: boolean
+  title?: string
+  onBack?: () => void
+  onTitleClick?: () => void
 }
 
 export default function GridHeader({
   viewMode,
   onViewModeChange,
-  layoutPrefs,
-  onLayoutChange,
   activeFilters,
   onRemoveLanguage,
   onRemoveSubtype,
   onRemoveTag,
   hideViewMode = false,
+  title,
+  onBack,
+  onTitleClick,
 }: GridHeaderProps) {
-  const [layoutOpen, setLayoutOpen] = useState(false)
-
-  const handleModeSwitch = (mode: 'grid' | 'list') => {
-    onLayoutChange({ ...layoutPrefs, mode })
-  }
-
   const hasFilters = !!(activeFilters?.languages?.length || activeFilters?.subtypes?.length || activeFilters?.tags?.length)
 
   return (
     <div className="grid-header-wrapper">
+      {onBack && title && (
+        <div className="grid-header-page-title">
+          <button className="grid-header-back-btn" onClick={onBack}>
+            <ChevronLeft size={20} />
+          </button>
+          <span>{title}</span>
+        </div>
+      )}
       {hasFilters && (
-        <div className="active-filters-bar">
+        <div className={`active-filters-bar${onBack ? ' active-filters-bar--indented' : ''}`}>
           {activeFilters!.languages?.map(lang => (
             <button key={lang} className="active-filter-chip" onClick={() => onRemoveLanguage?.(lang)} style={{ '--chip-color': getLangColor(lang) } as React.CSSProperties}>
               <span className="active-filter-chip-icon" style={{ backgroundColor: getLangColor(lang) }}>
@@ -79,6 +80,16 @@ export default function GridHeader({
         </div>
       )}
       <div className="grid-header">
+      {title && !onBack && (
+        onTitleClick ? (
+          <button className="discover-row-title-btn" onClick={onTitleClick}>
+            <span>{title}</span>
+            <span className="discover-row-title-chevron" aria-hidden="true">›</span>
+          </button>
+        ) : (
+          <div className="grid-header-title">{title}</div>
+        )
+      )}
       {/* Left: All/Recommended pill toggle */}
       {!hideViewMode && (
         <div className="view-mode-toggle">
@@ -94,39 +105,6 @@ export default function GridHeader({
         </div>
       )}
 
-      {/* Right: Layout toggle + cog */}
-      <div className="filter-chip-wrapper" style={{ marginLeft: 'auto' }}>
-        <div className="filter-bar-layout-toggle">
-          <button
-            className={`filter-bar-layout-btn${layoutPrefs.mode === 'grid' ? ' active' : ''}`}
-            onClick={() => handleModeSwitch('grid')}
-            title="Grid view"
-          >
-            <Grid3X3 size={14} />
-          </button>
-          <button
-            className={`filter-bar-layout-btn${layoutPrefs.mode === 'list' ? ' active' : ''}`}
-            onClick={() => handleModeSwitch('list')}
-            title="List view"
-          >
-            <List size={14} />
-          </button>
-          <button
-            className="filter-bar-layout-btn filter-bar-layout-cog"
-            onClick={() => setLayoutOpen(o => !o)}
-            title="Layout settings"
-          >
-            <Settings size={14} />
-          </button>
-        </div>
-        {layoutOpen && (
-          <LayoutPopover
-            prefs={layoutPrefs}
-            onChange={onLayoutChange}
-            onClose={() => setLayoutOpen(false)}
-          />
-        )}
-      </div>
     </div>
     </div>
   )

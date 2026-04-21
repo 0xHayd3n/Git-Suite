@@ -4,11 +4,13 @@ import { useBayerDither } from '../hooks/useBayerDither'
 interface DitherBackgroundProps {
   avatarUrl?: string | null
   fallbackGradient?: [string, string]
+  staticFrame?: boolean
 }
 
 const DitherBackground = memo(function DitherBackground({
   avatarUrl,
   fallbackGradient,
+  staticFrame = false,
 }: DitherBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -34,7 +36,7 @@ const DitherBackground = memo(function DitherBackground({
     return () => { cancelAnimationFrame(rafId); ro.disconnect() }
   }, [])
 
-  useBayerDither(canvasRef, avatarUrl ?? null, size.width, size.height)
+  useBayerDither(canvasRef, avatarUrl ?? null, size.width, size.height, staticFrame)
 
   const fallbackBg = fallbackGradient
     ? `linear-gradient(135deg, ${fallbackGradient[0]} 0%, ${fallbackGradient[1]} 100%)`

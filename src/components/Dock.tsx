@@ -1,13 +1,12 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useRef, useEffect, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useSearch } from '../contexts/Search'
 
 // ── Nav icons (20×20, filled) ────────────────────────────────────
 
 function DiscoverIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M3 3h8v8H3V3zm0 10h8v8H3v-8zm10-10h8v8h-8V3zm0 10h8v8h-8v-8z" />
+      <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95a15.65 15.65 0 0 0-1.38-3.56A8.03 8.03 0 0 1 18.92 8zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56A7.987 7.987 0 0 1 5.08 16zm2.95-8H5.08a7.987 7.987 0 0 1 4.33-3.56A15.65 15.65 0 0 0 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95a8.03 8.03 0 0 1-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"/>
     </svg>
   )
 }
@@ -37,13 +36,6 @@ function ProfileIcon() {
   )
 }
 
-function SearchIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 14A4.5 4.5 0 1 1 14 9.5 4.49 4.49 0 0 1 9.5 14z" />
-    </svg>
-  )
-}
 
 function SettingsIcon() {
   return (
@@ -56,7 +48,7 @@ function SettingsIcon() {
 function CreateIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 3l1.912 5.813a2 2 0 0 0 1.275 1.275L21 12l-5.813 1.912a2 2 0 0 0-1.275 1.275L12 21l-1.912-5.813a2 2 0 0 0-1.275-1.275L3 12l5.813-1.912a2 2 0 0 0 1.275-1.275L12 3z" />
+      <path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
     </svg>
   )
 }
@@ -80,13 +72,6 @@ const NAV_ITEMS = [
 
 // ── Helpers ───────────────────────────────────────────────────────
 
-function getSearchPlaceholder(pathname: string): string {
-  if (pathname.startsWith('/discover'))    return 'Search repos…'
-  if (pathname.startsWith('/library'))     return 'Filter skills…'
-  if (pathname.startsWith('/starred'))     return 'Filter starred…'
-  if (pathname.startsWith('/profile'))     return 'Search profile…'
-  return 'Search…'
-}
 
 function isActive(currentPath: string, itemPath: string): boolean {
   return currentPath === itemPath || currentPath.startsWith(itemPath + '/')
@@ -112,15 +97,8 @@ interface DockProps {
 export default function Dock({ onAiClick, aiOpen }: DockProps) {
   const location = useLocation()
   const navigate = useNavigate()
-  const { query, setQuery, setInputRef } = useSearch()
-  const [searchOpen, setSearchOpen] = useState(false)
-  const searchInputRef = useRef<HTMLInputElement>(null)
-  const searchBarRef = useRef<HTMLDivElement>(null)
-  const searchBtnRef = useRef<HTMLButtonElement>(null)
   const lastTabPath = useRef<Record<string, string>>({})
   const isOnboarding = location.pathname === '/onboarding'
-
-  useEffect(() => { setInputRef(searchInputRef) }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Keep last visited path per tab so dock clicks restore previous position.
   useEffect(() => {
@@ -140,77 +118,10 @@ export default function Dock({ onAiClick, aiOpen }: DockProps) {
     }
   }, [navigate])
 
-  const toggleSearch = useCallback(() => {
-    setSearchOpen(prev => {
-      if (!prev) setTimeout(() => searchInputRef.current?.focus(), 50)
-      return !prev
-    })
-  }, [])
-
-  // Close search bar on click outside (but not when clicking the search button)
-  useEffect(() => {
-    if (!searchOpen) return
-    function handleClick(e: MouseEvent) {
-      const target = e.target as Node
-      if (
-        searchBarRef.current && !searchBarRef.current.contains(target) &&
-        searchBtnRef.current && !searchBtnRef.current.contains(target)
-      ) {
-        setSearchOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [searchOpen])
-
-  // Close search on Escape
-  useEffect(() => {
-    if (!searchOpen) return
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setSearchOpen(false)
-    }
-    document.addEventListener('keydown', handleKey)
-    return () => document.removeEventListener('keydown', handleKey)
-  }, [searchOpen])
-
-  // Global keyboard shortcut: "/" to focus search
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === '/' && document.activeElement?.tagName !== 'INPUT') {
-        e.preventDefault()
-        setSearchOpen(true)
-        setTimeout(() => searchInputRef.current?.focus(), 50)
-      }
-    }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [])
-
-  // Close search on navigation
-  useEffect(() => {
-    setSearchOpen(false)
-  }, [location.pathname])
-
   if (isOnboarding) return null
 
   return (
     <>
-      {/* Floating search bar above dock */}
-      <div
-        ref={searchBarRef}
-        className={`dock-search-floating${searchOpen ? ' open' : ''}`}
-      >
-        <SearchIcon />
-        <input
-          ref={searchInputRef}
-          className="dock-search-floating-input"
-          placeholder={getSearchPlaceholder(location.pathname)}
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-        />
-        <span className="dock-search-floating-kbd">/</span>
-      </div>
-
       <nav className={`floating-dock${aiOpen ? ' ai-hidden' : ''}`} role="navigation" aria-label="Main navigation">
         {/* TTS playback bar portals in here when active; collapses when empty */}
         <div id="tts-dock-slot" />
@@ -241,18 +152,6 @@ export default function Dock({ onAiClick, aiOpen }: DockProps) {
             title="Settings"
           >
             <SettingsIcon />
-          </button>
-
-          {/* Search icon */}
-          <button
-            ref={searchBtnRef}
-            type="button"
-            className={`dock-item${searchOpen ? ' dock-item-active' : ''}`}
-            onClick={toggleSearch}
-            aria-label="Search"
-            title="Search"
-          >
-            <SearchIcon />
           </button>
 
           {/* AI */}

@@ -63,7 +63,13 @@ export default function DiscoverSuggestions({
       }
     }
   } else {
-    positionStyle = { top: anchor.bottom + 4, left: anchor.left, width: anchor.width }
+    const searchBarEl = document.querySelector('.dtn-search-bar')
+    const searchBarRect = searchBarEl?.getBoundingClientRect()
+    if (searchBarRect) {
+      positionStyle = { top: searchBarRect.bottom + 6, left: searchBarRect.left, width: searchBarRect.width }
+    } else {
+      positionStyle = { top: anchor.bottom + 6, left: anchor.left, width: anchor.width }
+    }
   }
 
   return (

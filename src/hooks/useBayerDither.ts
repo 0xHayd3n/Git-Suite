@@ -232,12 +232,28 @@ function renderCamera(
   return out
 }
 
+// ── Scroll-pause hint ────────────────────────────────────────────
+// Call setDitherScrollHint(true) when scroll starts and false when it settles.
+// All active dither loops skip expensive rendering while scrolling, holding
+// the last frame, then resume automatically.
+let _scrolling = false
+let _scrollTimer = 0
+
+export function setDitherScrollHint(scrolling: boolean) {
+  _scrolling = scrolling
+  if (scrolling) {
+    clearTimeout(_scrollTimer)
+    _scrollTimer = window.setTimeout(() => { _scrolling = false }, 150)
+  }
+}
+
 // ── Hook ─────────────────────────────────────────────────────────
 export function useBayerDither(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
   avatarUrl: string | null | undefined,
   containerWidth: number,
   containerHeight: number,
+  staticFrame = false,
 ) {
   const animRef = useRef<number>(0)
   const frameRef = useRef(0)
@@ -273,9 +289,16 @@ export function useBayerDither(
       ([entry]) => {
         const wasHidden = !visibleRef.current
         visibleRef.current = entry.isIntersecting
-        // Restart the loop when the card scrolls back into view (it stopped itself when hidden)
-        if (entry.isIntersecting && wasHidden && !animRef.current && !cancelled && renderFnRef.fn) {
-          animRef.current = requestAnimationFrame(renderFnRef.fn)
+        if (!entry.isIntersecting) {
+          if (animRef.current) { cancelAnimationFrame(animRef.current); animRef.current = 0 }
+        } else if (wasHidden && !cancelled && renderFnRef.fn && !animRef.current) {
+          // Delay past any collapse/expand CSS transition (~260ms) before resuming
+          // expensive rendering, so the transition isn't competing with renderCamera.
+          setTimeout(() => {
+            if (!cancelled && renderFnRef.fn && visibleRef.current && !animRef.current) {
+              animRef.current = requestAnimationFrame(renderFnRef.fn)
+            }
+          }, 350)
         }
       },
       { threshold: 0 },
@@ -305,6 +328,13 @@ export function useBayerDither(
 
       const { tintColor } = extractDominantHue(srcData, img.width, img.height)
 
+      if (staticFrame) {
+        // Render a single frame at a fixed camera/time and stop — no animation loop.
+        const pixels = renderCamera(srcData, img.width, img.height, w, h, 0, 0, tintColor)
+        ctx.putImageData(new ImageData(pixels, w, h), 0, 0)
+        return
+      }
+
       let lastRenderTime = 0
       const FRAME_INTERVAL = 66 // ~15fps
 
@@ -313,6 +343,11 @@ export function useBayerDither(
         if (!visibleRef.current) {
           // Stop the loop — IntersectionObserver will restart it when the card is visible again
           animRef.current = 0
+          return
+        }
+        // Hold last frame during scroll — frees main thread for smooth input
+        if (_scrolling) {
+          animRef.current = requestAnimationFrame(render)
           return
         }
         // Throttle to ~15fps — dithered art doesn't need 60fps
@@ -365,7 +400,9 @@ export function useBayerDither(
       }
 
       renderFnRef.fn = render
-      render(performance.now())
+      if (visibleRef.current) {
+        animRef.current = requestAnimationFrame(render)
+      }
     }
 
     img.onerror = () => {

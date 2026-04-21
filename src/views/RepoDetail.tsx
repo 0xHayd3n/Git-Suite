@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef, useDeferredValue } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Brain, FileDown, GitBranch } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
@@ -954,6 +954,15 @@ const [skillRow, setSkillRow] = useState<SkillRow | null>(null)
     ? verification.getSignals(repo.id)
     : seedSignals
 
+  // Defer heavy README rendering so the page header/tabs render first
+  const isReadmeLoaded = readme !== 'loading' && readme !== 'error' && readme !== null
+  const rawReadmeContent = isReadmeLoaded
+    ? ((showOriginal || !readmeTranslated)
+        ? (cleanedReadme || (readme as string))
+        : (cleanedDisplayReadme || displayReadme))
+    : ''
+  const deferredReadmeContent = useDeferredValue(rawReadmeContent)
+
   // ── Article slot content ─────────────────────────────────────────
   const bylineNode = (
     <>
@@ -1287,7 +1296,7 @@ const [skillRow, setSkillRow] = useState<SkillRow | null>(null)
           <ArticleLayout
             navBar={inLibrary ? null : <NavBar />}
             byline={bylineNode}
-            dither={<DitherBackground avatarUrl={repo?.avatar_url} fallbackGradient={ditherGradient} />}
+            dither={<DitherBackground avatarUrl={repo?.avatar_url} fallbackGradient={ditherGradient} staticFrame />}
             title={titleNode}
             titleExtras={titleExtrasNode}
             description={repo?.description ? <>{repo.description}</> : undefined}
@@ -1307,7 +1316,7 @@ const [skillRow, setSkillRow] = useState<SkillRow | null>(null)
             body={
               <>
                 {activeTab === 'readme' && (
-                  readme === 'loading' ? (
+                  readme === 'loading' || (deferredReadmeContent === '' && rawReadmeContent !== '') ? (
                     <p className="repo-detail-placeholder">Loading README…</p>
                   ) : readme === 'error' ? (
                     <p className="repo-detail-placeholder">Failed to load README.</p>
@@ -1315,11 +1324,7 @@ const [skillRow, setSkillRow] = useState<SkillRow | null>(null)
                     <p className="repo-detail-placeholder">No README available.</p>
                   ) : (
                     <ReadmeRenderer
-                      content={
-                        showOriginal || !readmeTranslated
-                          ? (cleanedReadme || readme as string)
-                          : (cleanedDisplayReadme || displayReadme)
-                      }
+                      content={deferredReadmeContent || (readme as string)}
                       repoOwner={owner ?? ''}
                       repoName={name ?? ''}
                       branch={repo?.default_branch ?? 'main'}

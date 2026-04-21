@@ -42,7 +42,7 @@
 
 .library-sidebar-list {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: overlay;
   padding: 4px 0;
 }
 
@@ -179,7 +179,7 @@
 }
 
 .library-panel.mini .library-sidebar-list {
-  overflow-y: auto;
+  overflow-y: overlay;
   scrollbar-width: none;
   padding: 6px 0;
 }

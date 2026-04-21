@@ -275,6 +275,10 @@ function createWindow(): void {
       preload: path.join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      // Chromium throttles rAF, timers, and React's MessageChannel scheduler
+      // while the window is defocused; catch-up on refocus causes multi-second
+      // main-thread lag on pages with heavy React trees (RepoDetail + README).
+      backgroundThrottling: false,
     },
   })
 

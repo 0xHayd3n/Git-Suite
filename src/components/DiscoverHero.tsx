@@ -9,7 +9,7 @@ import type { RepoRow } from '../types/repo'
 
 interface DiscoverHeroProps {
   repo: RepoRow | null
-  onNavigate: (path: string) => void
+  onNavigate?: (path: string) => void
 }
 
 interface LayerProps {
@@ -72,7 +72,7 @@ function HeroLayer({ repo, animClass }: LayerProps) {
       )}
       <div className="discover-hero-content">
         <div className="discover-hero-label">Featured · Top Recommended</div>
-        <div className="discover-hero-title">{repo.owner} / {repo.name}</div>
+        <div className="discover-hero-title">{repo.name}</div>
         {desc && <div className="discover-hero-desc">{desc}</div>}
         <div className="discover-hero-meta">
           {repo.language && (
@@ -105,7 +105,7 @@ function HeroLayer({ repo, animClass }: LayerProps) {
   )
 }
 
-export default function DiscoverHero({ repo, onNavigate }: DiscoverHeroProps) {
+export default function DiscoverHero({ repo }: DiscoverHeroProps) {
   const [shownRepo, setShownRepo] = useState<RepoRow | null>(repo)
   const [outgoingRepo, setOutgoingRepo] = useState<RepoRow | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -120,20 +120,15 @@ export default function DiscoverHero({ repo, onNavigate }: DiscoverHeroProps) {
 
     timerRef.current = setTimeout(() => {
       setOutgoingRepo(null)
-    }, 450)
+    }, 520)
   }, [repo?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
 
   if (!shownRepo && !outgoingRepo) return null
 
-  const handleClick = () => {
-    const r = shownRepo ?? outgoingRepo!
-    onNavigate(`/repo/${r.owner}/${r.name}`)
-  }
-
   return (
-    <div className="discover-hero" onClick={handleClick}>
+    <div className="discover-hero">
       {outgoingRepo && (
         <HeroLayer key={outgoingRepo.id + '-out'} repo={outgoingRepo} animClass="discover-hero-layer--out" />
       )}

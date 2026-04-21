@@ -111,7 +111,7 @@
   top: 10px;
   bottom: 96px;
   width: 300px;
-  overflow-y: auto;
+  overflow-y: overlay;
   overflow-x: hidden;
   padding: 0 14px;
   background: var(--glass-bg);
@@ -323,7 +323,7 @@
   border-radius: var(--radius-sm);
   padding: 4px;
   max-height: 280px;
-  overflow-y: auto;
+  overflow-y: overlay;
   z-index: 100;
   display: flex;
   flex-direction: column;

@@ -11,18 +11,11 @@ export default function LayoutPopover({ prefs, onChange, onClose }: LayoutPopove
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose()
-    }
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose()
     }
-    document.addEventListener('mousedown', handleClick)
     document.addEventListener('keydown', handleKey)
-    return () => {
-      document.removeEventListener('mousedown', handleClick)
-      document.removeEventListener('keydown', handleKey)
-    }
+    return () => document.removeEventListener('keydown', handleKey)
   }, [onClose])
 
   const setColumns = (columns: number) => onChange({ ...prefs, columns })

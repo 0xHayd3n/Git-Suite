@@ -1,5 +1,6 @@
 // src/components/ArticleLayout.tsx
 import React, { useEffect, useRef, useState } from 'react'
+import { setDitherScrollHint } from '../hooks/useBayerDither'
 import './ArticleLayout.css'
 
 export type ArticleLayoutProps = {
@@ -52,16 +53,16 @@ export function ArticleLayout({
   const internalScrollRef = useRef<HTMLDivElement>(null)
   const resolvedScrollRef = scrollRef ?? internalScrollRef
   const topPanelRef = useRef<HTMLDivElement>(null)
-  const [topHeight, setTopHeight] = useState(0)
+  const [topHeight, setTopHeight] = useState(800)
   const [collapsed, setCollapsed] = useState(false)
   const lastY = useRef(0)
   const upAccum = useRef(0)
 
-  // Measure top panel height so the sticky translate matches exactly
+  // Measure top panel content height (scrollHeight so it's accurate even when max-height:0)
   useEffect(() => {
     const el = topPanelRef.current
     if (!el) return
-    const update = () => setTopHeight(el.offsetHeight)
+    const update = () => setTopHeight(el.scrollHeight)
     update()
     const ro = new ResizeObserver(update)
     ro.observe(el)
@@ -76,6 +77,7 @@ export function ArticleLayout({
     lastY.current = el.scrollTop
     let scrollRaf = 0
     const onScroll = () => {
+      setDitherScrollHint(true)
       if (scrollRaf) return
       scrollRaf = requestAnimationFrame(() => {
         scrollRaf = 0

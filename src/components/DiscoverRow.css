@@ -10,122 +10,294 @@
   margin-bottom: 10px;
 }
 
-.discover-row-title {
+.discover-row-title-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  padding: 0;
   font-size: 13px;
   font-weight: 600;
   color: var(--t2);
-}
-
-.discover-row-more {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--t2);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  padding: 3px 9px;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: color 0.15s;
+  -webkit-app-region: no-drag;
 }
 
-.discover-row-more:hover {
-  background: rgba(255, 255, 255, 0.12);
+.discover-row-title-btn:hover {
+  color: var(--t1);
 }
 
-.discover-row-cards {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding-bottom: 2px;
+.discover-row-title-chevron {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+  margin-top: -1px;
+  transition: transform 0.15s;
 }
 
-.discover-row-cards::-webkit-scrollbar {
-  display: none;
+.discover-row-title-btn:hover .discover-row-title-chevron {
+  transform: translateX(2px);
+}
+
+/* ── Carousel container ── */
+.discover-row-carousel {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+/* ── Card base ── */
+@keyframes carousel-enter {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: var(--target-opacity, 1); transform: translateX(0); }
 }
 
 .discover-row-card {
-  flex-shrink: 0;
-  width: 170px;
-  height: 104px;
+  position: absolute;
+  top: 0;
+  height: 100%;
   border-radius: 10px;
-  background: var(--bg2);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   overflow: hidden;
-  position: relative;
   cursor: pointer;
-  transition: border-color 0.15s, transform 0.12s;
   text-align: left;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.45s ease,
+              width 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.25s,
+              background 0.2s;
+  animation: carousel-enter 0.4s ease-out both;
 }
 
-.discover-row-card:hover,
-.discover-row-card.active {
-  border-color: rgba(255, 255, 255, 0.3);
-  transform: translateY(-1px);
+/* ── Position slots — width/left/opacity set via inline styles ── */
+.discover-row-card--prev {
+  animation: none;
+  pointer-events: none;
 }
 
-.discover-row-card-content {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 7px 10px;
-  background: linear-gradient(to top, rgba(10, 10, 14, 0.97) 0%, transparent 100%);
-  z-index: 1;
+.discover-row-card--p0 {
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15), 0 0 16px rgba(255, 255, 255, 0.12), 0 0 32px rgba(255, 255, 255, 0.06);
+}
+
+.discover-row-card:hover {
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  opacity: 1 !important;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 5;
+}
+
+/* ── Card inner zones ── */
+.discover-row-card-dither {
+  position: relative;
+  width: 100%;
+  height: 65px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.discover-row-card--starred {
+  border-color: rgba(245,158,11,0.35);
+  box-shadow: 0 0 12px rgba(245,158,11,0.15), inset 0 0 12px rgba(245,158,11,0.04);
+}
+
+.discover-row-card-info {
+  flex: 1;
+  width: 100%;
+  padding: 10px 10px 10px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: background 0.2s;
+}
+
+.discover-row-card:hover .discover-row-card-info {
+  background: rgba(0, 0, 0, 0.88);
+}
+
+.discover-row-card-top {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.discover-row-card-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.discover-row-card-top-text {
+  flex: 1;
+  min-width: 0;
 }
 
 .discover-row-card-name {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12.5px;
+  font-weight: 700;
   color: var(--t1);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-bottom: 2px;
 }
 
-.discover-row-card-meta {
-  font-size: 9px;
-  color: var(--t4);
-  margin-top: 1px;
+.discover-row-card-desc {
+  font-size: 10px;
+  color: var(--t3);
+  line-height: 1.35;
+  overflow: hidden;
+  overflow-wrap: break-word;
 }
 
-.discover-row-card-badges {
+.discover-row-card-grow {
+  flex: 1;
+  min-height: 4px;
+}
+
+.discover-row-card-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+  gap: 4px;
+}
+
+.discover-row-card-footer-left {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.discover-row-card-stats {
   display: flex;
   align-items: center;
-  gap: 4px;
-  margin-top: 5px;
+  gap: 6px;
+  font-size: 9px;
+  color: var(--t4);
   flex-wrap: nowrap;
   overflow: hidden;
 }
 
-.discover-row-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: rgba(0, 0, 0, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  padding: 2px 5px 2px 3px;
-  max-width: 72px;
-  overflow: hidden;
-}
-
-.discover-row-badge-label {
-  font-size: 9px;
-  font-weight: 600;
-  color: var(--t2);
+.discover-row-card-stat {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.discover-row-badge-type-icon {
+.discover-row-card-owner {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 14px;
+  gap: 3px;
+  max-width: 80px;
+}
+
+.discover-row-card-stats .discover-row-card-stat + .discover-row-card-stat::before {
+  content: '·';
+  margin-right: 6px;
+  color: var(--t5, rgba(255,255,255,0.25));
+}
+
+.discover-row-card-tags {
+  display: flex;
+  gap: 3px;
+  overflow: hidden;
+  flex-wrap: nowrap;
+}
+
+.discover-row-card-tag {
+  font-size: 8.5px;
+  padding: 1px 5px;
   border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--t3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60px;
+}
+
+.discover-row-card-footer-badges {
+  display: flex;
+  align-items: center;
+  gap: 2px;
   flex-shrink: 0;
+}
+
+/* ── Nav overlay zones ── */
+.discover-row-nav-zone {
+  position: absolute;
+  top: 0;
+  width: 56px;
+  height: 100%;
+  z-index: 10;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 32px;
+  font-weight: 300;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+.discover-row-nav-zone:hover {
+  opacity: 1;
+}
+
+.discover-row-nav-zone--prev {
+  left: 0;
+  border-radius: 10px 0 0 10px;
+}
+
+.discover-row-nav-zone--prev:hover {
+  background: radial-gradient(ellipse at left center, var(--bg3) 0%, rgba(34, 34, 38, 0) 75%);
+}
+
+.discover-row-nav-zone--next {
+  right: 0;
+  border-radius: 0 10px 10px 0;
+}
+
+.discover-row-nav-zone--next:hover {
+  background: radial-gradient(ellipse at right center, var(--bg3) 0%, rgba(34, 34, 38, 0) 75%);
+}
+
+.discover-row-nav-zone > span {
+  transform: translateY(-2px);
+}
+
+.discover-row-skeleton-title {
+  display: block;
+  width: 160px;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--bg3);
+  animation: shimmer 1.4s infinite linear;
+}
+
+.discover-row-skeleton-carousel {
+  background: var(--bg2);
+  border-radius: 10px;
+  animation: shimmer 1.4s infinite linear;
 }
