@@ -42,6 +42,7 @@ import { sanitiseRef } from './sanitiseRef'
 import type { CollectionRow, CollectionRepoRow } from '../src/types/repo'
 import { classifyRepoBucket } from '../src/lib/classifyRepoType'
 import { cascadeRepoId } from './db-helpers'
+import { LRUCache } from './lruCache'
 
 // ── Community collections seed data ─────────────────────────────
 export const COMMUNITY_COLLECTIONS = [
@@ -465,7 +466,7 @@ ipcMain.handle('github:disconnect', async () => {
 
 // In-memory cache for browse-tab search results (Popular / Forked / Rising).
 // Keyed by query+sort+order+page.  Survives tab switches within a session.
-const searchReposCache = new Map<string, { rows: unknown[]; ts: number }>()
+const searchReposCache = new LRUCache<string, { rows: unknown[]; ts: number }>(20)
 const SEARCH_REPOS_TTL = 10 * 60 * 1000 // 10 minutes
 
 ipcMain.handle('github:searchRepos', async (_event, query: string, sort?: string, order?: string, page?: number) => {
@@ -712,9 +713,9 @@ ipcMain.handle('github:getRelatedRepos', async (_event, owner: string, name: str
 })
 
 // In-memory caches for Trees/Blobs API (SHA-keyed = immutable, never stale)
-const treeCache = new Map<string, import('./github').TreeEntry[]>()
-const blobCache = new Map<string, import('./github').BlobResult>()
-const branchCache = new Map<string, { rootTreeSha: string; timestamp: number }>()
+const treeCache = new LRUCache<string, import('./github').TreeEntry[]>(100)
+const blobCache = new LRUCache<string, import('./github').BlobResult>(50)
+const branchCache = new LRUCache<string, { rootTreeSha: string; timestamp: number }>(50)
 const BRANCH_TTL = 5 * 60 * 1000 // 5 minutes
 
 ipcMain.handle('github:getBranch', async (_event, owner: string, name: string, branch: string) => {
