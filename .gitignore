@@ -1,0 +1,14 @@
+node_modules/
+out/
+dist/
+dist-electron/
+*.db
+*.db-shm
+*.db-wal
+.DS_Store
+
+# Git worktrees
+.worktrees/
+
+# Git worktrees
+.claude/worktrees/

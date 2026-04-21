@@ -1,0 +1,91 @@
+.discover-row {
+  flex-shrink: 0;
+  padding: 10px 20px 14px;
+}
+
+.discover-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.discover-row-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--t2);
+}
+
+.discover-row-more {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--t2);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 3px 9px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.discover-row-more:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.discover-row-cards {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.discover-row-cards::-webkit-scrollbar {
+  display: none;
+}
+
+.discover-row-card {
+  flex-shrink: 0;
+  width: 170px;
+  height: 104px;
+  border-radius: 10px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.12s;
+  text-align: left;
+  padding: 0;
+}
+
+.discover-row-card:hover,
+.discover-row-card.active {
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.discover-row-card-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 7px 10px;
+  background: linear-gradient(to top, rgba(10, 10, 14, 0.97) 0%, transparent 100%);
+  z-index: 1;
+}
+
+.discover-row-card-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--t1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.discover-row-card-meta {
+  font-size: 9px;
+  color: var(--t4);
+  margin-top: 1px;
+}

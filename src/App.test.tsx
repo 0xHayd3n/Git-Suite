@@ -1,0 +1,105 @@
+import { render, screen, waitFor } from '@testing-library/react'
+import { vi, describe, it, expect, beforeEach } from 'vitest'
+import App from './App'
+
+function makeApi(overrides: Partial<typeof window.api> = {}) {
+  return {
+    windowControls: { minimize: vi.fn(), maximize: vi.fn(), close: vi.fn() },
+    github: {
+      connect: vi.fn(), exchange: vi.fn(),
+      getUser: vi.fn(), getStarred: vi.fn().mockResolvedValue(undefined),
+      disconnect: vi.fn(), onCallback: vi.fn(), offCallback: vi.fn(),
+      getSavedRepos: vi.fn().mockResolvedValue([]),
+      saveRepo: vi.fn().mockResolvedValue(undefined),
+      searchRepos: vi.fn().mockResolvedValue([]),
+      getRepo: vi.fn().mockResolvedValue(null),
+      getReadme: vi.fn().mockResolvedValue(null),
+      getReleases: vi.fn().mockResolvedValue([]),
+      getRelatedRepos: vi.fn().mockResolvedValue([]),
+    },
+    settings: {
+      get: vi.fn().mockResolvedValue(null),
+      set: vi.fn().mockResolvedValue(undefined),
+      getApiKey: vi.fn().mockResolvedValue(null),
+      setApiKey: vi.fn().mockResolvedValue(undefined),
+    },
+    skill: {
+      generate: vi.fn().mockResolvedValue({ content: '', version: 'unknown' }),
+      get: vi.fn().mockResolvedValue(null),
+      delete: vi.fn().mockResolvedValue(undefined),
+      detectClaudeCode: vi.fn().mockResolvedValue(false),
+    },
+    mcp: {
+      getStatus: vi.fn().mockResolvedValue({ configured: false, configPath: null }),
+    },
+    search: {
+      raw:            vi.fn().mockResolvedValue([]),
+      tagged:         vi.fn().mockResolvedValue([]),
+      extractTags:    vi.fn().mockResolvedValue([]),
+      getRelatedTags: vi.fn().mockResolvedValue([]),
+      getTopics:      vi.fn().mockResolvedValue([]),
+    },
+    profile: {
+      getUser:      vi.fn().mockResolvedValue(null),
+      getUserRepos: vi.fn().mockResolvedValue([]),
+      getStarred:   vi.fn().mockResolvedValue([]),
+      getFollowing: vi.fn().mockResolvedValue([]),
+      getFollowers: vi.fn().mockResolvedValue([]),
+      isFollowing:  vi.fn().mockResolvedValue(false),
+      follow:       vi.fn().mockResolvedValue(undefined),
+      unfollow:     vi.fn().mockResolvedValue(undefined),
+    },
+    verification: {
+      prioritise:  vi.fn().mockResolvedValue(undefined),
+      getScore:    vi.fn().mockResolvedValue(null),
+      onUpdated:   vi.fn(),
+      offUpdated:  vi.fn(),
+    },
+    ...overrides,
+  }
+}
+
+beforeEach(() => {
+  Object.defineProperty(window, 'api', { value: makeApi(), writable: true, configurable: true })
+})
+
+describe('App onboarding gate', () => {
+  it('renders nothing while checking settings', () => {
+    // settings.get never resolves → stays in checking state
+    window.api.settings.get = vi.fn().mockReturnValue(new Promise(() => {}))
+    const { container } = render(<App />)
+    expect(container).toBeEmptyDOMElement()
+  })
+
+  it('shows onboarding when onboarding_complete is not set', async () => {
+    window.api.settings.get = vi.fn().mockResolvedValue(null)
+    render(<App />)
+    // Sidebar is always rendered; Onboarding view appears in main
+    await waitFor(() => {
+      expect(screen.getByTestId('onboarding-screen-0')).toBeInTheDocument()
+    })
+  })
+
+  it('shows main app when onboarding_complete is "1"', async () => {
+    window.api.settings.get = vi.fn().mockResolvedValue('1')
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.queryByTestId('onboarding-screen-0')).not.toBeInTheDocument()
+    })
+  })
+
+  it('fires background starred sync when onboarding complete', async () => {
+    window.api.settings.get = vi.fn().mockResolvedValue('1')
+    render(<App />)
+    await waitFor(() => {
+      expect(window.api.github.getStarred).toHaveBeenCalled()
+    })
+  })
+
+  it('does not fire sync when onboarding not complete', async () => {
+    window.api.settings.get = vi.fn().mockResolvedValue(null)
+    render(<App />)
+    await waitFor(() => screen.getByTestId('onboarding-screen-0'))
+    expect(window.api.github.getStarred).not.toHaveBeenCalled()
+  })
+})

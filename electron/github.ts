@@ -1,0 +1,413 @@
+export const CLIENT_ID = 'Ov23liJxy53KWDh27mQx'
+const CLIENT_SECRET = '<redacted>'
+const BASE = 'https://api.github.com'
+
+export const OAUTH_URL =
+  `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&scope=read:user,repo&redirect_uri=gitsuite://oauth/callback`
+
+// Accept null — omit Authorization header for unauthenticated calls (60 req/hr)
+export function githubHeaders(token: string | null): Record<string, string> {
+  const headers: Record<string, string> = { Accept: 'application/vnd.github+json' }
+  if (token) headers.Authorization = `Bearer ${token}`
+  return headers
+}
+
+export interface GitHubUser {
+  login: string
+  avatar_url: string
+  public_repos: number
+}
+
+export interface GitHubRepo {
+  id: number
+  full_name: string
+  name: string
+  owner: { login: string; avatar_url: string }
+  description: string | null
+  language: string | null
+  topics: string[]
+  stargazers_count: number
+  forks_count: number
+  watchers_count: number
+  open_issues_count: number
+  size: number
+  license: { spdx_id: string } | null
+  homepage: string | null
+  updated_at: string
+  pushed_at: string
+  created_at: string
+  default_branch: string
+}
+
+export interface GitHubReleaseAsset {
+  name: string
+  size: number
+  browser_download_url: string
+  download_count: number
+}
+
+export interface GitHubRelease {
+  tag_name: string
+  name: string | null
+  published_at: string
+  body: string | null
+  assets: GitHubReleaseAsset[]
+}
+
+export interface GitHubStarredRepo {
+  starred_at: string
+  repo: GitHubRepo
+}
+
+export interface TreeEntry {
+  path: string
+  mode: string
+  type: 'blob' | 'tree'
+  sha: string
+  size?: number
+}
+
+export interface BlobResult {
+  content: string
+  rawBase64: string
+  size: number
+}
+
+export async function getUser(token: string): Promise<GitHubUser> {
+  const res = await fetch(`${BASE}/user`, { headers: githubHeaders(token) })
+  if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+  return res.json() as Promise<GitHubUser>
+}
+
+export async function getStarred(token: string): Promise<GitHubStarredRepo[]> {
+  const results: GitHubStarredRepo[] = []
+  let url: string | null = `${BASE}/user/starred?per_page=100`
+  let pagesFetched = 0
+
+  // Build headers manually — githubHeaders() uses application/vnd.github+json
+  // but the star+json variant is required to receive the starred_at timestamp.
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github.star+json',
+    Authorization: `Bearer ${token}`,
+  }
+
+  while (url && pagesFetched < 10) {
+    const res: Response = await fetch(url, { headers })
+    if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+    const data = (await res.json()) as GitHubStarredRepo[]
+    results.push(...data)
+    pagesFetched++
+    const link: string = res.headers.get('Link') ?? ''
+    const match: RegExpMatchArray | null = link.match(/<([^>]+)>;\s*rel="next"/)
+    url = match ? match[1] : null
+  }
+
+  return results
+}
+
+export async function getRepo(token: string | null, owner: string, name: string): Promise<GitHubRepo> {
+  const res = await fetch(`${BASE}/repos/${owner}/${name}`, { headers: githubHeaders(token) })
+  if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+  return res.json() as Promise<GitHubRepo>
+}
+
+export async function searchRepos(
+  token: string | null,
+  query: string,
+  perPage = 100,
+  sort = 'stars',
+  order = 'desc',
+  page = 1,
+): Promise<GitHubRepo[]> {
+  const url = `${BASE}/search/repositories?q=${encodeURIComponent(query)}&sort=${sort}&order=${order}&per_page=${perPage}&page=${page}`
+  const res = await fetch(url, { headers: githubHeaders(token) })
+  if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+  const data = (await res.json()) as { items: GitHubRepo[] }
+  return data.items
+}
+
+export async function getReadme(token: string | null, owner: string, name: string, ref?: string): Promise<string | null> {
+  const url = ref
+    ? `${BASE}/repos/${owner}/${name}/readme?ref=${encodeURIComponent(ref)}`
+    : `${BASE}/repos/${owner}/${name}/readme`
+  const res = await fetch(url, { headers: githubHeaders(token) })
+  if (res.status === 404) return null
+  if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+  const data = (await res.json()) as { content: string; encoding: string }
+  return Buffer.from(data.content, 'base64').toString('utf-8')
+}
+
+export async function getDefaultBranch(
+  token: string | null,
+  owner: string,
+  name: string,
+): Promise<string> {
+  const repo = await getRepo(token, owner, name)
+  return repo.default_branch ?? 'main'
+}
+
+export async function getReleases(token: string | null, owner: string, name: string): Promise<GitHubRelease[]> {
+  const res = await fetch(`${BASE}/repos/${owner}/${name}/releases?per_page=10`, { headers: githubHeaders(token) })
+  if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+  return res.json() as Promise<GitHubRelease[]>
+}
+
+export async function starRepo(token: string, owner: string, name: string): Promise<void> {
+  const res = await fetch(`${BASE}/user/starred/${owner}/${name}`, {
+    method: 'PUT',
+    headers: { ...githubHeaders(token), 'Content-Length': '0' },
+  })
+  if (!res.ok && res.status !== 204) throw new Error(`GitHub API error: ${res.status}`)
+}
+
+export async function unstarRepo(token: string, owner: string, name: string): Promise<void> {
+  const res = await fetch(`${BASE}/user/starred/${owner}/${name}`, {
+    method: 'DELETE',
+    headers: githubHeaders(token),
+  })
+  if (!res.ok && res.status !== 204) throw new Error(`GitHub API error: ${res.status}`)
+}
+
+export async function isRepoStarred(token: string | null, owner: string, name: string): Promise<boolean> {
+  if (!token) return false
+  const res = await fetch(`${BASE}/user/starred/${owner}/${name}`, {
+    headers: githubHeaders(token),
+  })
+  return res.status === 204
+}
+
+export async function exchangeCode(code: string): Promise<string> {
+  const res = await fetch('https://github.com/login/oauth/access_token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ client_id: CLIENT_ID, client_secret: CLIENT_SECRET, code }),
+  })
+  if (!res.ok) throw new Error(`OAuth exchange failed: ${res.status}`)
+  const data = (await res.json()) as { access_token?: string; error_description?: string }
+  if (!data.access_token) {
+    throw new Error(data.error_description ?? 'OAuth exchange failed')
+  }
+  return data.access_token
+}
+
+export async function fetchGitHubTopics(token: string): Promise<string[]> {
+  const topics: string[] = []
+  let page = 1
+
+  while (true) {
+    const res = await fetch(
+      `${BASE}/search/topics?q=is:featured&per_page=100&page=${page}`,
+      {
+        headers: {
+          ...githubHeaders(token),
+          Accept: 'application/vnd.github.mercy-preview+json',
+        },
+      }
+    )
+    if (!res.ok) break
+    const data = (await res.json()) as { items?: { name: string }[] }
+    if (!data.items?.length) break
+    topics.push(...data.items.map((t) => t.name))
+    if (data.items.length < 100) break
+    page++
+  }
+
+  return topics
+}
+
+// ── Profile API ───────────────────────────────────────────────────
+
+export async function getProfileUser(token: string, username: string): Promise<any> {
+  const res = await fetch(`${BASE}/users/${username}`, { headers: githubHeaders(token) })
+  if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+  return res.json() as Promise<any>
+}
+
+export async function getUserRepos(token: string, username: string, sort = 'stars'): Promise<any[]> {
+  const res = await fetch(`${BASE}/users/${username}/repos?sort=${sort}&per_page=30&type=public`, {
+    headers: githubHeaders(token),
+  })
+  if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+  return res.json() as Promise<any[]>
+}
+
+export async function getUserStarred(token: string, username: string): Promise<any[]> {
+  const res = await fetch(`${BASE}/users/${username}/starred?per_page=30`, {
+    headers: githubHeaders(token),
+  })
+  if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+  return res.json() as Promise<any[]>
+}
+
+export async function getUserFollowing(token: string, username: string): Promise<any[]> {
+  const res = await fetch(`${BASE}/users/${username}/following?per_page=50`, {
+    headers: githubHeaders(token),
+  })
+  if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+  return res.json() as Promise<any[]>
+}
+
+export async function getUserFollowers(token: string, username: string): Promise<any[]> {
+  const res = await fetch(`${BASE}/users/${username}/followers?per_page=50`, {
+    headers: githubHeaders(token),
+  })
+  if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+  return res.json() as Promise<any[]>
+}
+
+export async function checkIsFollowing(token: string, username: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${BASE}/user/following/${username}`, {
+      headers: githubHeaders(token),
+    })
+    return res.status === 204
+  } catch {
+    return false
+  }
+}
+
+export async function followUser(token: string, username: string): Promise<void> {
+  const res = await fetch(`${BASE}/user/following/${username}`, {
+    method: 'PUT',
+    headers: githubHeaders(token),
+  })
+  if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+}
+
+export async function unfollowUser(token: string, username: string): Promise<void> {
+  const res = await fetch(`${BASE}/user/following/${username}`, {
+    method: 'DELETE',
+    headers: githubHeaders(token),
+  })
+  if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+}
+
+/**
+ * Returns true if the given login is a GitHub organisation with verified domain ownership.
+ * Returns false for individual users, non-existent logins, or any API error.
+ */
+export async function getOrgVerified(token: string | null, orgLogin: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${BASE}/orgs/${orgLogin}`, { headers: githubHeaders(token) })
+    if (!res.ok) return false
+    const data = await res.json() as Record<string, unknown>
+    return data.is_verified === true
+  } catch {
+    return false
+  }
+}
+
+export async function getRepoTree(
+  token: string | null,
+  owner: string,
+  name: string,
+  branch: string,
+): Promise<{ path: string; type: string; sha: string }[]> {
+  const res = await fetch(
+    `${BASE}/repos/${owner}/${name}/git/trees/${branch}?recursive=1`,
+    { headers: githubHeaders(token) },
+  )
+  if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+  const data = (await res.json()) as {
+    tree: { path: string; type: string; sha: string }[]
+    truncated: boolean
+  }
+  if (data.truncated) throw new Error('Repo tree too large (GitHub truncated the response)')
+  return data.tree
+}
+
+export async function getFileContent(
+  token: string | null,
+  owner: string,
+  name: string,
+  path: string,
+): Promise<string | null> {
+  // Do NOT encodeURIComponent(path) — that encodes '/' as '%2F' which causes a 404.
+  // Path segments (owner, name) are already safe; path is a tree path like src/components/Button.tsx.
+  const res = await fetch(
+    `${BASE}/repos/${owner}/${name}/contents/${path}`,
+    { headers: githubHeaders(token) },
+  )
+  if (res.status === 404) return null
+  if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+  const data = (await res.json()) as { content?: string; encoding?: string }
+  if (!data.content || data.encoding !== 'base64') return null
+  return Buffer.from(data.content.replace(/\n/g, ''), 'base64').toString('utf-8')
+}
+
+export async function getBranch(
+  token: string | null,
+  owner: string,
+  name: string,
+  branch: string,
+): Promise<{ commitSha: string; rootTreeSha: string }> {
+  const res = await fetch(
+    `${BASE}/repos/${owner}/${name}/branches/${encodeURIComponent(branch)}`,
+    { headers: githubHeaders(token) },
+  )
+  if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+  const data = (await res.json()) as {
+    commit: { sha: string; commit: { tree: { sha: string } } }
+  }
+  return { commitSha: data.commit.sha, rootTreeSha: data.commit.commit.tree.sha }
+}
+
+export async function getTreeBySha(
+  token: string | null,
+  owner: string,
+  name: string,
+  treeSha: string,
+): Promise<TreeEntry[]> {
+  const res = await fetch(
+    `${BASE}/repos/${owner}/${name}/git/trees/${treeSha}`,
+    { headers: githubHeaders(token) },
+  )
+  if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+  const data = (await res.json()) as { sha: string; tree: TreeEntry[]; truncated: boolean }
+  return data.tree
+}
+
+/** Fetch raw file bytes via api.github.com (same domain as all other API calls).
+ *  Uses the Contents API with raw media type — returns binary, no base64. */
+export async function getRawFileBytes(
+  token: string | null,
+  owner: string,
+  name: string,
+  branch: string,
+  path: string,
+): Promise<Buffer> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 30_000)
+  try {
+    const headers: Record<string, string> = {
+      Accept: 'application/vnd.github.raw+json',
+    }
+    if (token) headers.Authorization = `Bearer ${token}`
+    const res = await fetch(
+      `${BASE}/repos/${owner}/${name}/contents/${path}?ref=${branch}`,
+      { headers, signal: controller.signal },
+    )
+    if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+    const buf = await res.arrayBuffer()
+    return Buffer.from(buf)
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+export async function getBlobBySha(
+  token: string | null,
+  owner: string,
+  name: string,
+  blobSha: string,
+): Promise<BlobResult> {
+  const res = await fetch(
+    `${BASE}/repos/${owner}/${name}/git/blobs/${blobSha}`,
+    { headers: githubHeaders(token) },
+  )
+  if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+  const data = (await res.json()) as { sha: string; content: string; encoding: string; size: number }
+  const raw = data.content.replace(/\s/g, '')
+  const content = Buffer.from(raw, 'base64').toString('utf-8')
+  return { content, rawBase64: raw, size: data.size }
+}

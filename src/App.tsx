@@ -1,0 +1,110 @@
+import { useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
+import { MemoryRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
+import { useTooltip } from './hooks/useTooltip'
+import { SavedReposProvider } from './contexts/SavedRepos'
+import { ProfileOverlayProvider, useProfileOverlay } from './contexts/ProfileOverlay'
+import { SearchProvider } from './contexts/Search'
+import { ToastProvider } from './contexts/Toast'
+import { RepoNavProvider } from './contexts/RepoNav'
+import { AppearanceProvider, useAppearance } from './contexts/Appearance'
+import ProfileOverlay from './components/ProfileOverlay'
+import Titlebar from './components/Titlebar'
+import Dock from './components/Dock'
+import AiDialogue from './components/AiDialogue'
+import Discover from './views/Discover'
+import Library from './views/Library'
+import Starred from './views/Starred'
+import Profile from './views/Profile'
+import RepoDetail from './views/RepoDetail'
+import Onboarding from './views/Onboarding'
+import Settings from './views/Settings'
+import Create from './views/Create'
+
+function ProfileOverlayPortal() {
+  const { profileState } = useProfileOverlay()
+  if (!profileState.isOpen) return null
+  return <ProfileOverlay />
+}
+
+function AppContent() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { background } = useAppearance()
+  const [isChecking, setIsChecking] = useState(true)
+  const [aiOpen, setAiOpen] = useState(false)
+  const { text: tooltipText, nodeRef: tooltipRef } = useTooltip()
+  const isDiscoverPage = location.pathname === '/' || location.pathname.startsWith('/discover') || location.pathname.startsWith('/library') || location.pathname.startsWith('/repo/')
+
+  const toggleAi = useCallback(() => setAiOpen(o => !o), [])
+  const closeAi = useCallback(() => setAiOpen(false), [])
+
+  useEffect(() => {
+    window.api.settings.get('onboarding_complete').then((val) => {
+      if (val !== '1') {
+        navigate('/onboarding')
+      } else {
+        window.api.github.getStarred().catch(() => {})
+      }
+      setIsChecking(false)
+    }).catch(() => {
+      navigate('/onboarding')
+      setIsChecking(false)
+    })
+  }, [navigate])
+
+  if (isChecking) return null
+
+  return (
+    <div className={`app-shell${background === 'dither' ? ' app-shell--dither' : ''}`}>
+      <div className={`app-main-column${isDiscoverPage ? ' titlebar-overlay' : ''}`}>
+        <Titlebar />
+        <main className={`main-content${aiOpen ? ' ai-dialogue-tilt' : ''}`}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/library" replace />} />
+            <Route path="/discover" element={<Discover />} />
+            <Route path="/library/*" element={<Library />} />
+            <Route path="/collections" element={<Navigate to="/library" replace />} />
+            <Route path="/create" element={<Create />} />
+            <Route path="/create/:sessionId" element={<Create />} />
+            <Route path="/starred" element={<Starred />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/repo/:owner/:name" element={<RepoDetail />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
+          <ProfileOverlayPortal />
+        </main>
+      </div>
+      <Dock onAiClick={toggleAi} aiOpen={aiOpen} />
+      <AiDialogue open={aiOpen} onClose={closeAi} />
+      {createPortal(
+        <div ref={tooltipRef} className="app-tooltip" style={{ opacity: tooltipText ? 1 : 0 }}>{tooltipText}</div>,
+        document.body,
+      )}
+    </div>
+  )
+}
+
+export default function App() {
+  return (
+    <MemoryRouter
+      initialEntries={['/discover']}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <AppearanceProvider>
+        <ProfileOverlayProvider>
+          <SavedReposProvider>
+            <SearchProvider>
+              <ToastProvider>
+                <RepoNavProvider>
+                  <AppContent />
+                </RepoNavProvider>
+              </ToastProvider>
+            </SearchProvider>
+          </SavedReposProvider>
+        </ProfileOverlayProvider>
+      </AppearanceProvider>
+    </MemoryRouter>
+  )
+}

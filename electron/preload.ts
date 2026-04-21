@@ -1,0 +1,310 @@
+import { contextBridge, ipcRenderer } from 'electron'
+
+const callbackWrappers = new Map<Function, (...args: unknown[]) => void>()
+
+contextBridge.exposeInMainWorld('api', {
+  openExternal: (url: string) => ipcRenderer.invoke('shell:openExternal', url),
+
+  windowControls: {
+    minimize: () => ipcRenderer.send('window:minimize'),
+    maximize: () => ipcRenderer.send('window:maximize'),
+    close:    () => ipcRenderer.send('window:close'),
+  },
+
+  github: {
+    connect:       () => ipcRenderer.invoke('github:connect'),
+    exchange:      (code: string) => ipcRenderer.invoke('github:exchange', code),
+    getUser:       () => ipcRenderer.invoke('github:getUser'),
+    getStarred:    (force?: boolean) => ipcRenderer.invoke('github:getStarred', force),
+    disconnect:    () => ipcRenderer.invoke('github:disconnect'),
+    searchRepos:   (query: string, sort?: string, order?: string, page?: number) => ipcRenderer.invoke('github:searchRepos', query, sort, order, page),
+    getRepo:       (owner: string, name: string) => ipcRenderer.invoke('github:getRepo', owner, name),
+    getReadme:        (owner: string, name: string) => ipcRenderer.invoke('github:getReadme', owner, name),
+    getFileContent:   (owner: string, name: string, path: string) => ipcRenderer.invoke('github:getFileContent', owner, name, path),
+    getReleases:   (owner: string, name: string) => ipcRenderer.invoke('github:getReleases', owner, name),
+    saveRepo:        (owner: string, name: string) => ipcRenderer.invoke('github:saveRepo', owner, name),
+    getSavedRepos:   () => ipcRenderer.invoke('github:getSavedRepos'),
+    getRelatedRepos: (owner: string, name: string, topicsJson: string) =>
+      ipcRenderer.invoke('github:getRelatedRepos', owner, name, topicsJson),
+    starRepo:   (owner: string, name: string) => ipcRenderer.invoke('github:starRepo', owner, name),
+    unstarRepo: (owner: string, name: string) => ipcRenderer.invoke('github:unstarRepo', owner, name),
+    isStarred:  (owner: string, name: string) => ipcRenderer.invoke('github:isStarred', owner, name),
+    getRecommended: () => ipcRenderer.invoke('github:getRecommended'),
+    getBranch:  (owner: string, name: string, branch: string) => ipcRenderer.invoke('github:getBranch', owner, name, branch),
+    getTree:    (owner: string, name: string, treeSha: string) => ipcRenderer.invoke('github:getTree', owner, name, treeSha),
+    getBlob:    (owner: string, name: string, blobSha: string) => ipcRenderer.invoke('github:getBlob', owner, name, blobSha),
+    getRawFile: (owner: string, name: string, branch: string, path: string) => ipcRenderer.invoke('github:getRawFile', owner, name, branch, path),
+    onCallback:    (cb: (code: string) => void) => {
+      const wrapper = (...args: unknown[]) => {
+        const code = args[1] as string
+        cb(code)
+      }
+      callbackWrappers.set(cb, wrapper)
+      ipcRenderer.on('oauth:callback', wrapper)
+    },
+    offCallback: (cb: (code: string) => void) => {
+      const wrapper = callbackWrappers.get(cb)
+      if (wrapper) {
+        ipcRenderer.removeListener('oauth:callback', wrapper)
+        callbackWrappers.delete(cb)
+      }
+    },
+  },
+
+  settings: {
+    get: (key: string) => ipcRenderer.invoke('settings:get', key),
+    set: (key: string, value: string) => ipcRenderer.invoke('settings:set', key, value),
+    getApiKey: () => ipcRenderer.invoke('settings:getApiKey'),
+    setApiKey: (key: string) => ipcRenderer.invoke('settings:setApiKey', key),
+    getPreferredLanguage: () => ipcRenderer.invoke('settings:getPreferredLanguage'),
+    setPreferredLanguage: (lang: string) => ipcRenderer.invoke('settings:setPreferredLanguage', lang),
+  },
+
+  skill: {
+    generate: (owner: string, name: string, options?: { flavour?: 'library' | 'codebase' | 'domain', enabledComponents?: string[], enabledTools?: string[], target?: 'master' | 'components' | 'all', ref?: string }) =>
+      ipcRenderer.invoke('skill:generate', owner, name, options),
+    get: (owner: string, name: string) => ipcRenderer.invoke('skill:get', owner, name),
+    delete: (owner: string, name: string) => ipcRenderer.invoke('skill:delete', owner, name),
+    toggle: (owner: string, name: string, active: number) =>
+      ipcRenderer.invoke('skill:toggle', owner, name, active),
+    setEnabledComponents: (owner: string, name: string, enabled: string[]) =>
+      ipcRenderer.invoke('skill:setEnabledComponents', owner, name, enabled),
+    setEnabledTools: (owner: string, name: string, enabled: string[]) =>
+      ipcRenderer.invoke('skill:setEnabledTools', owner, name, enabled),
+    detectClaudeCode: () => ipcRenderer.invoke('skill:detectClaudeCode'),
+    setup: () => ipcRenderer.invoke('skill:setup'),
+    onSetupProgress: (cb: (event: { phase: string; message: string }) => void) => {
+      const wrapper = (_: unknown, data: { phase: string; message: string }) => cb(data)
+      callbackWrappers.set(cb, wrapper)
+      ipcRenderer.on('skill:setup-progress', wrapper)
+    },
+    offSetupProgress: (cb: (event: { phase: string; message: string }) => void) => {
+      const wrapper = callbackWrappers.get(cb)
+      if (wrapper) {
+        ipcRenderer.removeListener('skill:setup-progress', wrapper)
+        callbackWrappers.delete(cb)
+      }
+    },
+    checkAuthStatus: () => ipcRenderer.invoke('skill:checkAuthStatus'),
+    loginClaude: () => ipcRenderer.invoke('skill:loginClaude'),
+    loginSubmitCode: (code: string) => ipcRenderer.invoke('skill:loginSubmitCode', code) as Promise<{ ok: boolean }>,
+    onLoginProgress: (cb: (event: { message: string; isError?: boolean; done?: boolean }) => void) => {
+      const wrapper = (_: unknown, data: { message: string; isError?: boolean; done?: boolean }) => cb(data)
+      callbackWrappers.set(cb, wrapper)
+      ipcRenderer.on('skill:login-progress', wrapper)
+    },
+    offLoginProgress: (cb: (event: { message: string; isError?: boolean; done?: boolean }) => void) => {
+      const wrapper = callbackWrappers.get(cb)
+      if (wrapper) {
+        ipcRenderer.removeListener('skill:login-progress', wrapper)
+        callbackWrappers.delete(cb)
+      }
+    },
+    getSubSkill: (owner: string, name: string, skillType: string) =>
+      ipcRenderer.invoke('skill:getSubSkill', owner, name, skillType),
+    getVersionedInstalls: (owner: string, name: string): Promise<string[]> =>
+      ipcRenderer.invoke('skill:get-versioned-installs', owner, name),
+  },
+
+  library: {
+    getAll: () => ipcRenderer.invoke('library:getAll'),
+    getCollections: (repoId: string) => ipcRenderer.invoke('library:getCollections', repoId),
+  },
+
+  collection: {
+    getAll:    () => ipcRenderer.invoke('collection:getAll'),
+    getDetail: (id: string) => ipcRenderer.invoke('collection:getDetail', id),
+    create:    (name: string, description: string, repoIds: string[]) =>
+      ipcRenderer.invoke('collection:create', name, description, repoIds),
+    delete:    (id: string) => ipcRenderer.invoke('collection:delete', id),
+    toggle:    (id: string, active: number) => ipcRenderer.invoke('collection:toggle', id, active),
+  },
+
+  starred: {
+    getAll: () => ipcRenderer.invoke('starred:getAll'),
+  },
+
+  mcp: {
+    getStatus:        () => ipcRenderer.invoke('mcp:getStatus'),
+    autoConfigure:    () => ipcRenderer.invoke('mcp:autoConfigure'),
+    getConfigSnippet: () => ipcRenderer.invoke('mcp:getConfigSnippet'),
+    testConnection:   () => ipcRenderer.invoke('mcp:testConnection'),
+    scanTools:        (owner: string, name: string) =>
+      ipcRenderer.invoke('mcp:scanTools', owner, name),
+  },
+
+  search: {
+    raw:            (query: string, language?: string, filters?: import('./smart-search').SearchFilters, page?: number) =>
+      ipcRenderer.invoke('search:raw', query, language, filters, page),
+    tagged:         (tags: string[], originalQuery: string, language?: string, filters?: import('./smart-search').SearchFilters, page?: number) =>
+      ipcRenderer.invoke('search:tagged', tags, originalQuery, language, filters, page),
+    extractTags:    (query: string) =>
+      ipcRenderer.invoke('search:extractTags', query),
+    getRelatedTags: (results: any[], currentTags: string[]) =>
+      ipcRenderer.invoke('search:getRelatedTags', results, currentTags),
+    getTopics:      () =>
+      ipcRenderer.invoke('search:getTopics'),
+  },
+
+  org: {
+    getVerified: (orgLogin: string) => ipcRenderer.invoke('org:getVerified', orgLogin),
+  },
+
+  repo: {
+    extractColor: (avatarUrl: string, repoId: string) =>
+      ipcRenderer.invoke('repo:extractColor', avatarUrl, repoId),
+    getOgImage: (owner: string, name: string) =>
+      ipcRenderer.invoke('repo:getOgImage', owner, name),
+  },
+
+  db: {
+    setStarredAt: (repoId: string, value: string | null) =>
+      ipcRenderer.invoke('db:setStarredAt', repoId, value),
+    cacheTranslatedDescription: (repoId: string, text: string, targetLang: string, detectedLang: string) =>
+      ipcRenderer.invoke('db:cacheTranslatedDescription', repoId, text, targetLang, detectedLang),
+    cacheTranslatedReadme: (repoId: string, text: string, targetLang: string, detectedLang: string) =>
+      ipcRenderer.invoke('db:cacheTranslatedReadme', repoId, text, targetLang, detectedLang),
+  },
+
+  translate: {
+    check: (text: string, targetLang: string, minLength?: number) =>
+      ipcRenderer.invoke('translate:check', text, targetLang, minLength),
+    translate: (text: string, targetLang: string) =>
+      ipcRenderer.invoke('translate:translate', text, targetLang),
+  },
+
+  profile: {
+    getUser:      (username: string) => ipcRenderer.invoke('profile:getUser', username),
+    getUserRepos: (username: string, sort?: string) => ipcRenderer.invoke('profile:getUserRepos', username, sort),
+    getStarred:   (username: string) => ipcRenderer.invoke('profile:getStarred', username),
+    getFollowing: (username: string) => ipcRenderer.invoke('profile:getFollowing', username),
+    getFollowers: (username: string) => ipcRenderer.invoke('profile:getFollowers', username),
+    isFollowing:  (username: string) => ipcRenderer.invoke('profile:isFollowing', username),
+    follow:       (username: string) => ipcRenderer.invoke('profile:follow', username),
+    unfollow:     (username: string) => ipcRenderer.invoke('profile:unfollow', username),
+  },
+
+  storybook: {
+    detect:   (owner: string, name: string, extraCandidates?: string[]) =>
+      ipcRenderer.invoke('storybook:detect', owner, name, extraCandidates),
+    getIndex: (storybookUrl: string) =>
+      ipcRenderer.invoke('storybook:getIndex', storybookUrl),
+  },
+
+  components: {
+    scan: (owner: string, name: string, branch: string) =>
+      ipcRenderer.invoke('components:scan', owner, name, branch),
+    compile: (source: string, framework?: string) =>
+      ipcRenderer.invoke('components:compile', source, framework),
+  },
+
+  verification: {
+    prioritise: (repoIds: string[]) =>
+      ipcRenderer.invoke('verification:prioritise', repoIds),
+    getScore: (repoId: string) =>
+      ipcRenderer.invoke('verification:getScore', repoId),
+    getBatchScores: (repoIds: string[]) =>
+      ipcRenderer.invoke('verification:getBatchScores', repoIds) as Promise<Record<string, { tier: string | null; signals: string[] }>>,
+    onUpdated: (cb: (data: { repoId: string; tier: string | null; signals: string[] }) => void) => {
+      const wrapper = ((_: unknown, data: { repoId: string; tier: string | null; signals: string[] }) => cb(data)) as (...args: unknown[]) => void
+      callbackWrappers.set(cb, wrapper)
+      ipcRenderer.on('verification:updated', wrapper)
+    },
+    offUpdated: (cb: (data: { repoId: string; tier: string | null; signals: string[] }) => void) => {
+      const wrapper = callbackWrappers.get(cb)
+      if (wrapper) {
+        ipcRenderer.removeListener('verification:updated', wrapper)
+        callbackWrappers.delete(cb)
+      }
+    },
+  },
+
+  linkPreview: {
+    fetch: (url: string) => ipcRenderer.invoke('fetch-link-preview', url),
+  },
+
+  download: {
+    rawFile:    (params: { owner: string; name: string; branch: string; path: string }) =>
+      ipcRenderer.invoke('download:rawFile', params),
+    rawFolder:  (params: { owner: string; name: string; branch: string; path: string }) =>
+      ipcRenderer.invoke('download:rawFolder', params),
+    convert:    (params: { owner: string; name: string; branch: string; path: string; format: 'docx' | 'pdf' | 'epub'; isFolder: boolean }) =>
+      ipcRenderer.invoke('download:convert', params),
+    repoZip:        (owner: string, name: string) =>
+      ipcRenderer.invoke('download:repoZip', owner, name),
+    pickFolder:     () => ipcRenderer.invoke('download:pickFolder'),
+    getDefaultFolder: () => ipcRenderer.invoke('download:getDefaultFolder') as Promise<string>,
+    repoConverted: (owner: string, name: string, format: 'pdf' | 'docx' | 'epub') =>
+      ipcRenderer.invoke('download:repoConverted', owner, name, format),
+    bookmarks: (owner: string, name: string) =>
+      ipcRenderer.invoke('download:bookmarks', owner, name),
+    topLevelFolders: (owner: string, name: string) =>
+      ipcRenderer.invoke('download:topLevelFolders', owner, name) as Promise<string[]>,
+  },
+
+  ai: {
+    getChats: () => ipcRenderer.invoke('ai:getChats'),
+    getChat: (id: number) => ipcRenderer.invoke('ai:getChat', id),
+    saveChat: (chat: { id?: number; title: string; messages: unknown[] }) =>
+      ipcRenderer.invoke('ai:saveChat', chat),
+    deleteChat: (id: number) => ipcRenderer.invoke('ai:deleteChat', id),
+    sendMessage: (payload: { messages: unknown[]; starredRepos: string[]; installedSkills: string[]; pageContext?: string }) =>
+      ipcRenderer.invoke('ai:sendMessage', payload) as Promise<{ text: string; html: string }>,
+    onStreamToken: (cb: (token: string) => void) => {
+      const wrapper = (_event: unknown, token: string) => cb(token)
+      callbackWrappers.set(cb, wrapper)
+      ipcRenderer.on('ai:stream-token', wrapper)
+    },
+    offStreamToken: (cb: (token: string) => void) => {
+      const wrapper = callbackWrappers.get(cb)
+      if (wrapper) {
+        ipcRenderer.removeListener('ai:stream-token', wrapper)
+        callbackWrappers.delete(cb)
+      }
+    },
+  },
+
+  tts: {
+    synthesize: (text: string, voiceName: string) =>
+      ipcRenderer.invoke('tts:synthesize', { text, voiceName }),
+    getVoices: () => ipcRenderer.invoke('tts:getVoices'),
+    checkAvailable: () => ipcRenderer.invoke('tts:checkAvailable'),
+  },
+
+  create: {
+    getTemplates: () => ipcRenderer.invoke('create:getTemplates'),
+    startSession: (payload: { templateId: string; toolType: string; name: string }) =>
+      ipcRenderer.invoke('create:startSession', payload),
+    getSessions: () => ipcRenderer.invoke('create:getSessions'),
+    getSession: (id: string) => ipcRenderer.invoke('create:getSession', id),
+    updateName: (id: string, name: string) => ipcRenderer.invoke('create:updateName', id, name),
+    updateRepos: (id: string, repoIds: string[]) => ipcRenderer.invoke('create:updateRepos', id, repoIds),
+    deleteSession: (id: string) => ipcRenderer.invoke('create:deleteSession', id),
+    sendMessage: (payload: unknown) => ipcRenderer.invoke('create:sendMessage', payload),
+    startWebPreview: (sessionId: string, localPath: string) => ipcRenderer.invoke('create:startWebPreview', sessionId, localPath),
+    stopPreview: (sessionId: string) => ipcRenderer.invoke('create:stopPreview', sessionId),
+    spawnMcp: (sessionId: string, entryPoint: string, cwd: string) => ipcRenderer.invoke('create:spawnMcp', sessionId, entryPoint, cwd),
+    getMcpTools: (sessionId: string) => ipcRenderer.invoke('create:getMcpTools', sessionId),
+    launchWidget: (sessionId: string, localPath: string) => ipcRenderer.invoke('create:launchWidget', sessionId, localPath),
+    detachWidget: (sessionId: string) => ipcRenderer.invoke('create:detachWidget', sessionId),
+    relaunchWidget: (sessionId: string, localPath: string) => ipcRenderer.invoke('create:relaunchWidget', sessionId, localPath),
+    getSuggestions: (templateId: string, repoIds: string[]) => ipcRenderer.invoke('create:getSuggestions', templateId, repoIds),
+    openFolder: (localPath: string) => ipcRenderer.invoke('create:openFolder', localPath),
+    getFileContent: (localPath: string, filePath: string) => ipcRenderer.invoke('create:getFileContent', localPath, filePath),
+    publishToGitHub: (payload: unknown) => ipcRenderer.invoke('create:publishToGitHub', payload),
+    pushUpdate: (payload: unknown) => ipcRenderer.invoke('create:pushUpdate', payload),
+    onStreamToken: (cb: (data: { sessionId: string; token: string }) => void) => {
+      const wrapper = (_: unknown, data: { sessionId: string; token: string }) => cb(data)
+      callbackWrappers.set(cb, wrapper)
+      ipcRenderer.on('create:stream-token', wrapper)
+    },
+    offStreamToken: (cb: (data: { sessionId: string; token: string }) => void) => {
+      const wrapper = callbackWrappers.get(cb)
+      if (wrapper) {
+        ipcRenderer.removeListener('create:stream-token', wrapper)
+        callbackWrappers.delete(cb)
+      }
+    },
+  },
+
+})

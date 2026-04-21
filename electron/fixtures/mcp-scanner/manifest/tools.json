@@ -1,0 +1,7 @@
+{
+  "tools": [
+    { "name": "fetch_issue", "description": "Fetch a GitHub issue.", "category": "github" },
+    { "name": "close_issue", "description": "Close a GitHub issue.", "category": "github" },
+    { "name": "ping" }
+  ]
+}

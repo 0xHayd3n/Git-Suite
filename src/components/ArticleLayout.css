@@ -1,0 +1,258 @@
+/* src/components/ArticleLayout.css */
+
+.article-layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Full-bleed mode (Files / Components tabs): outer layout does not scroll,
+   the body takes the remaining height and manages its own internal scroll. */
+.article-layout--fullbleed {
+  overflow: hidden;
+}
+
+/* Sticky container — holds the entire top panel + tabs. Translates upward
+   by the top-panel height when collapsed so the tabs remain flush with the
+   top of the scroll viewport while the navbar/byline/dither/title/actions
+   slide out of view. */
+.article-layout-sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  flex-shrink: 0;
+  transition: transform 260ms ease-out;
+  will-change: transform;
+}
+
+.article-layout-sticky-top[data-collapsed="true"] {
+  transform: translateY(calc(-1 * var(--top-panel-height, 0px)));
+}
+
+/* In fullbleed mode (Files / Components):
+   - Override position:sticky → relative so the element can't reach an outer scroll
+     ancestor and overlap the content below it.
+   - Collapse only the top-panel via max-height (navBar + tabs stay visible).
+   - The top-panel shrinking reduces the sticky-top's flex footprint, so the body
+     naturally fills the freed space — no margin-top hacks needed. */
+.article-layout--fullbleed .article-layout-sticky-top {
+  position: relative;
+}
+.article-layout--fullbleed .article-layout-sticky-top[data-collapsed="true"] {
+  transform: none;
+}
+.article-layout--fullbleed .article-layout-top-panel {
+  max-height: 500px;
+  overflow: hidden;
+  transition: max-height 280ms ease-out;
+}
+.article-layout--fullbleed .article-layout-sticky-top[data-collapsed="true"] .article-layout-top-panel {
+  max-height: 0;
+}
+/* Hide the divider between top-panel and tabs when panel is collapsed */
+.article-layout--fullbleed .article-layout-sticky-top[data-collapsed="true"] .article-layout-top-panel + .article-layout-divider {
+  display: none;
+}
+
+/* In has-toc mode (README tab): same max-height collapse as fullbleed — the body-content
+   is its own scroll container so transform-based sticky collapses leave dead layout space. */
+.article-layout--has-toc .article-layout-sticky-top {
+  position: relative;
+}
+.article-layout--has-toc .article-layout-sticky-top[data-collapsed="true"] {
+  transform: none;
+}
+.article-layout--has-toc .article-layout-top-panel {
+  max-height: 500px;
+  overflow: hidden;
+  transition: max-height 280ms ease-out;
+}
+.article-layout--has-toc .article-layout-sticky-top[data-collapsed="true"] .article-layout-top-panel {
+  max-height: 0;
+}
+.article-layout--has-toc .article-layout-sticky-top[data-collapsed="true"] .article-layout-top-panel + .article-layout-divider {
+  display: none;
+}
+
+.article-layout-top-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.article-layout-navbar-slot {
+  flex-shrink: 0;
+}
+
+.article-layout-byline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px 8px;
+  font-family: 'Inter', sans-serif;
+}
+
+.article-layout-byline-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.article-layout-byline-avatar-fallback {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.article-layout-byline-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--t1);
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.article-layout-byline-name:hover {
+  text-decoration: underline;
+}
+
+.article-layout-byline-meta {
+  font-size: 12px;
+  color: var(--t3);
+}
+
+.article-layout-byline-meta-sep {
+  margin: 0 6px;
+  color: var(--t3);
+}
+
+.article-layout-dither {
+  position: relative;
+  height: 96px;
+  margin: 0 0 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.article-layout-dither .corner-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.article-layout-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  column-gap: 16px;
+  row-gap: 8px;
+  padding: 0 20px 8px;
+}
+
+.article-layout-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--t1);
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.article-layout-title-extras {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.article-layout-description {
+  padding: 0 20px 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--t3);
+}
+
+.article-layout-divider {
+  height: 1px;
+  background: var(--bg3);
+  border: 0;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.article-layout-tabs-slot {
+  flex-shrink: 0;
+}
+
+.article-layout-body {
+  padding: 20px 22px;
+}
+
+.article-layout-body--full-bleed {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.article-layout-actions {
+  flex-shrink: 0;
+  padding: 10px 20px;
+}
+
+.article-layout-action-row-extras {
+  /* No padding; child component controls its own spacing.
+     No background, no border — purely a slot. */
+}
+
+/* ── Inline TOC layout (readme tab) ─────────────────────────────── */
+.article-layout--has-toc {
+  overflow: hidden;
+}
+
+.article-layout-body.article-layout-body--with-toc {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  padding: 0;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.article-layout-body--with-toc > .article-layout-body-content {
+  flex: 1;
+  min-width: 0;
+  padding: 20px 22px;
+  overflow-y: auto;
+}
+
+.article-layout-body--with-toc > .article-layout-toc-slot {
+  width: 200px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--glass-border);
+  overflow-y: auto;
+}

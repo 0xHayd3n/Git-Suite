@@ -1,0 +1,128 @@
+/* ── TTS Playback Bar — integrated into the Dock ── */
+
+.tts-dock-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.tts-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0 2px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.tts-bar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 0.15s;
+}
+
+.tts-bar-btn:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.tts-bar-btn--active {
+  color: var(--accent-text);
+}
+
+.tts-bar-btn--stop:hover {
+  color: #f87171;
+}
+
+.tts-bar-section {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+}
+
+.tts-bar-section button {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 2px;
+  font-size: 10px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.tts-bar-section button:hover:not(:disabled) {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.tts-bar-section button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.tts-bar-speed {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.45);
+  padding: 2px 6px;
+  font-size: 11px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  min-width: 30px;
+  text-align: center;
+  transition: color 0.15s;
+}
+
+.tts-bar-speed:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.tts-bar-jump {
+  color: var(--accent-text);
+}
+
+.tts-bar-jump:hover {
+  color: var(--t1);
+}
+
+/* ── Skip list button ── */
+.tts-skip-list {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 8px;
+  transition: color 0.15s;
+}
+
+.tts-skip-list:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.tts-skip-list-arrow {
+  animation: tts-skip-bounce 1.2s ease-in-out infinite;
+}
+
+@keyframes tts-skip-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}

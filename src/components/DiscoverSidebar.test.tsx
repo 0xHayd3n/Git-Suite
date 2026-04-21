@@ -1,0 +1,108 @@
+import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import userEvent from '@testing-library/user-event'
+import DiscoverSidebar from './DiscoverSidebar'
+
+const baseProps = {
+  selectedSubtypes: [],
+  onSelectedSubtypesChange: () => {},
+  filters: {},
+  selectedLanguages: [],
+  activeVerification: new Set<'verified' | 'likely'>(),
+  onFilterChange: () => {},
+  onSelectedLanguagesChange: () => {},
+  onVerificationToggle: () => {},
+  activePanel: null as 'buckets' | 'filters' | 'advanced' | null,
+  onActivePanelChange: () => {},
+  showLanding: false,
+  onHomeClick: () => {},
+  onBrowseClick: () => {},
+}
+
+describe('DiscoverSidebar', () => {
+  it('accepts a mode prop without crashing', () => {
+    expect(() => render(<DiscoverSidebar {...baseProps} mode="library" />)).not.toThrow()
+  })
+
+  it('defaults to discover mode when mode is omitted', () => {
+    expect(() => render(<DiscoverSidebar {...baseProps} />)).not.toThrow()
+  })
+})
+
+describe('DiscoverSidebar — library mode', () => {
+  it('hides Stars, Activity, License in library mode advanced panel', () => {
+    render(<DiscoverSidebar {...baseProps} mode="library" activePanel="advanced" />)
+    expect(screen.queryByText('Stars')).not.toBeInTheDocument()
+    expect(screen.queryByText('Activity')).not.toBeInTheDocument()
+    expect(screen.queryByText('License')).not.toBeInTheDocument()
+    expect(screen.getByText('Verification')).toBeInTheDocument()
+  })
+
+  it('shows Stars, Activity, License in discover mode advanced panel', () => {
+    render(<DiscoverSidebar {...baseProps} activePanel="advanced" />)
+    expect(screen.getByText('Stars')).toBeInTheDocument()
+    expect(screen.getByText('Activity')).toBeInTheDocument()
+    expect(screen.getByText('License')).toBeInTheDocument()
+  })
+})
+
+describe('DiscoverSidebar — Skill Status panel', () => {
+  it('renders Skill Status section in library mode', () => {
+    render(
+      <DiscoverSidebar
+        {...baseProps}
+        mode="library"
+        activePanel="advanced"
+        skillStatus={{ enhancedOnly: false, componentsOnly: false }}
+        onSkillStatusChange={() => {}}
+      />
+    )
+    expect(screen.getByText('Skill Status')).toBeInTheDocument()
+    expect(screen.getByText(/Enhanced.*Tier 2/)).toBeInTheDocument()
+    expect(screen.getByText(/Components available/)).toBeInTheDocument()
+  })
+
+  it('omits Skill Status section in discover mode', () => {
+    render(<DiscoverSidebar {...baseProps} activePanel="advanced" />)
+    expect(screen.queryByText('Skill Status')).not.toBeInTheDocument()
+  })
+
+  it('invokes onSkillStatusChange when Enhanced toggled', async () => {
+    const user = userEvent.setup()
+    const onSkillStatusChange = vi.fn()
+    render(
+      <DiscoverSidebar
+        {...baseProps}
+        mode="library"
+        activePanel="advanced"
+        skillStatus={{ enhancedOnly: false, componentsOnly: false }}
+        onSkillStatusChange={onSkillStatusChange}
+      />
+    )
+    await user.click(screen.getByText(/Enhanced.*Tier 2/))
+    expect(onSkillStatusChange).toHaveBeenCalledWith({ enhancedOnly: true, componentsOnly: false })
+  })
+})
+
+describe('DiscoverSidebar — itemCounts', () => {
+  it('annotates bucket labels with counts and omits empty buckets', () => {
+    const itemCounts = {
+      byBucket:   new Map([['frameworks', 3], ['dev-tools', 1]]),
+      byLanguage: new Map<string, number>(),
+    }
+    render(
+      <DiscoverSidebar
+        {...baseProps}
+        mode="library"
+        activePanel="filters"
+        itemCounts={itemCounts}
+      />
+    )
+    // Switch to Type tab inside the filter panel
+    fireEvent.click(screen.getByRole('button', { name: 'Type' }))
+    expect(screen.getByText(/Frameworks \(3\)/)).toBeInTheDocument()
+    expect(screen.getByText(/Dev Tools \(1\)/)).toBeInTheDocument()
+    // ai-ml was not in the map — its bucket-group header should be absent
+    expect(screen.queryByText(/AI & ML/)).not.toBeInTheDocument()
+  })
+})

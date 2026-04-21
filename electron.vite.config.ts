@@ -1,0 +1,49 @@
+import { resolve } from 'path'
+import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  main: {
+    plugins: [externalizeDepsPlugin()],
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve('electron/main.ts'),
+          'mcp-server': resolve('electron/mcp-server.ts'),
+        },
+        external: ['esbuild'],   // native-binary pkg — never bundle, always require at runtime
+        output: {
+          entryFileNames: '[name].js',
+          format: 'cjs',
+        },
+      },
+    },
+  },
+  preload: {
+    plugins: [externalizeDepsPlugin()],
+    build: {
+      lib: {
+        entry: resolve('electron/preload.ts')
+      },
+      rollupOptions: {
+        output: {
+          entryFileNames: 'index.js'
+        }
+      }
+    }
+  },
+  renderer: {
+    root: 'src',
+    build: {
+      rollupOptions: {
+        input: resolve('src/index.html')
+      }
+    },
+    resolve: {
+      alias: {
+        '@renderer': resolve('src')
+      }
+    },
+    plugins: [react()]
+  }
+})

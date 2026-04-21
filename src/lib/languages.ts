@@ -1,0 +1,280 @@
+/**
+ * Single source of truth for every language's icon, colour, and GitHub filter key.
+ * Used across Discover chips, RepoCard language dot, and Library language labels.
+ */
+
+import type { ComponentType } from 'react'
+import {
+  SiJavascript,
+  SiTypescript,
+  SiPython,
+  SiRust,
+  SiGo,
+  SiKotlin,
+  SiSwift,
+  SiC,
+  SiCplusplus,
+  SiSharp,     // used for C#
+  SiRuby,
+  SiScala,
+  SiR,
+  SiElixir,
+  SiHaskell,
+  SiLua,
+  SiHtml5,
+  SiVuedotjs,
+  SiSvelte,
+  SiNixos,
+  SiZig,
+  SiClojure,
+  SiJulia,
+  SiOcaml,
+  SiSolidity,
+  SiCoffeescript,
+  SiElm,
+  SiFortran,
+  SiFsharp,
+  SiNim,
+  SiCrystal,
+  SiV,
+  SiJupyter,
+  SiSass,
+  SiDocker,
+  SiMake,
+  SiTerraform,
+  SiGnuemacs,
+  SiLatex,
+  SiVim,
+  SiNvidia,
+  SiGleam,
+  SiOdin,
+  SiAda,
+  SiCommonlisp,
+  SiRacket,
+  SiPurescript,
+  SiAstro,
+  SiLess,
+  SiGodotengine,
+  SiHaxe,
+  SiNushell,
+  SiWebassembly,
+  SiTypst,
+  SiLaravel,
+  SiEjs,
+  SiCmake,
+  SiMdx,
+  SiPostgresql,
+  SiHandlebarsdotjs,
+  SiJinja,
+  SiSalesforce,
+  SiQt,
+  SiAutohotkey,
+  SiPuppet,
+  SiSap,
+  SiLuau,
+  SiRescript,
+} from 'react-icons/si'
+import { BiSolidTerminal, BiLogoCss3 } from 'react-icons/bi'
+import { DiJava, DiGroovy, DiDlang, DiDotnet, DiPhp, DiPerl, DiErlang, DiDart, DiProlog, DiMsqlServer } from 'react-icons/di'
+
+export type LangCategory =
+  | 'Systems'
+  | 'JVM'
+  | 'Apple'
+  | '.NET'
+  | 'JavaScript'
+  | 'Web Frameworks'
+  | 'Functional'
+  | 'BEAM'
+  | 'Lisp'
+  | 'Scripting'
+  | 'Shell'
+  | 'Data'
+  | 'Logic'
+  | 'Markup'
+  | 'Styling'
+  | 'Typesetting'
+  | 'Database'
+  | 'Config'
+  | 'Blockchain'
+  | 'Hardware'
+  | 'Game'
+  | 'Enterprise'
+  | 'Editor'
+  | 'UI'
+
+export interface LangDef {
+  /** Display name shown in tabs and labels */
+  name: string
+  /** GitHub language filter value (exact case, as GitHub expects) */
+  key: string
+  /** Language family / category */
+  category: LangCategory
+  /** Simple Icon component, or null if no icon available */
+  icon: ComponentType<{ size?: number; color?: string }> | null
+  /** Hex colour for icon tinting and language dot */
+  color: string
+  /** Optional size multiplier for icons that render smaller than others (default 1) */
+  scale?: number
+  /** Render a solid-colour layer behind the icon so white detail is visible */
+  doubleLayer?: boolean
+}
+
+export const LANGUAGES: LangDef[] = [
+  // --- Systems / Low-level ---
+  { name: 'C',          key: 'c',           category: 'Systems', icon: SiC,             color: '#649bd3' },
+  { name: 'C++',        key: 'c++',         category: 'Systems', icon: SiCplusplus,     color: '#649bd3' },
+  { name: 'Rust',       key: 'rust',        category: 'Systems', icon: SiRust,          color: '#000000' },
+  { name: 'Go',         key: 'go',          category: 'Systems', icon: SiGo,            color: '#02aed4', scale: 1.6 },
+  { name: 'Zig',        key: 'zig',         category: 'Systems', icon: SiZig,           color: '#f6a615' },
+  { name: 'D',          key: 'd',           category: 'Systems', icon: DiDlang,         color: '#b03931', scale: 1.6 },
+  { name: 'Nim',        key: 'nim',         category: 'Systems', icon: SiNim,           color: '#1e212a' },
+  { name: 'V',          key: 'v',           category: 'Systems', icon: SiV,             color: '#5d87bf' },
+  { name: 'Crystal',    key: 'crystal',     category: 'Systems', icon: SiCrystal,       color: '#000000' },
+  { name: 'Odin',       key: 'odin',        category: 'Systems', icon: SiOdin,          color: '#60AFFE' },
+  { name: 'Carbon',     key: 'carbon',      category: 'Systems', icon: null,            color: '#222222' },
+  { name: 'Assembly',   key: 'assembly',    category: 'Systems', icon: null,            color: '#6b7280' },
+  { name: 'Ada',        key: 'ada',         category: 'Systems', icon: SiAda,           color: '#02f88c' },
+  { name: 'Fortran',    key: 'fortran',     category: 'Systems', icon: SiFortran,       color: '#734f97' },
+  { name: 'Pascal',     key: 'pascal',      category: 'Systems', icon: null,            color: '#E3F171' },
+  // --- JVM ---
+  { name: 'Java',       key: 'java',        category: 'JVM', icon: DiJava,          color: '#dc2626', scale: 1.6, doubleLayer: true },
+  { name: 'Kotlin',     key: 'kotlin',      category: 'JVM', icon: SiKotlin,        color: '#7c3aed' },
+  { name: 'Scala',      key: 'scala',       category: 'JVM', icon: SiScala,         color: '#dc2626' },
+  { name: 'Groovy',     key: 'groovy',      category: 'JVM', icon: DiGroovy,        color: '#4298b8', scale: 2.0 },
+  { name: 'Clojure',    key: 'clojure',     category: 'JVM', icon: SiClojure,       color: '#62b132' },
+  // --- Apple ---
+  { name: 'Swift',      key: 'swift',       category: 'Apple', icon: SiSwift,         color: '#ef503b' },
+  { name: 'Objective-C',key: 'objective-c', category: 'Apple', icon: null,            color: '#438eff' },
+  { name: 'Objective-C++',key:'objective-c++', category: 'Apple', icon: null,          color: '#6866fb' },
+  // --- .NET ---
+  { name: 'C#',         key: 'c#',          category: '.NET', icon: SiSharp,         color: '#6d28d9' },
+  { name: 'F#',         key: 'f#',          category: '.NET', icon: SiFsharp,        color: '#378bba' },
+  { name: 'VB.NET',     key: 'visual basic .net', category: '.NET', icon: DiDotnet,  color: '#945db7' },
+  // --- JavaScript / TypeScript ---
+  { name: 'JavaScript', key: 'javascript',  category: 'JavaScript', icon: SiJavascript,    color: '#fd7d00' },
+  { name: 'TypeScript', key: 'typescript',  category: 'JavaScript', icon: SiTypescript,    color: '#3178c6' },
+  { name: 'CoffeeScript',key:'coffeescript',category: 'JavaScript', icon: SiCoffeescript,  color: '#3e2622' },
+  { name: 'ReScript',   key: 'rescript',    category: 'JavaScript', icon: SiRescript,      color: '#ed5051' },
+  { name: 'WebAssembly',key: 'webassembly', category: 'JavaScript', icon: SiWebassembly,   color: '#04133b' },
+  // --- Web frameworks ---
+  { name: 'Vue',        key: 'vue',         category: 'Web Frameworks', icon: SiVuedotjs,      color: '#3fb883' },
+  { name: 'Svelte',     key: 'svelte',      category: 'Web Frameworks', icon: SiSvelte,        color: '#fb3c06' },
+  { name: 'Astro',      key: 'astro',       category: 'Web Frameworks', icon: SiAstro,         color: '#ff5a03' },
+  // --- Functional / ML ---
+  { name: 'Haskell',    key: 'haskell',     category: 'Functional', icon: SiHaskell,       color: '#9c3c90' },
+  { name: 'OCaml',      key: 'ocaml',       category: 'Functional', icon: SiOcaml,         color: '#c1501e' },
+  { name: 'Elm',        key: 'elm',         category: 'Functional', icon: SiElm,           color: '#0ea5e9' },
+  { name: 'PureScript', key: 'purescript',  category: 'Functional', icon: SiPurescript,    color: '#1D222D' },
+  { name: 'Roc',        key: 'roc',         category: 'Functional', icon: null,            color: '#7c38f5' },
+  // --- BEAM ecosystem ---
+  { name: 'Elixir',     key: 'elixir',      category: 'BEAM', icon: SiElixir,        color: '#4a3560' },
+  { name: 'Erlang',     key: 'erlang',      category: 'BEAM', icon: DiErlang,        color: '#ab0130', scale: 1.6 },
+  { name: 'Gleam',      key: 'gleam',       category: 'BEAM', icon: SiGleam,         color: '#ffaff3' },
+  // --- Lisp family ---
+  { name: 'Common Lisp',key: 'common lisp', category: 'Lisp', icon: SiCommonlisp,    color: '#3fb68b' },
+  { name: 'Emacs Lisp', key: 'emacs lisp',  category: 'Lisp', icon: SiGnuemacs,      color: '#c065db' },
+  { name: 'Scheme',     key: 'scheme',      category: 'Lisp', icon: null,            color: '#1e4aec' },
+  { name: 'Racket',     key: 'racket',      category: 'Lisp', icon: SiRacket,        color: '#3c5caa' },
+  // --- Scripting ---
+  { name: 'Python',     key: 'python',      category: 'Scripting', icon: SiPython,        color: '#367ab3' },
+  { name: 'Ruby',       key: 'ruby',        category: 'Scripting', icon: SiRuby,          color: '#dc2626' },
+  { name: 'PHP',        key: 'php',         category: 'Scripting', icon: DiPhp,           color: '#4f5c93', scale: 1.6 },
+  { name: 'Perl',       key: 'perl',        category: 'Scripting', icon: DiPerl,          color: '#0073a0', scale: 1.6 },
+  { name: 'Lua',        key: 'lua',         category: 'Scripting', icon: SiLua,           color: '#010080' },
+  { name: 'Luau',       key: 'luau',        category: 'Scripting', icon: SiLuau,          color: '#00A2FF' },
+  { name: 'Dart',       key: 'dart',        category: 'Scripting', icon: DiDart,          color: '#0c6291', scale: 1.6 },
+  { name: 'Tcl',        key: 'tcl',         category: 'Scripting', icon: null,            color: '#e4cc98' },
+  { name: 'Raku',       key: 'raku',        category: 'Scripting', icon: null,            color: '#0000fb' },
+  { name: 'Hack',       key: 'hack',        category: 'Scripting', icon: null,            color: '#878787' },
+  { name: 'Smalltalk',  key: 'smalltalk',   category: 'Scripting', icon: null,            color: '#596706' },
+  // --- Shell / Automation ---
+  { name: 'Shell',      key: 'shell',       category: 'Shell', icon: BiSolidTerminal, color: '#16a34a' },
+  { name: 'PowerShell', key: 'powershell',  category: 'Shell', icon: null,            color: '#146fbe' },
+  { name: 'Batchfile',  key: 'batchfile',   category: 'Shell', icon: null,            color: '#C1F12E' },
+  { name: 'Nushell',    key: 'nushell',     category: 'Shell', icon: SiNushell,       color: '#4E9906' },
+  { name: 'AutoHotkey', key: 'autohotkey',  category: 'Shell', icon: SiAutohotkey,    color: '#6594b9' },
+  // --- Data / Scientific ---
+  { name: 'R',          key: 'r',           category: 'Data', icon: SiR,             color: '#2563eb' },
+  { name: 'Julia',      key: 'julia',       category: 'Data', icon: SiJulia,         color: '#7c3aed' },
+  { name: 'MATLAB',     key: 'matlab',      category: 'Data', icon: null,            color: '#e16737' },
+  { name: 'SAS',        key: 'sas',         category: 'Data', icon: null,            color: '#B34936' },
+  { name: 'Jupyter Notebook', key: 'jupyter notebook', category: 'Data', icon: SiJupyter, color: '#DA5B0B' },
+  { name: 'Mojo',       key: 'mojo',        category: 'Data', icon: null,            color: '#ff4c1a' },
+  // --- Logic / Proof ---
+  { name: 'Prolog',     key: 'prolog',      category: 'Logic', icon: DiProlog,        color: '#74283c', scale: 1.6 },
+  { name: 'Lean',       key: 'lean',        category: 'Logic', icon: null,            color: '#404040' },
+  // --- Markup / Templating ---
+  { name: 'HTML',       key: 'html',        category: 'Markup', icon: SiHtml5,         color: '#e74b22' },
+  { name: 'MDX',        key: 'mdx',         category: 'Markup', icon: SiMdx,           color: '#fcb32c' },
+  { name: 'Blade',      key: 'blade',       category: 'Markup', icon: SiLaravel,       color: '#f7523f' },
+  { name: 'EJS',        key: 'ejs',         category: 'Markup', icon: SiEjs,           color: '#a91e50' },
+  { name: 'Handlebars', key: 'handlebars',  category: 'Markup', icon: SiHandlebarsdotjs, color: '#f7931e' },
+  { name: 'Jinja',      key: 'jinja',       category: 'Markup', icon: SiJinja,         color: '#a52a22' },
+  // --- Styling ---
+  { name: 'CSS',        key: 'css',         category: 'Styling', icon: BiLogoCss3,      color: '#65309a', scale: 1.4 },
+  { name: 'SCSS',       key: 'scss',        category: 'Styling', icon: SiSass,          color: '#c6538c' },
+  { name: 'Sass',       key: 'sass',        category: 'Styling', icon: SiSass,          color: '#a53b70' },
+  { name: 'Less',       key: 'less',        category: 'Styling', icon: SiLess,          color: '#1d365d' },
+  // --- Typesetting ---
+  { name: 'TeX',        key: 'tex',         category: 'Typesetting', icon: SiLatex,         color: '#3D6117' },
+  { name: 'Typst',      key: 'typst',       category: 'Typesetting', icon: SiTypst,         color: '#239DAD' },
+  // --- Database / Query ---
+  { name: 'TSQL',       key: 'tsql',        category: 'Database', icon: DiMsqlServer,    color: '#e38c00', scale: 1.6 },
+  { name: 'PLpgSQL',    key: 'plpgsql',     category: 'Database', icon: SiPostgresql,    color: '#336790' },
+  // --- Build / Config / IaC ---
+  { name: 'Makefile',   key: 'makefile',    category: 'Config', icon: SiMake,          color: '#427819' },
+  { name: 'CMake',      key: 'cmake',       category: 'Config', icon: SiCmake,         color: '#DA3434' },
+  { name: 'Dockerfile', key: 'dockerfile',  category: 'Config', icon: SiDocker,        color: '#384d54' },
+  { name: 'HCL',        key: 'hcl',         category: 'Config', icon: SiTerraform,     color: '#844FBA' },
+  { name: 'Nix',        key: 'nix',         category: 'Config', icon: SiNixos,         color: '#3090f6' },
+  { name: 'Starlark',   key: 'starlark',    category: 'Config', icon: null,            color: '#76d275' },
+  { name: 'Bicep',      key: 'bicep',       category: 'Config', icon: null,            color: '#519aba' },
+  { name: 'Jsonnet',    key: 'jsonnet',     category: 'Config', icon: null,            color: '#0064bd' },
+  { name: 'Just',       key: 'just',        category: 'Config', icon: null,            color: '#384d54' },
+  { name: 'Puppet',     key: 'puppet',      category: 'Config', icon: SiPuppet,        color: '#302B6D' },
+  { name: 'Pkl',        key: 'pkl',         category: 'Config', icon: null,            color: '#6b9543' },
+  // --- Blockchain / Smart contracts ---
+  { name: 'Solidity',   key: 'solidity',    category: 'Blockchain', icon: SiSolidity,      color: '#2a247c' },
+  { name: 'Cairo',      key: 'cairo',       category: 'Blockchain', icon: null,            color: '#ff4a48' },
+  { name: 'Move',       key: 'move',        category: 'Blockchain', icon: null,            color: '#4a137a' },
+  // --- Shader / GPU / Hardware ---
+  { name: 'GLSL',       key: 'glsl',        category: 'Hardware', icon: null,            color: '#5686a5' },
+  { name: 'HLSL',       key: 'hlsl',        category: 'Hardware', icon: null,            color: '#aace60' },
+  { name: 'CUDA',       key: 'cuda',        category: 'Hardware', icon: SiNvidia,        color: '#3A4E3A' },
+  { name: 'VHDL',       key: 'vhdl',        category: 'Hardware', icon: null,            color: '#adb2cb' },
+  { name: 'Verilog',    key: 'verilog',     category: 'Hardware', icon: null,            color: '#b2b7f8' },
+  { name: 'SystemVerilog',key:'systemverilog', category: 'Hardware', icon: null,          color: '#DAE1C2' },
+  // --- Game development ---
+  { name: 'GDScript',   key: 'gdscript',    category: 'Game', icon: SiGodotengine,   color: '#355570' },
+  { name: 'Haxe',       key: 'haxe',        category: 'Game', icon: SiHaxe,          color: '#df7900' },
+  // --- Enterprise / Legacy ---
+  { name: 'COBOL',      key: 'cobol',       category: 'Enterprise', icon: null,            color: '#0070c0' },
+  { name: 'ABAP',       key: 'abap',        category: 'Enterprise', icon: SiSap,           color: '#E8274B' },
+  { name: 'Apex',       key: 'apex',        category: 'Enterprise', icon: SiSalesforce,    color: '#1797c0' },
+  { name: 'ActionScript',key:'actionscript', category: 'Enterprise', icon: null,            color: '#882B0F' },
+  // --- Editor scripting ---
+  { name: 'Vim Script', key: 'vim script',  category: 'Editor', icon: SiVim,           color: '#199f4b' },
+  // --- UI frameworks ---
+  { name: 'QML',        key: 'qml',         category: 'UI', icon: SiQt,            color: '#44a51c' },
+]
+
+/** Lookup by key (lowercase). Returns undefined if not in library. */
+export const LANG_MAP = new Map(LANGUAGES.map(l => [l.key.toLowerCase(), l]))
+
+/** Fallback colour for unlisted languages */
+export const FALLBACK_COLOR = '#6b6b80'
+
+/** Get colour for a language string (case-insensitive) */
+export function getLangColor(lang: string | null): string {
+  if (!lang) return FALLBACK_COLOR
+  return LANG_MAP.get(lang.toLowerCase())?.color ?? FALLBACK_COLOR
+}
+
+/** Ordered list of unique categories, preserving array order */
+export const LANG_CATEGORIES: LangCategory[] = [...new Set(LANGUAGES.map(l => l.category))]
+
+/** Get all languages in a category */
+export function getLangsByCategory(cat: LangCategory): LangDef[] {
+  return LANGUAGES.filter(l => l.category === cat)
+}

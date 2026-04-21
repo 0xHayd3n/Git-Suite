@@ -1,0 +1,140 @@
+.discover-hero {
+  position: relative;
+  height: 252px;
+  flex-shrink: 0;
+  overflow: hidden;
+  margin-top: -32px;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+/* ── Crossfade layers ── */
+.discover-hero-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.discover-hero-layer--stable {
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+}
+
+.discover-hero-layer--in {
+  position: absolute;
+  inset: 0;
+  animation: hero-fade-in 0.4s ease forwards;
+}
+
+.discover-hero-layer--out {
+  position: absolute;
+  inset: 0;
+  animation: hero-fade-out 0.4s ease forwards;
+}
+
+@keyframes hero-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes hero-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* ── Layer internals ── */
+.discover-hero-fade {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  background: linear-gradient(to bottom, transparent, var(--bg3));
+  z-index: 1;
+  pointer-events: none;
+}
+
+.discover-hero-avatar {
+  position: absolute;
+  top: 50px;
+  right: 20px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.discover-hero-avatar-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.discover-hero-owner {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.discover-hero-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  padding: 0 24px 22px 16px;
+  max-width: 580px;
+}
+
+.discover-hero-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent-text);
+  opacity: 0.8;
+  margin-bottom: 5px;
+}
+
+.discover-hero-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--t1);
+  letter-spacing: -0.4px;
+  line-height: 1.15;
+  margin-bottom: 5px;
+}
+
+.discover-hero-desc {
+  font-size: 12px;
+  color: var(--t3);
+  margin-bottom: 10px;
+  max-width: 440px;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.discover-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.discover-hero-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--t4);
+}
+
+.discover-hero-lang-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
