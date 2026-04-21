@@ -1401,8 +1401,6 @@ a {
   height: 32px;
   flex-shrink: 0;
   -webkit-app-region: drag;
-  position: relative;
-  z-index: 3;
 }
 
 /* ── Grid Header ───────────────────────────────────────────────── */

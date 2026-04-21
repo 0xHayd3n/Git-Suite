@@ -1,11 +1,26 @@
 .discover-hero {
   position: relative;
-  height: 252px;
+  height: 504px;
   flex-shrink: 0;
   overflow: hidden;
   margin-top: -32px;
   cursor: pointer;
   -webkit-app-region: no-drag;
+}
+
+/* Drag shield covering the titlebar strip of the hero.
+   Real DOM element (not ::before) so Electron's elementFromPoint
+   hit-test picks it up. Descendant with `drag` overrides the
+   hero container's `no-drag`, per Electron docs. z-index 10 is
+   above all hero internals (max z-index 2). */
+.discover-hero-drag {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  z-index: 10;
+  -webkit-app-region: drag;
 }
 
 /* ── Crossfade layers ── */
@@ -48,7 +63,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 100px;
+  height: 260px;
   background: linear-gradient(to bottom, transparent, var(--bg3));
   z-index: 1;
   pointer-events: none;
@@ -109,7 +124,7 @@
 
 .discover-hero-desc {
   font-size: 12px;
-  color: var(--t3);
+  color: var(--t2);
   margin-bottom: 10px;
   max-width: 440px;
   line-height: 1.5;
@@ -129,7 +144,7 @@
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  color: var(--t4);
+  color: var(--t1);
 }
 
 .discover-hero-lang-dot {
@@ -147,6 +162,20 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 5px;
   padding: 3px 7px 3px 4px;
+}
+
+.discover-hero-star-badge {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  padding: 3px 7px 3px 4px;
+  font-size: 11px;
+  color: var(--t1);
+  cursor: default;
 }
 
 .discover-hero-type-icon {

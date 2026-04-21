@@ -92,10 +92,12 @@ function HeroLayer({ repo, animClass }: LayerProps) {
             </span>
           )}
           {repo.stars != null && (
-            <span className="discover-hero-meta-item">⭐ {formatCount(repo.stars)}</span>
-          )}
-          {repo.forks != null && (
-            <span className="discover-hero-meta-item">🍴 {formatCount(repo.forks)}</span>
+            <span className="discover-hero-star-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              </svg>
+              <span>{formatCount(repo.stars)}</span>
+            </span>
           )}
         </div>
       </div>
@@ -132,6 +134,7 @@ export default function DiscoverHero({ repo, onNavigate }: DiscoverHeroProps) {
 
   return (
     <div className="discover-hero" onClick={handleClick}>
+      <div className="discover-hero-drag" aria-hidden="true" />
       {outgoingRepo && (
         <HeroLayer key={outgoingRepo.id + '-out'} repo={outgoingRepo} animClass="discover-hero-layer--out" />
       )}
