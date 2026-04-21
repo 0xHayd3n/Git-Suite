@@ -70,8 +70,6 @@ export default function DiscoverTopNav(props: DiscoverSidebarProps) {
   }, [resolvedPanel])
 
   return (
-    <>
-    <div className="dtn-titlebar-shield" aria-hidden="true" />
     <div ref={pillRef} className="discover-top-nav">
       <button
         type="button"
@@ -155,6 +153,5 @@ export default function DiscoverTopNav(props: DiscoverSidebarProps) {
         </div>
       )}
     </div>
-    </>
   )
 }

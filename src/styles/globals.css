@@ -1383,7 +1383,6 @@ a {
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  padding-left: 66px;
 }
 
 .discover-main {
@@ -1402,6 +1401,8 @@ a {
   height: 32px;
   flex-shrink: 0;
   -webkit-app-region: drag;
+  position: relative;
+  z-index: 3;
 }
 
 /* ── Grid Header ───────────────────────────────────────────────── */
