@@ -1,0 +1,118 @@
+<h2>What should the Create canvas feel like?</h2>
+<p class="subtitle">Three layout philosophies — same outcome, different interaction model. Click to select your preference.</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="display:flex;height:180px;gap:0;border-radius:6px;overflow:hidden;font-size:11px;">
+        <!-- Left panel -->
+        <div style="width:22%;background:#1a1a2e;padding:8px;display:flex;flex-direction:column;gap:6px;">
+          <div style="color:#888;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Repos</div>
+          <div style="background:#252540;border-radius:4px;padding:5px;color:#aaa;font-size:9px;">three.js</div>
+          <div style="background:#252540;border-radius:4px;padding:5px;color:#aaa;font-size:9px;">rapier</div>
+          <div style="background:#252540;border-radius:4px;padding:5px;color:#aaa;font-size:9px;">leva</div>
+          <div style="background:#1e1e35;border:1px dashed #444;border-radius:4px;padding:5px;color:#555;font-size:9px;">+ suggest</div>
+        </div>
+        <!-- Center canvas -->
+        <div style="flex:1;background:#0f0f1a;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+            <div style="background:#1e2a4a;border:1px solid #3a5a9a;border-radius:6px;padding:6px 10px;color:#7ab;font-size:9px;">three.js</div>
+            <div style="background:#2a1e3a;border:1px solid #6a3a8a;border-radius:6px;padding:6px 10px;color:#b7a;font-size:9px;">rapier</div>
+          </div>
+          <div style="color:#555;font-size:10px;">↓ drag repos here</div>
+          <div style="background:#151525;border:2px dashed #2a2a4a;border-radius:8px;width:80%;height:40px;display:flex;align-items:center;justify-content:center;color:#444;font-size:9px;">drop more repos</div>
+        </div>
+        <!-- Right panel -->
+        <div style="width:30%;background:#12121f;border-left:1px solid #222;padding:8px;display:flex;flex-direction:column;gap:6px;">
+          <div style="color:#888;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">AI Chat</div>
+          <div style="background:#1a2a1a;border-radius:4px;padding:5px;color:#6a9;font-size:9px;line-height:1.4;">What kind of tool are you building?</div>
+          <div style="background:#1e1e2e;border-radius:4px;padding:5px;color:#778;font-size:9px;line-height:1.4;">A 3D physics playground...</div>
+          <div style="margin-top:auto;background:#1e2e1e;border-radius:4px;padding:4px;border:1px solid #2a4a2a;">
+            <div style="color:#555;font-size:8px;">Type a message...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Canvas + Chat</h3>
+      <p>Canva-style: left repo panel, center drop-zone canvas, right AI chat. Repos are dropped onto the canvas and the conversation flows in the right panel. Most visually familiar to Canva users.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="display:flex;height:180px;gap:0;border-radius:6px;overflow:hidden;font-size:11px;">
+        <!-- Full-width chat with floating repo shelf -->
+        <div style="flex:1;background:#0f0f1a;display:flex;flex-direction:column;">
+          <!-- Top bar: selected repos -->
+          <div style="background:#1a1a2e;padding:6px 10px;border-bottom:1px solid #222;display:flex;gap:6px;align-items:center;">
+            <span style="color:#555;font-size:9px;">Context:</span>
+            <div style="background:#1e2a4a;border:1px solid #3a5a9a;border-radius:4px;padding:3px 8px;color:#7ab;font-size:9px;">three.js ×</div>
+            <div style="background:#2a1e3a;border:1px solid #6a3a8a;border-radius:4px;padding:3px 8px;color:#b7a;font-size:9px;">rapier ×</div>
+            <div style="background:#1a1a2e;border:1px dashed #444;border-radius:4px;padding:3px 8px;color:#555;font-size:9px;">+ add repo</div>
+          </div>
+          <!-- Chat area -->
+          <div style="flex:1;padding:10px;display:flex;flex-direction:column;gap:6px;justify-content:flex-end;">
+            <div style="background:#1a2a1a;border-radius:6px;padding:6px 8px;color:#6a9;font-size:9px;align-self:flex-start;max-width:80%;line-height:1.4;">I see you've added three.js and rapier. Are you building a 3D physics demo, a game engine, or a simulation tool?</div>
+            <div style="background:#1e1e35;border-radius:6px;padding:6px 8px;color:#99a;font-size:9px;align-self:flex-end;max-width:70%;line-height:1.4;">More like an interactive art piece</div>
+            <div style="background:#1a2a1a;border-radius:6px;padding:6px 8px;color:#6a9;font-size:9px;align-self:flex-start;max-width:80%;line-height:1.4;">Interesting! Should it run in the browser, desktop, or both?</div>
+          </div>
+          <!-- Input -->
+          <div style="background:#1a1a2e;padding:6px 10px;border-top:1px solid #222;">
+            <div style="background:#252535;border-radius:4px;padding:5px 8px;color:#555;font-size:9px;">Reply to AI...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Chat-First</h3>
+      <p>AI conversation is the primary surface. Repos are pinned to a context bar at the top. The chat drives the build — no visual canvas, just a focused dialogue with repo context always visible.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="display:flex;height:180px;gap:0;border-radius:6px;overflow:hidden;font-size:11px;">
+        <!-- Left repo panel -->
+        <div style="width:22%;background:#1a1a2e;padding:8px;display:flex;flex-direction:column;gap:5px;">
+          <div style="color:#888;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Library</div>
+          <div style="background:#252540;border-radius:4px;padding:4px;color:#aaa;font-size:9px;">three.js</div>
+          <div style="background:#252540;border-radius:4px;padding:4px;color:#aaa;font-size:9px;">rapier</div>
+          <div style="background:#252540;border-radius:4px;padding:4px;color:#aaa;font-size:9px;">leva</div>
+          <div style="color:#888;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin-top:6px;">Suggested</div>
+          <div style="background:#1e2530;border-radius:4px;padding:4px;color:#6a8;font-size:9px;">✦ cannon-es</div>
+        </div>
+        <!-- Node canvas -->
+        <div style="flex:1;background:#0a0a15;position:relative;padding:8px;">
+          <!-- Nodes -->
+          <div style="position:absolute;top:20px;left:20px;background:#1e2a4a;border:1px solid #3a5a9a;border-radius:6px;padding:5px 8px;color:#7ab;font-size:9px;">three.js</div>
+          <div style="position:absolute;top:20px;right:30px;background:#2a1e3a;border:1px solid #6a3a8a;border-radius:6px;padding:5px 8px;color:#b7a;font-size:9px;">rapier</div>
+          <!-- Connection line SVG -->
+          <svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">
+            <line x1="80" y1="30" x2="130" y2="30" stroke="#3a4a6a" stroke-width="1.5" stroke-dasharray="3,2"/>
+          </svg>
+          <!-- Center output node -->
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a2a1a;border:1px solid #2a5a3a;border-radius:8px;padding:6px 12px;color:#6a9;font-size:9px;text-align:center;">
+            <div style="font-size:8px;color:#555;margin-bottom:2px;">OUTPUT</div>
+            3D Physics Art
+          </div>
+        </div>
+        <!-- Right: AI panel -->
+        <div style="width:28%;background:#12121f;border-left:1px solid #222;padding:8px;display:flex;flex-direction:column;gap:5px;">
+          <div style="color:#888;font-size:9px;text-transform:uppercase;letter-spacing:1px;">Build</div>
+          <div style="background:#1a2a1a;border-radius:4px;padding:5px;color:#6a9;font-size:9px;line-height:1.4;">Node graph looks good. What should happen when objects collide?</div>
+          <div style="background:#1e1e2e;border-radius:4px;padding:5px;color:#778;font-size:9px;line-height:1.4;">Emit particles + sound</div>
+          <div style="margin-top:auto;display:flex;flex-direction:column;gap:4px;">
+            <div style="background:#1e2e1e;border-radius:4px;padding:4px 6px;color:#5a8;font-size:8px;text-align:center;border:1px solid #2a4a2a;">▶ Generate Repo</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Node Graph + Chat</h3>
+      <p>Repos are nodes on a visual graph. Connections show data/call flow. AI chat on the right asks questions to define how nodes interact. Most technical, most "builder-like."</p>
+    </div>
+  </div>
+
+</div>

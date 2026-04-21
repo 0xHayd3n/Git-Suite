@@ -332,7 +332,7 @@ function formatBytes(bytes: number): string {
 }
 
 // ── Skill utilities ────────────────────────────────────────────────
-type LearnState = 'UNLEARNED' | 'LEARNING' | 'LEARNED' | 'ENHANCING'
+type LearnState = 'UNLEARNED' | 'LEARNING' | 'LEARNED'
 
 // ── Skill file tab renderer ────────────────────────────────────────
 const SECTION_COLORS: Record<string, string> = {
@@ -410,7 +410,7 @@ function SidebarLabel({ children, action }: { children: React.ReactNode; action?
 }
 
 // ── Tab IDs ────────────────────────────────────────────────────────
-type Tab = 'readme' | 'files' | 'skill' | 'releases' | 'collections' | 'related' | 'videos' | 'posts' | 'commands' | 'components' | 'stats'
+type Tab = 'readme' | 'files' | 'skill' | 'releases' | 'collections' | 'related' | 'videos' | 'posts' | 'commands' | 'components'
 const ALL_TABS: { id: Tab; label: string }[] = [
   { id: 'readme',      label: 'README' },
   { id: 'files',       label: 'Files' },
@@ -421,8 +421,7 @@ const ALL_TABS: { id: Tab; label: string }[] = [
   { id: 'videos',      label: 'Videos' },
   { id: 'posts',       label: 'Posts' },
   { id: 'commands',    label: 'Commands' },
-  { id: 'components', label: 'Components' },
-  { id: 'stats', label: 'Stats' },
+  { id: 'components',  label: 'Components' },
 ]
 
 // ── Related repo shape (from GitHub search API items) ─────────────
@@ -454,6 +453,7 @@ export default function RepoDetail() {
   const navigate = useNavigate()
   const location = useLocation()
   const inLibrary = location.pathname.startsWith('/library/')
+  const flavour = inLibrary ? 'library' as const : 'domain' as const
   const { saveRepo } = useSavedRepos()
   const { openProfile } = useProfileOverlay()
   const verification = useVerification()
@@ -842,12 +842,13 @@ const [skillRow, setSkillRow] = useState<SkillRow | null>(null)
     setLearnError(null)
     try {
       await saveRepo(owner ?? '', name ?? '')
-      await window.api.skill.generate(owner ?? '', name ?? '')
+      await window.api.skill.generate(owner ?? '', name ?? '', { flavour })
       const freshRow = await window.api.skill.get(owner ?? '', name ?? '')
       setSkillRow(freshRow)
       const freshComp = await window.api.skill.getSubSkill(owner ?? '', name ?? '', 'components').catch(() => null)
       setComponentsSkillRow(freshComp)
       setLearnState('LEARNED')
+      window.dispatchEvent(new CustomEvent('library:changed'))
     } catch (err) {
       setLearnState('UNLEARNED')
       const msg = err instanceof Error ? err.message : ''
@@ -859,7 +860,7 @@ const [skillRow, setSkillRow] = useState<SkillRow | null>(null)
     setRelearningTarget(target)
     setLearnError(null)
     try {
-      await window.api.skill.generate(owner ?? '', name ?? '', { target })
+      await window.api.skill.generate(owner ?? '', name ?? '', { flavour, target })
       if (target === 'master') {
         const freshRow = await window.api.skill.get(owner ?? '', name ?? '')
         setSkillRow(freshRow)
@@ -893,26 +894,15 @@ const [skillRow, setSkillRow] = useState<SkillRow | null>(null)
     setSkillRow(null)
     setComponentsSkillRow(null)
     setLearnState('UNLEARNED')
+    window.dispatchEvent(new CustomEvent('library:changed'))
   }
 
-  const handleEnhance = async () => {
-    if (!owner || !name || learnState !== 'LEARNED') return
-    setLearnState('ENHANCING')
-    try {
-      const result = await window.api.skill.enhance(owner, name)
-      setSkillRow(prev => prev ? { ...prev, content: result.content, version: result.version, generated_at: result.generated_at, tier: result.tier } : prev)
-      setLearnState('LEARNED')
-    } catch (err) {
-      console.error('[enhance] Failed:', err)
-      setLearnState('LEARNED')
-    }
-  }
 
   async function handleVersionLearn(tag: string) {
     setVersionLearnStates(prev => new Map(prev).set(tag, 'LEARNING'))
     try {
       await window.api.github.saveRepo(owner ?? '', name ?? '')
-      await window.api.skill.generate(owner ?? '', name ?? '', { ref: tag })
+      await window.api.skill.generate(owner ?? '', name ?? '', { flavour: 'library', ref: tag })
       setVersionedLearns(prev => new Set([...prev, tag]))
       setVersionLearnStates(prev => { const m = new Map(prev); m.delete(tag); return m })
     } catch {
@@ -1047,6 +1037,228 @@ const [skillRow, setSkillRow] = useState<SkillRow | null>(null)
 
   const isFullBleedTab = activeTab === 'components' || activeTab === 'files'
 
+  const statsSlotNode = !repoError ? (
+    <div className="stats-sidebar">
+
+      {/* ── Stats tile ── */}
+      {repo && (
+        <div className="stats-tile">
+          <SidebarLabel>Stats</SidebarLabel>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {([
+              { key: 'Forks',   val: formatCount(repo.forks),       icon: 'fork'  as const },
+              { key: 'Issues',  val: formatCount(repo.open_issues), icon: 'issue' as const },
+              ...(version !== '—' ? [{ key: 'Version', val: version, icon: 'tag' as const }] : []),
+            ]).map(({ key, val, icon }) => (
+              <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  {icon === 'fork'  && <span style={{ fontSize: 12 }}>⑂</span>}
+                  {icon === 'issue' && <span style={{ fontSize: 12 }}>◎</span>}
+                  {icon === 'tag'   && <span style={{ fontSize: 12 }}>🏷</span>}
+                  {key}
+                </span>
+                <span style={{ fontFamily: icon === 'tag' ? 'JetBrains Mono, monospace' : 'Inter, sans-serif', color: 'var(--t2)', fontWeight: 500 }}>
+                  {val}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Skills Folder tile (only when learned) ── */}
+      {learnState === 'LEARNED' && skillRow && (
+        <div className="stats-tile">
+          <SidebarLabel>Skills Folder</SidebarLabel>
+          <div
+            className="skill-hover-group"
+            onMouseEnter={() => setHoveredBox('master')}
+            onMouseLeave={() => setHoveredBox(null)}
+          >
+            <div className="sidebar-skill-panel">
+              <div className="sidebar-skill-panel-header">
+                <span className="sidebar-skill-panel-filename">{name}.skill.md</span>
+                <span className="sidebar-skill-panel-badge">✓ active</span>
+              </div>
+              <div className="sidebar-skill-panel-body">
+                {skillDepths && (() => {
+                  const total = Math.max(skillDepths.core + skillDepths.extended + skillDepths.deep, 1)
+                  return [
+                    { label: 'Core',     lines: skillDepths.core,     color: '#059669', pct: Math.round(skillDepths.core / total * 100) },
+                    { label: 'Extended', lines: skillDepths.extended, color: '#6d28d9', pct: Math.round((skillDepths.core + skillDepths.extended) / total * 100) },
+                    { label: 'Deep',     lines: skillDepths.deep,     color: '#4c1d95', pct: 100 },
+                  ].map(({ label, lines, color, pct }) => (
+                    <div key={label} className="sidebar-skill-depth-row">
+                      <span className="sidebar-skill-depth-label">{label}</span>
+                      <div className="sidebar-skill-depth-track">
+                        <div className="sidebar-skill-depth-fill" style={{ width: `${pct}%`, background: color }} />
+                      </div>
+                      <span className="sidebar-skill-depth-count">~{lines}</span>
+                    </div>
+                  ))
+                })()}
+                <div className="sidebar-skill-panel-meta">
+                  {skillRow.version ? `${skillRow.version} · ` : ''}{daysAgoLabel(skillRow.generated_at)}
+                </div>
+              </div>
+            </div>
+            <div className={`skill-hover-drawer${(hoveredBox === 'master' || relearningTarget === 'master') ? ' skill-hover-drawer--visible' : ''}`}>
+              <button className="btn-drawer-regen" aria-label="Relearn master skill" onClick={() => handleRelearnTarget('master')} disabled={relearningTarget !== null}>
+                {relearningTarget === 'master' ? <><span className="spin-ring" style={{ width: 8, height: 8 }} /> Relearning…</> : '↺ Relearn'}
+              </button>
+            </div>
+          </div>
+          {componentsSkillRow && (
+            <div
+              className="skill-hover-group"
+              onMouseEnter={() => setHoveredBox('components')}
+              onMouseLeave={() => setHoveredBox(null)}
+              style={{ marginTop: 4 }}
+            >
+              <div className="sidebar-sub-skill-box">
+                <div className="sidebar-sub-skill-header">
+                  <span className="sidebar-sub-skill-dot" style={{ background: '#6366f1' }} />
+                  <span className="sidebar-sub-skill-filename">{componentsSkillRow.filename}</span>
+                </div>
+                <div className="sidebar-sub-skill-meta">
+                  {(new Blob([componentsSkillRow.content]).size / 1024).toFixed(1)} KB
+                  {componentsSkillRow.generated_at ? ` · ${daysAgoLabel(componentsSkillRow.generated_at)}` : ''}
+                </div>
+              </div>
+              <div className={`skill-hover-drawer${(hoveredBox === 'components' || relearningTarget === 'components') ? ' skill-hover-drawer--visible' : ''}`}>
+                <button className="btn-drawer-regen" aria-label="Relearn components skill" onClick={() => handleRelearnTarget('components')} disabled={relearningTarget !== null}>
+                  {relearningTarget === 'components' ? <><span className="spin-ring" style={{ width: 8, height: 8 }} /> Relearning…</> : '↺ Relearn'}
+                </button>
+              </div>
+            </div>
+          )}
+          <div className="skills-folder-actions">
+            <button className="btn-skills-folder-action" onClick={handleRelearnAll} disabled={relearningTarget !== null}>
+              {relearningTarget !== null ? <><span className="spin-ring" style={{ width: 8, height: 8 }} /> Relearning…</> : '↺ Relearn all'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Repository tile ── */}
+      {repo && (
+        <div className="stats-tile">
+          <SidebarLabel>Repository</SidebarLabel>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {([
+              { key: 'License',        val: formatLicense(repo.license) ?? '—' },
+              { key: 'Size',           val: formatSize(repo.size) },
+              { key: 'Watchers',       val: formatCount(repo.watchers) },
+              { key: 'Default branch', val: repo.default_branch ?? 'main', isMono: true },
+            ] as { key: string; val: string; isMono?: boolean }[]).map(({ key, val, isMono }) => (
+              <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', color: 'var(--t3)' }}>{key}</span>
+                <span style={{ fontFamily: isMono ? 'JetBrains Mono, monospace' : 'Inter, sans-serif', color: 'var(--t2)', fontWeight: 500 }}>
+                  {val}
+                </span>
+              </div>
+            ))}
+          </div>
+          <a
+            href={`https://github.com/${owner}/${name}`}
+            onClick={e => { e.preventDefault(); window.api.openExternal(`https://github.com/${owner}/${name}`) }}
+            className="btn-view-github"
+            style={{ width: '100%', marginTop: 6 }}
+          >
+            <svg viewBox="0 0 16 16" width={12} height={12} fill="currentColor">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            View on GitHub ↗
+          </a>
+        </div>
+      )}
+
+      {/* ── Badge tiles (conditional, populated after README loads) ── */}
+      {packageBadges.length > 0 && (
+        <div className="stats-tile">
+          <SidebarLabel>Packages</SidebarLabel>
+          <div className="sidebar-badge-row">
+            {packageBadges.map((b, i) => <BadgePill key={i} badge={b} />)}
+          </div>
+        </div>
+      )}
+
+      {qualityBadges.length > 0 && (
+        <div className="stats-tile">
+          <SidebarLabel>Quality</SidebarLabel>
+          <div className="sidebar-badge-row">
+            {qualityBadges.map((b, i) => <BadgePill key={i} badge={b} />)}
+          </div>
+        </div>
+      )}
+
+      {socialBadges.length > 0 && (
+        <div className="stats-tile">
+          <SidebarLabel>Community</SidebarLabel>
+          <div className="sidebar-social-row">
+            {socialBadges.map((b, i) => <SocialIcon key={i} badge={b} />)}
+          </div>
+        </div>
+      )}
+
+      {miscBadges.length > 0 && (
+        <div className="stats-tile">
+          <SidebarLabel>Badges</SidebarLabel>
+          <div className="sidebar-badge-row">
+            {miscBadges.map((b, i) => <BadgePill key={i} badge={b} />)}
+          </div>
+        </div>
+      )}
+
+      {/* ── Topics tile ── */}
+      {topics.length > 0 && (
+        <div className="stats-tile">
+          <SidebarLabel>Topics</SidebarLabel>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {topics.map(tag => (
+              <button
+                key={tag}
+                className="repo-card-tag"
+                onClick={() => navigate('/discover', { state: { preloadTag: tag } })}
+                style={{ fontSize: 10, padding: '2px 8px' }}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Related repos tile ── */}
+      {sidebarRelated.length > 0 && (
+        <div className="stats-tile">
+          <SidebarLabel>Related repos</SidebarLabel>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {sidebarRelated.map(r => (
+              <div key={r.id} className="sidebar-related-card" onClick={() => navigate(`/repo/${r.owner.login}/${r.name}`)}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3 }}>
+                  <img src={r.owner.avatar_url} alt={r.owner.login} style={{ width: 16, height: 16, borderRadius: '50%', border: '1px solid var(--border)', flexShrink: 0 }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--t1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {r.name}
+                  </span>
+                </div>
+                {r.description && (
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: 'var(--t3)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: 4 }}>
+                    {r.description}
+                  </div>
+                )}
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 3 }}>
+                  ★ {formatCount(r.stargazers_count)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+    </div>
+  ) : null
+
   // ── Render ────────────────────────────────────────────────────────
   return (
     <div className="repo-detail">
@@ -1091,6 +1303,7 @@ const [skillRow, setSkillRow] = useState<SkillRow | null>(null)
                   />
                 : undefined
             }
+            statsSlot={activeTab === 'readme' ? statsSlotNode : undefined}
             body={
               <>
                 {activeTab === 'readme' && (
@@ -1472,241 +1685,6 @@ const [skillRow, setSkillRow] = useState<SkillRow | null>(null)
                     />
                   )
                 )}
-
-                {activeTab === 'stats' && !repoError && (
-                  <div className="stats-tab-grid">
-
-                    {/* ── Stats tile ── */}
-                    {repo && (
-                      <div className="stats-tile">
-                        <SidebarLabel>Stats</SidebarLabel>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                          {([
-                            { key: 'Forks',   val: formatCount(repo.forks),       icon: 'fork'  as const },
-                            { key: 'Issues',  val: formatCount(repo.open_issues), icon: 'issue' as const },
-                            ...(version !== '—' ? [{ key: 'Version', val: version, icon: 'tag' as const }] : []),
-                          ]).map(({ key, val, icon }) => (
-                            <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
-                              <span style={{ fontFamily: 'Inter, sans-serif', color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                {icon === 'fork'  && <span style={{ fontSize: 12 }}>⑂</span>}
-                                {icon === 'issue' && <span style={{ fontSize: 12 }}>◎</span>}
-                                {icon === 'tag'   && <span style={{ fontSize: 12 }}>🏷</span>}
-                                {key}
-                              </span>
-                              <span style={{ fontFamily: icon === 'tag' ? 'JetBrains Mono, monospace' : 'Inter, sans-serif', color: 'var(--t2)', fontWeight: 500 }}>
-                                {val}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* ── Skills Folder tile (only when learned) ── */}
-                    {learnState === 'LEARNED' && skillRow && (
-                      <div className="stats-tile">
-                        <SidebarLabel>Skills Folder</SidebarLabel>
-                        <div
-                          className="skill-hover-group"
-                          onMouseEnter={() => setHoveredBox('master')}
-                          onMouseLeave={() => setHoveredBox(null)}
-                        >
-                          <div className="sidebar-skill-panel">
-                            <div className="sidebar-skill-panel-header">
-                              <span className="sidebar-skill-panel-filename">{name}.skill.md</span>
-                              <span className="sidebar-skill-panel-badge">✓ active</span>
-                            </div>
-                            <div className="sidebar-skill-panel-body">
-                              {skillDepths && (() => {
-                                const total = Math.max(skillDepths.core + skillDepths.extended + skillDepths.deep, 1)
-                                return [
-                                  { label: 'Core',     lines: skillDepths.core,     color: '#059669', pct: Math.round(skillDepths.core / total * 100) },
-                                  { label: 'Extended', lines: skillDepths.extended, color: '#6d28d9', pct: Math.round((skillDepths.core + skillDepths.extended) / total * 100) },
-                                  { label: 'Deep',     lines: skillDepths.deep,     color: '#4c1d95', pct: 100 },
-                                ].map(({ label, lines, color, pct }) => (
-                                  <div key={label} className="sidebar-skill-depth-row">
-                                    <span className="sidebar-skill-depth-label">{label}</span>
-                                    <div className="sidebar-skill-depth-track">
-                                      <div className="sidebar-skill-depth-fill" style={{ width: `${pct}%`, background: color }} />
-                                    </div>
-                                    <span className="sidebar-skill-depth-count">~{lines}</span>
-                                  </div>
-                                ))
-                              })()}
-                              <div className="sidebar-skill-panel-meta">
-                                {skillRow.version ? `${skillRow.version} · ` : ''}{daysAgoLabel(skillRow.generated_at)}
-                              </div>
-                            </div>
-                          </div>
-                          <div className={`skill-hover-drawer${(hoveredBox === 'master' || relearningTarget === 'master') ? ' skill-hover-drawer--visible' : ''}`}>
-                            <button className="btn-drawer-regen" aria-label="Relearn master skill" onClick={() => handleRelearnTarget('master')} disabled={relearningTarget !== null}>
-                              {relearningTarget === 'master' ? <><span className="spin-ring" style={{ width: 8, height: 8 }} /> Relearning…</> : '↺ Relearn'}
-                            </button>
-                            {(skillRow.tier ?? 1) < 2 && (
-                              <button className="btn-drawer-regen" aria-label="Enhance master skill" onClick={handleEnhance} disabled={relearningTarget !== null} style={{ color: 'rgb(192,132,252)' }}>
-                                ✦ Enhance
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                        {componentsSkillRow && (
-                          <div
-                            className="skill-hover-group"
-                            onMouseEnter={() => setHoveredBox('components')}
-                            onMouseLeave={() => setHoveredBox(null)}
-                            style={{ marginTop: 4 }}
-                          >
-                            <div className="sidebar-sub-skill-box">
-                              <div className="sidebar-sub-skill-header">
-                                <span className="sidebar-sub-skill-dot" style={{ background: '#6366f1' }} />
-                                <span className="sidebar-sub-skill-filename">{componentsSkillRow.filename}</span>
-                              </div>
-                              <div className="sidebar-sub-skill-meta">
-                                {(new Blob([componentsSkillRow.content]).size / 1024).toFixed(1)} KB
-                                {componentsSkillRow.generated_at ? ` · ${daysAgoLabel(componentsSkillRow.generated_at)}` : ''}
-                              </div>
-                            </div>
-                            <div className={`skill-hover-drawer${(hoveredBox === 'components' || relearningTarget === 'components') ? ' skill-hover-drawer--visible' : ''}`}>
-                              <button className="btn-drawer-regen" aria-label="Relearn components skill" onClick={() => handleRelearnTarget('components')} disabled={relearningTarget !== null}>
-                                {relearningTarget === 'components' ? <><span className="spin-ring" style={{ width: 8, height: 8 }} /> Relearning…</> : '↺ Relearn'}
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                        <div className="skills-folder-actions">
-                          <button className="btn-skills-folder-action" onClick={handleRelearnAll} disabled={relearningTarget !== null}>
-                            {relearningTarget !== null ? <><span className="spin-ring" style={{ width: 8, height: 8 }} /> Relearning…</> : '↺ Relearn all'}
-                          </button>
-                          {(skillRow.tier ?? 1) < 2 && (
-                            <button className="btn-skills-folder-action btn-skills-folder-action--enhance" onClick={handleEnhance} disabled={relearningTarget !== null}>
-                              ✦ Enhance all
-                            </button>
-                          )}
-                          {(skillRow.tier ?? 1) >= 2 && (
-                            <span className="skills-folder-enhanced-label">✦ Enhanced</span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* ── Repository tile ── */}
-                    {repo && (
-                    <div className="stats-tile">
-                      <SidebarLabel>Repository</SidebarLabel>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        {([
-                          { key: 'License',        val: formatLicense(repo.license) ?? '—' },
-                          { key: 'Size',           val: formatSize(repo.size) },
-                          { key: 'Watchers',       val: formatCount(repo.watchers) },
-                          { key: 'Default branch', val: repo.default_branch ?? 'main', isMono: true },
-                        ] as { key: string; val: string; isMono?: boolean }[]).map(({ key, val, isMono }) => (
-                          <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
-                            <span style={{ fontFamily: 'Inter, sans-serif', color: 'var(--t3)' }}>{key}</span>
-                            <span style={{ fontFamily: isMono ? 'JetBrains Mono, monospace' : 'Inter, sans-serif', color: 'var(--t2)', fontWeight: 500 }}>
-                              {val}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                      <a
-                        href={`https://github.com/${owner}/${name}`}
-                        onClick={e => { e.preventDefault(); window.api.openExternal(`https://github.com/${owner}/${name}`) }}
-                        className="btn-view-github"
-                        style={{ width: '100%', marginTop: 6 }}
-                      >
-                        <svg viewBox="0 0 16 16" width={12} height={12} fill="currentColor">
-                          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
-                        </svg>
-                        View on GitHub ↗
-                      </a>
-                    </div>
-                    )}
-
-                    {/* ── Badge tiles (conditional, populated after README loads) ── */}
-                    {packageBadges.length > 0 && (
-                      <div className="stats-tile">
-                        <SidebarLabel>Packages</SidebarLabel>
-                        <div className="sidebar-badge-row">
-                          {packageBadges.map((b, i) => <BadgePill key={i} badge={b} />)}
-                        </div>
-                      </div>
-                    )}
-
-                    {qualityBadges.length > 0 && (
-                      <div className="stats-tile">
-                        <SidebarLabel>Quality</SidebarLabel>
-                        <div className="sidebar-badge-row">
-                          {qualityBadges.map((b, i) => <BadgePill key={i} badge={b} />)}
-                        </div>
-                      </div>
-                    )}
-
-                    {socialBadges.length > 0 && (
-                      <div className="stats-tile">
-                        <SidebarLabel>Community</SidebarLabel>
-                        <div className="sidebar-social-row">
-                          {socialBadges.map((b, i) => <SocialIcon key={i} badge={b} />)}
-                        </div>
-                      </div>
-                    )}
-
-                    {miscBadges.length > 0 && (
-                      <div className="stats-tile">
-                        <SidebarLabel>Badges</SidebarLabel>
-                        <div className="sidebar-badge-row">
-                          {miscBadges.map((b, i) => <BadgePill key={i} badge={b} />)}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* ── Topics tile ── */}
-                    {topics.length > 0 && (
-                      <div className="stats-tile">
-                        <SidebarLabel>Topics</SidebarLabel>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                          {topics.map(tag => (
-                            <button
-                              key={tag}
-                              className="repo-card-tag"
-                              onClick={() => navigate('/discover', { state: { preloadTag: tag } })}
-                              style={{ fontSize: 10, padding: '2px 8px' }}
-                            >
-                              {tag}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* ── Related repos tile ── */}
-                    {sidebarRelated.length > 0 && (
-                      <div className="stats-tile">
-                        <SidebarLabel>Related repos</SidebarLabel>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                          {sidebarRelated.map(r => (
-                            <div key={r.id} className="sidebar-related-card" onClick={() => navigate(`/repo/${r.owner.login}/${r.name}`)}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3 }}>
-                                <img src={r.owner.avatar_url} alt={r.owner.login} style={{ width: 16, height: 16, borderRadius: '50%', border: '1px solid var(--border)', flexShrink: 0 }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
-                                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--t1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                  {r.name}
-                                </span>
-                              </div>
-                              {r.description && (
-                                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: 'var(--t3)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: 4 }}>
-                                  {r.description}
-                                </div>
-                              )}
-                              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 3 }}>
-                                ★ {formatCount(r.stargazers_count)}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                  </div>
-                )}
               </>
             }
             actionRow={
@@ -1753,7 +1731,7 @@ const [skillRow, setSkillRow] = useState<SkillRow | null>(null)
 
 // -- Article action row --
 type RepoArticleActionRowProps = {
-  learnState: 'UNLEARNED' | 'LEARNING' | 'ENHANCING' | 'LEARNED'
+  learnState: 'UNLEARNED' | 'LEARNING' | 'LEARNED'
   starred: boolean
   starWorking: boolean
   starCount: number
@@ -1778,12 +1756,11 @@ function RepoArticleActionRow({
   onLearn, onUnlearn, onStar,
   translationStatus,
 }: RepoArticleActionRowProps) {
-  const learnBusy = learnState === 'LEARNING' || learnState === 'ENHANCING'
+  const learnBusy = learnState === 'LEARNING'
   const learnLabel =
-    learnState === 'LEARNING'  ? 'Learning…'  :
-    learnState === 'ENHANCING' ? 'Enhancing…' :
-    learnState === 'LEARNED'   ? 'Learned'    :
-                                 'Learn'
+    learnState === 'LEARNING' ? 'Learning…' :
+    learnState === 'LEARNED'  ? 'Learned'   :
+                                'Learn'
 
   return (
     <div className="article-action-row">
@@ -1794,7 +1771,6 @@ function RepoArticleActionRow({
         title={
           learnState === 'UNLEARNED' ? 'Learn this repo'
           : learnState === 'LEARNING'  ? 'Learning…'
-          : learnState === 'ENHANCING' ? 'Enhancing…'
           : 'Learned — click to unlearn'
         }
       >

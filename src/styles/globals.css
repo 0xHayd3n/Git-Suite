@@ -1395,12 +1395,17 @@ a {
   background: var(--bg3);
 }
 
-.discover-main::before {
-  content: '';
-  display: block;
+/* Real drag strip (not a pseudo-element) — Electron's drag-region
+   hit-test uses elementFromPoint, which skips pseudo-elements, so
+   `::before` alone is not reliably draggable. A real <div> here
+   covers all Discover states (landing, hero, empty). z-index 10
+   beats the hero's internal z-indexes (max 2). */
+.discover-drag-strip {
   height: 32px;
   flex-shrink: 0;
   -webkit-app-region: drag;
+  position: relative;
+  z-index: 10;
 }
 
 /* ── Grid Header ───────────────────────────────────────────────── */

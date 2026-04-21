@@ -7,7 +7,7 @@ import Store from 'electron-store'
 import type Database from 'better-sqlite3'
 import { getDb, closeDb } from './db'
 import { getToken, setToken, clearToken, setGitHubUser, clearGitHubUser, getApiKey, setApiKey } from './store'
-import { OAUTH_URL, exchangeCode, getUser, getStarred, getRepo, searchRepos, getReadme, getFileContent, getReleases, starRepo, unstarRepo, isRepoStarred, fetchGitHubTopics, getProfileUser, getUserRepos, getUserStarred, getUserFollowing, getUserFollowers, checkIsFollowing, followUser, unfollowUser, getOrgVerified, getBranch, getTreeBySha, getBlobBySha, getRawFileBytes, getRepoTree } from './github'
+import { OAUTH_URL, exchangeCode, getUser, getStarred, getRepo, searchRepos, getReadme, getFileContent, getReleases, starRepo, unstarRepo, isRepoStarred, fetchGitHubTopics, getProfileUser, getUserRepos, getMyRepos, getUserStarred, getUserFollowing, getUserFollowers, checkIsFollowing, followUser, unfollowUser, getOrgVerified, getBranch, getTreeBySha, getBlobBySha, getRawFileBytes, getRepoTree } from './github'
 import { scanFromSources } from './mcp-scanner'
 import type { McpScanResult } from '../src/types/mcp'
 import { extractTags } from './tag-extractor'
@@ -1644,6 +1644,108 @@ ipcMain.handle('profile:getUserRepos', async (_, username: string, sort?: string
   const token = getToken()
   if (!token) throw new Error('Not authenticated')
   return getUserRepos(token, username, sort)
+})
+
+ipcMain.handle('github:getMyRepos', async () => {
+  const token = getToken()
+  if (!token) throw new Error('Not authenticated')
+  return getMyRepos(token)
+})
+
+ipcMain.handle('projects:scanFolder', async (_event, folderPath: string) => {
+  const fs = require('fs') as typeof import('fs')
+  const path = require('path') as typeof import('path')
+
+  let entries: string[]
+  try { entries = fs.readdirSync(folderPath) } catch { return [] }
+
+  const results: { name: string; path: string; isGit: boolean; owner: string | null; repoName: string | null }[] = []
+
+  for (const entry of entries) {
+    const fullPath = path.join(folderPath, entry)
+    let stat: import('fs').Stats
+    try { stat = fs.statSync(fullPath) } catch { continue }
+    if (!stat.isDirectory()) continue
+
+    const gitDir = path.join(fullPath, '.git')
+    const isGit = fs.existsSync(gitDir)
+    let owner: string | null = null
+    let repoName: string | null = null
+
+    if (isGit) {
+      const configPath = path.join(gitDir, 'config')
+      try {
+        const cfg = fs.readFileSync(configPath, 'utf8')
+        const httpsMatch = cfg.match(/url\s*=\s*https?:\/\/github\.com\/([^/\s]+)\/([^/\s.]+)/)
+        const sshMatch   = cfg.match(/url\s*=\s*git@github\.com:([^/\s]+)\/([^/\s.]+)/)
+        const m = httpsMatch ?? sshMatch
+        if (m) { owner = m[1]; repoName = m[2].replace(/\.git$/, '') }
+      } catch { /* no config readable */ }
+    }
+
+    results.push({ name: entry, path: fullPath, isGit, owner, repoName })
+  }
+
+  return results
+})
+
+ipcMain.handle('projects:openFolder', async (_event, folderPath: string) => {
+  shell.openPath(folderPath)
+})
+
+ipcMain.handle('projects:readFile', async (_event, folderPath: string, filename: string) => {
+  const fs = require('fs') as typeof import('fs')
+  const path = require('path') as typeof import('path')
+  const fullPath = path.join(folderPath, filename)
+  try {
+    return fs.readFileSync(fullPath, 'utf8')
+  } catch {
+    return null
+  }
+})
+
+ipcMain.handle('projects:listDir', async (_event, folderPath: string, subPath: string) => {
+  const fs = require('fs') as typeof import('fs')
+  const path = require('path') as typeof import('path')
+  const targetDir = subPath ? path.join(folderPath, subPath) : folderPath
+  try {
+    const names = fs.readdirSync(targetDir)
+    const entries = names
+      .filter(n => !n.startsWith('.') || n === '.env')
+      .map(name => {
+        const full = path.join(targetDir, name)
+        try {
+          const stat = fs.statSync(full)
+          return { name, path: subPath ? `${subPath}/${name}` : name, type: stat.isDirectory() ? 'dir' : 'file', size: stat.isFile() ? stat.size : null }
+        } catch {
+          return null
+        }
+      })
+      .filter(Boolean) as { name: string; path: string; type: 'dir' | 'file'; size: number | null }[]
+    entries.sort((a, b) => {
+      if (a.type !== b.type) return a.type === 'dir' ? -1 : 1
+      return a.name.localeCompare(b.name)
+    })
+    return entries
+  } catch {
+    return []
+  }
+})
+
+ipcMain.handle('projects:renameFolder', async (_event, folderPath: string, newName: string) => {
+  const path = require('path') as typeof import('path')
+  const fs = require('fs') as typeof import('fs')
+  const parent = path.dirname(folderPath)
+  const dest = path.join(parent, newName)
+  fs.renameSync(folderPath, dest)
+  return dest
+})
+
+ipcMain.handle('projects:writeFile', async (_event, folderPath: string, filename: string, content: string) => {
+  const path = require('path') as typeof import('path')
+  const fs = require('fs') as typeof import('fs')
+  const fullPath = path.join(folderPath, filename)
+  fs.writeFileSync(fullPath, content, 'utf8')
 })
 
 ipcMain.handle('profile:getStarred', async (_, username: string) => {

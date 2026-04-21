@@ -1,0 +1,103 @@
+<h2>TOC Panel Structure</h2>
+<p class="subtitle">How should the "On This Page" navigation relate to the main content panel?</p>
+
+<div class="cards" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+  <!-- Option A: Separate panel -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:20px;">
+      <div style="display:flex;gap:10px;height:280px;">
+        <!-- TOC Panel -->
+        <div style="width:160px;flex-shrink:0;background:rgba(30,38,50,0.85);border-radius:8px;border:1px solid rgba(255,255,255,0.06);padding:14px 10px;display:flex;flex-direction:column;gap:4px;">
+          <span style="font-size:9px;text-transform:uppercase;color:rgba(255,255,255,0.35);letter-spacing:0.5px;margin-bottom:6px;">On this page</span>
+          <span style="font-size:10px;color:rgba(130,180,255,0.9);border-left:2px solid rgba(130,180,255,0.7);padding-left:8px;">Installation</span>
+          <span style="font-size:10px;color:rgba(255,255,255,0.45);padding-left:10px;">Documentation</span>
+          <span style="font-size:10px;color:rgba(255,255,255,0.45);padding-left:10px;">Examples</span>
+          <span style="font-size:10px;color:rgba(255,255,255,0.45);padding-left:10px;">Contributing</span>
+          <span style="font-size:10px;color:rgba(255,255,255,0.45);padding-left:10px;">References</span>
+        </div>
+        <!-- Content Panel -->
+        <div style="flex:1;background:rgba(30,38,50,0.85);border-radius:8px;border:1px solid rgba(255,255,255,0.06);padding:14px;display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:9px;color:rgba(255,255,255,0.35);margin-bottom:4px;">facebook / react</div>
+          <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.9);">react</div>
+          <div style="display:flex;gap:6px;margin:4px 0;font-size:9px;color:rgba(255,255,255,0.4);">
+            <span style="padding:2px 6px;background:rgba(255,255,255,0.06);border-radius:3px;">README</span>
+            <span style="padding:2px 6px;">Files</span>
+            <span style="padding:2px 6px;">Releases</span>
+          </div>
+          <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:8px;margin-top:4px;">
+            <div style="width:80%;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;margin:6px auto;"></div>
+            <div style="width:65%;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;margin:6px auto;"></div>
+            <div style="width:90%;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;margin:6px auto;"></div>
+            <div style="width:70%;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;margin:6px auto;"></div>
+            <div style="width:85%;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;margin:6px auto;"></div>
+          </div>
+        </div>
+        <!-- Right Sidebar -->
+        <div style="width:140px;flex-shrink:0;background:rgba(30,38,50,0.85);border-radius:8px;border:1px solid rgba(255,255,255,0.06);padding:14px 10px;display:flex;flex-direction:column;gap:4px;">
+          <span style="font-size:9px;text-transform:uppercase;color:rgba(255,255,255,0.35);letter-spacing:0.5px;">Stats</span>
+          <span style="font-size:10px;color:rgba(255,255,255,0.5);">⭐ 244.5k</span>
+          <span style="font-size:10px;color:rgba(255,255,255,0.5);">🍴 50.9k</span>
+          <div style="border-top:1px solid rgba(255,255,255,0.06);margin:6px 0;"></div>
+          <span style="font-size:9px;text-transform:uppercase;color:rgba(255,255,255,0.35);">Repository</span>
+          <span style="font-size:10px;color:rgba(255,255,255,0.5);">JavaScript</span>
+          <span style="font-size:10px;color:rgba(255,255,255,0.5);">MIT</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Three Separate Panels</h3>
+      <p>TOC gets its own glass panel, visually distinct from both the content and sidebar. Three independent scrollable columns.</p>
+    </div>
+  </div>
+
+  <!-- Option B: TOC inside content panel -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:20px;">
+      <div style="display:flex;gap:10px;height:280px;">
+        <!-- Content Panel with TOC inside -->
+        <div style="flex:1;background:rgba(30,38,50,0.85);border-radius:8px;border:1px solid rgba(255,255,255,0.06);padding:14px;display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:9px;color:rgba(255,255,255,0.35);margin-bottom:4px;">facebook / react</div>
+          <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.9);">react</div>
+          <div style="display:flex;gap:6px;margin:4px 0;font-size:9px;color:rgba(255,255,255,0.4);">
+            <span style="padding:2px 6px;background:rgba(255,255,255,0.06);border-radius:3px;">README</span>
+            <span style="padding:2px 6px;">Files</span>
+            <span style="padding:2px 6px;">Releases</span>
+          </div>
+          <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:8px;margin-top:4px;display:flex;gap:12px;flex:1;">
+            <!-- TOC inside panel -->
+            <div style="width:130px;flex-shrink:0;border-right:1px solid rgba(255,255,255,0.06);padding-right:10px;display:flex;flex-direction:column;gap:4px;">
+              <span style="font-size:9px;text-transform:uppercase;color:rgba(255,255,255,0.35);letter-spacing:0.5px;margin-bottom:6px;">On this page</span>
+              <span style="font-size:10px;color:rgba(130,180,255,0.9);border-left:2px solid rgba(130,180,255,0.7);padding-left:8px;">Installation</span>
+              <span style="font-size:10px;color:rgba(255,255,255,0.45);padding-left:10px;">Documentation</span>
+              <span style="font-size:10px;color:rgba(255,255,255,0.45);padding-left:10px;">Examples</span>
+              <span style="font-size:10px;color:rgba(255,255,255,0.45);padding-left:10px;">Contributing</span>
+            </div>
+            <!-- Content area -->
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+              <div style="width:80%;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;margin:4px 0;"></div>
+              <div style="width:65%;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;margin:4px 0;"></div>
+              <div style="width:90%;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;margin:4px 0;"></div>
+              <div style="width:70%;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;margin:4px 0;"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Right Sidebar -->
+        <div style="width:140px;flex-shrink:0;background:rgba(30,38,50,0.85);border-radius:8px;border:1px solid rgba(255,255,255,0.06);padding:14px 10px;display:flex;flex-direction:column;gap:4px;">
+          <span style="font-size:9px;text-transform:uppercase;color:rgba(255,255,255,0.35);letter-spacing:0.5px;">Stats</span>
+          <span style="font-size:10px;color:rgba(255,255,255,0.5);">⭐ 244.5k</span>
+          <span style="font-size:10px;color:rgba(255,255,255,0.5);">🍴 50.9k</span>
+          <div style="border-top:1px solid rgba(255,255,255,0.06);margin:6px 0;"></div>
+          <span style="font-size:9px;text-transform:uppercase;color:rgba(255,255,255,0.35);">Repository</span>
+          <span style="font-size:10px;color:rgba(255,255,255,0.5);">JavaScript</span>
+          <span style="font-size:10px;color:rgba(255,255,255,0.5);">MIT</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — TOC Inside Content Panel</h3>
+      <p>TOC lives inside the main panel as a left-side column, separated by a divider. Header spans full width, TOC only appears in body area. Two panels total.</p>
+    </div>
+  </div>
+
+</div>

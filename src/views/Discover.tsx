@@ -928,6 +928,7 @@ export default function Discover() {
           onBrowseClick={exitLanding}
         />
         <div className="discover-main">
+          <div className="discover-drag-strip" aria-hidden="true" />
           {showLanding ? (
             <DiscoverLanding
               query={discoverQuery}

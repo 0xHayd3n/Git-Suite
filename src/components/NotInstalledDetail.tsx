@@ -15,7 +15,7 @@ export default function NotInstalledDetail({ row, onInstalled }: Props) {
     setInstalling(true)
     setError(null)
     try {
-      await window.api.skill.generate(row.owner, row.name)
+      await window.api.skill.generate(row.owner, row.name, { flavour: 'library' })
       onInstalled()
     } catch {
       setError('Failed to install skill. Check your connection and try again.')

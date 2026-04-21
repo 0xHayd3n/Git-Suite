@@ -1,0 +1,99 @@
+<h2>Design Section 4 — Publish Flow</h2>
+<p class="subtitle">After the user clicks Generate, the canvas transitions into a review + publish step. Three stages.</p>
+
+<div style="display:flex;flex-direction:column;gap:16px;">
+
+  <!-- Stage indicator -->
+  <div style="display:flex;align-items:center;gap:0;background:#0a0a15;border-radius:8px;overflow:hidden;border:1px solid #1a1a2e;">
+    <div style="flex:1;padding:10px 14px;background:#1a2a4a;border-right:1px solid #1a1a2e;">
+      <div style="font-size:8px;color:#5a8aca;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">① Build</div>
+      <div style="font-size:9px;color:#7ab;">Complete ✓</div>
+    </div>
+    <div style="flex:1;padding:10px 14px;background:#1e2a1e;border-right:1px solid #1a1a2e;">
+      <div style="font-size:8px;color:#5a8a6a;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">② Review</div>
+      <div style="font-size:9px;color:#6a9;">Current step</div>
+    </div>
+    <div style="flex:1;padding:10px 14px;background:#111122;">
+      <div style="font-size:8px;color:#445;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">③ Publish</div>
+      <div style="font-size:9px;color:#445;">Pending</div>
+    </div>
+  </div>
+
+  <!-- Stage 2: Code Review -->
+  <div class="section">
+    <h3>Stage 2 — Review Generated Code</h3>
+    <div style="background:#080810;border-radius:8px;overflow:hidden;border:1px solid #1a1a2e;display:flex;height:200px;">
+      <!-- File tree -->
+      <div style="width:160px;background:#0d0d1e;border-right:1px solid #1a1a2e;padding:8px;">
+        <div style="font-size:7px;color:#556;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">physart/</div>
+        <div style="display:flex;flex-direction:column;gap:2px;font-size:8px;">
+          <div style="color:#6a9;">📁 src/</div>
+          <div style="padding-left:12px;color:#5a8a6a;background:#1a2a1a;border-radius:3px;padding:2px 4px 2px 14px;">scene.ts</div>
+          <div style="padding-left:12px;color:#667;padding:2px 4px 2px 14px;">physics.ts</div>
+          <div style="padding-left:12px;color:#667;padding:2px 4px 2px 14px;">particles.ts</div>
+          <div style="padding-left:12px;color:#667;padding:2px 4px 2px 14px;">audio.ts</div>
+          <div style="padding-left:12px;color:#667;padding:2px 4px 2px 14px;">main.ts</div>
+          <div style="color:#667;margin-top:2px;">📄 index.html</div>
+          <div style="color:#667;">📄 package.json</div>
+          <div style="color:#667;">📄 README.md</div>
+          <div style="color:#445;font-style:italic;">📄 .gitignore</div>
+        </div>
+      </div>
+      <!-- Code preview -->
+      <div style="flex:1;padding:10px;font-family:monospace;font-size:8px;line-height:1.7;overflow:hidden;">
+        <div style="color:#445;margin-bottom:4px;">src/scene.ts</div>
+        <div style="color:#6a8aaa;">import</div><span style="color:#99a;"> * as THREE </span><div style="display:inline;color:#6a8aaa;">from</div><span style="color:#6a9;"> 'three'</span><span style="color:#778;">;</span><br>
+        <div style="display:inline;color:#6a8aaa;">import</div><span style="color:#99a;"> { World } </span><div style="display:inline;color:#6a8aaa;">from</div><span style="color:#6a9;"> '@dimforge/rapier3d'</span><span style="color:#778;">;</span><br>
+        <br>
+        <div style="display:inline;color:#778;">export class </div><span style="color:#7ab;">PhysicsScene</span><span style="color:#778;"> {</span><br>
+        <span style="padding-left:16px;color:#778;">private </span><span style="color:#99a;">world</span><span style="color:#778;">: World;</span><br>
+        <span style="padding-left:16px;color:#778;">private </span><span style="color:#99a;">renderer</span><span style="color:#778;">: THREE.WebGLRenderer;</span><br>
+        <br>
+        <span style="padding-left:16px;color:#6a8aaa;">constructor</span><span style="color:#778;">() {</span><br>
+        <span style="padding-left:32px;color:#778;">this.</span><span style="color:#99a;">world</span><span style="color:#778;"> = new </span><span style="color:#7ab;">World</span><span style="color:#778;">({ gravity: ... })</span><br>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stage 3: Publish -->
+  <div class="section">
+    <h3>Stage 3 — Publish to GitHub</h3>
+    <div style="background:#080810;border-radius:8px;overflow:hidden;border:1px solid #1a1a2e;padding:14px;display:flex;flex-direction:column;gap:10px;">
+
+      <!-- Repo name -->
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <div style="font-size:8px;color:#556;text-transform:uppercase;letter-spacing:1px;">Repository Name</div>
+        <div style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:5px;padding:7px 10px;font-size:10px;color:#99a;">physart</div>
+        <div style="font-size:8px;color:#445;">github.com/haydo/<span style="color:#7ab;">physart</span></div>
+      </div>
+
+      <!-- Description (AI generated) -->
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <div style="font-size:8px;color:#556;text-transform:uppercase;letter-spacing:1px;">Description <span style="color:#5a8;font-style:italic;text-transform:none;letter-spacing:0;">✦ AI generated</span></div>
+        <div style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:5px;padding:7px 10px;font-size:9px;color:#778;line-height:1.4;">Interactive 3D physics art built with Three.js and Rapier. Objects emit particles and sound on collision.</div>
+      </div>
+
+      <!-- Visibility -->
+      <div style="display:flex;gap:8px;">
+        <div style="flex:1;background:#1e2a4a;border:1px solid #3a5a9a;border-radius:5px;padding:7px;text-align:center;font-size:9px;color:#7ab;">🌐 Public</div>
+        <div style="flex:1;background:#1a1a2e;border:1px solid #252535;border-radius:5px;padding:7px;text-align:center;font-size:9px;color:#445;">🔒 Private</div>
+      </div>
+
+      <!-- Add to Library toggle -->
+      <div style="display:flex;align-items:center;gap:8px;background:#1a2a1a;border-radius:5px;padding:8px 10px;">
+        <div style="width:24px;height:14px;background:#3a7a4a;border-radius:7px;position:relative;flex-shrink:0;">
+          <div style="width:10px;height:10px;background:white;border-radius:50%;position:absolute;right:2px;top:2px;"></div>
+        </div>
+        <div style="font-size:9px;color:#6a9;">Add to my Library after publishing</div>
+      </div>
+
+      <!-- Publish button -->
+      <div style="background:#1e3a1e;border:1px solid #3a6a3a;border-radius:6px;padding:10px;text-align:center;font-size:10px;color:#5a9a6a;font-weight:600;">
+        Publish to GitHub →
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p style="font-size:11px;color:#667;margin-top:10px;">The README is AI-generated from the chat conversation. Publishing also optionally adds the repo to your Library so it appears as an installed skill. Does this flow feel complete?</p>

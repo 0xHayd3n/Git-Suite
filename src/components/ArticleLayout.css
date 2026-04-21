@@ -7,6 +7,7 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  background: var(--glass-bg);
 }
 
 /* Full-bleed mode (Files / Components tabs): outer layout does not scroll,
@@ -246,13 +247,45 @@
 .article-layout-body--with-toc > .article-layout-body-content {
   flex: 1;
   min-width: 0;
-  padding: 20px 22px;
-  overflow-y: auto;
+  padding: 0 22px 20px;
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  scrollbar-gutter: stable overlay;
+}
+
+.article-layout-body--with-toc > .article-layout-body-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.article-layout-body--with-toc > .article-layout-body-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.article-layout-body--with-toc > .article-layout-body-content::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+
+.article-layout-body--with-toc > .article-layout-body-content:hover::-webkit-scrollbar-thumb {
+  background: var(--bg3);
+}
+
+.article-layout-body--with-toc > .article-layout-body-content:hover {
+  scrollbar-color: var(--bg3) transparent;
 }
 
 .article-layout-body--with-toc > .article-layout-toc-slot {
   width: 200px;
   flex-shrink: 0;
   border-right: 1px solid var(--glass-border);
+  overflow-y: auto;
+}
+
+.article-layout-body--with-toc > .article-layout-stats-slot {
+  width: 220px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--glass-border);
   overflow-y: auto;
 }

@@ -1,4 +1,5 @@
 import './LibrarySidebar.css'
+import { Layers, Star, Brain } from 'lucide-react'
 import type { LibraryRow, StarredRepoRow, RepoRow } from '../types/repo'
 
 type ActiveSegment = 'all' | 'active' | 'inactive'
@@ -34,25 +35,36 @@ export default function LibrarySidebar({
   })()
 
   const visible = entries.filter(({ row, isInstalled }) => {
-    if (!isInstalled) return activeSegment === 'all'
-    const r = row as LibraryRow
-    if (activeSegment === 'active') return r.active === 1
-    if (activeSegment === 'inactive') return r.active === 0
-    return true
+    if (activeSegment === 'all') return true
+    if (activeSegment === 'inactive') return !isInstalled
+    if (activeSegment === 'active') return isInstalled && (row as LibraryRow).active === 1
+    return false
   })
 
   return (
     <aside className="library-sidebar">
       <div className="library-sidebar-filter">
-        {(['all', 'active', 'inactive'] as const).map(seg => (
-          <button
-            key={seg}
-            className={`library-sidebar-seg${activeSegment === seg ? ' active' : ''}`}
-            onClick={() => onSegmentChange(seg)}
-          >
-            {seg === 'all' ? 'All' : seg === 'active' ? 'Active' : 'Inactive'}
-          </button>
-        ))}
+        <button
+          className={`library-sidebar-seg${activeSegment === 'all' ? ' active' : ''}`}
+          onClick={() => onSegmentChange('all')}
+        >
+          <Layers size={11} />
+          All
+        </button>
+        <button
+          className={`library-sidebar-seg${activeSegment === 'inactive' ? ' active' : ''}`}
+          onClick={() => onSegmentChange('inactive')}
+        >
+          <Star size={11} />
+          Starred
+        </button>
+        <button
+          className={`library-sidebar-seg${activeSegment === 'active' ? ' active' : ''}`}
+          onClick={() => onSegmentChange('active')}
+        >
+          <Brain size={11} />
+          Learned
+        </button>
       </div>
 
       <div className="library-sidebar-list">

@@ -1,0 +1,101 @@
+<h2>What does the center canvas become?</h2>
+<p class="subtitle">You've dropped repos. The AI chat is flowing. What fills the canvas as the tool takes shape?</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#0a0a15;border-radius:6px;padding:12px;height:160px;display:flex;flex-direction:column;gap:8px;">
+        <div style="color:#556;font-size:9px;text-transform:uppercase;letter-spacing:1px;">Project Blueprint</div>
+        <div style="display:flex;gap:8px;flex:1;">
+          <!-- File tree -->
+          <div style="background:#111122;border-radius:4px;padding:8px;width:40%;font-size:8px;color:#667;">
+            <div style="color:#889;margin-bottom:4px;">📁 my-tool/</div>
+            <div style="padding-left:10px;color:#556;">📁 src/</div>
+            <div style="padding-left:20px;color:#445;">scene.ts</div>
+            <div style="padding-left:20px;color:#445;">physics.ts</div>
+            <div style="padding-left:10px;color:#556;">package.json</div>
+            <div style="padding-left:10px;color:#556;">README.md</div>
+          </div>
+          <!-- Dependency graph -->
+          <div style="flex:1;background:#111122;border-radius:4px;padding:8px;position:relative;">
+            <div style="font-size:8px;color:#556;margin-bottom:6px;">Dependencies</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <div style="background:#1e2a4a;border-radius:3px;padding:2px 6px;color:#7ab;font-size:8px;">three</div>
+              <div style="background:#2a1e3a;border-radius:3px;padding:2px 6px;color:#b7a;font-size:8px;">@dimforge/rapier3d</div>
+              <div style="background:#1a2a1a;border-radius:3px;padding:2px 6px;color:#6a9;font-size:8px;">leva</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Blueprint</h3>
+      <p>The canvas fills with an emerging file structure and dependency map. You see the tool's architecture growing in real-time as the AI defines it — folders, files, how repos wire together.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#0a0a15;border-radius:6px;padding:12px;height:160px;display:flex;flex-direction:column;gap:8px;">
+        <div style="color:#556;font-size:9px;text-transform:uppercase;letter-spacing:1px;">Decision Cards</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-content:flex-start;">
+          <div style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;padding:6px 10px;min-width:80px;">
+            <div style="font-size:7px;color:#556;text-transform:uppercase;margin-bottom:2px;">Name</div>
+            <div style="font-size:9px;color:#99a;">PhysArt</div>
+          </div>
+          <div style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;padding:6px 10px;min-width:80px;">
+            <div style="font-size:7px;color:#556;text-transform:uppercase;margin-bottom:2px;">Type</div>
+            <div style="font-size:9px;color:#99a;">Web App</div>
+          </div>
+          <div style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;padding:6px 10px;min-width:80px;">
+            <div style="font-size:7px;color:#556;text-transform:uppercase;margin-bottom:2px;">Platform</div>
+            <div style="font-size:9px;color:#99a;">Browser</div>
+          </div>
+          <div style="background:#1a1a2e;border:1px solid #2a4a2a;border-radius:6px;padding:6px 10px;min-width:80px;">
+            <div style="font-size:7px;color:#5a8;text-transform:uppercase;margin-bottom:2px;">Features</div>
+            <div style="font-size:9px;color:#6a9;">Particles, Sound</div>
+          </div>
+          <div style="background:#1a1a2e;border:1px dashed #2a2a3a;border-radius:6px;padding:6px 10px;min-width:80px;opacity:0.4;">
+            <div style="font-size:7px;color:#445;text-transform:uppercase;margin-bottom:2px;">License</div>
+            <div style="font-size:9px;color:#445;">...</div>
+          </div>
+          <div style="background:#1a1a2e;border:1px dashed #2a2a3a;border-radius:6px;padding:6px 10px;min-width:80px;opacity:0.4;">
+            <div style="font-size:7px;color:#445;text-transform:uppercase;margin-bottom:2px;">Output</div>
+            <div style="font-size:9px;color:#445;">...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Decision Cards</h3>
+      <p>Each AI question answered fills in a card on the canvas — name, type, platform, features, license, output format. Unfilled cards are faded placeholders. When all cards are filled, the tool is ready to generate.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#0a0a15;border-radius:6px;padding:12px;height:160px;display:flex;flex-direction:column;gap:6px;">
+        <div style="color:#556;font-size:9px;text-transform:uppercase;letter-spacing:1px;">Live Preview</div>
+        <div style="flex:1;background:#111122;border-radius:4px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
+          <!-- Fake 3D canvas preview -->
+          <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 40% 50%, #1a1a3a 0%, #080810 70%);"></div>
+          <div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <div style="width:30px;height:30px;background:#2a3a6a;border-radius:4px;transform:rotate(15deg);box-shadow:0 0 10px #3a5aaa44;"></div>
+            <div style="font-size:8px;color:#445;">running preview</div>
+          </div>
+          <div style="position:absolute;bottom:6px;right:6px;background:#1a2a1a;border-radius:3px;padding:2px 6px;font-size:7px;color:#5a8;">● live</div>
+        </div>
+        <div style="display:flex;gap:4px;">
+          <div style="background:#1e2e1e;border-radius:3px;padding:2px 8px;font-size:8px;color:#5a8;border:1px solid #2a4a2a;">▶ Rebuild</div>
+          <div style="background:#1a1a2e;border-radius:3px;padding:2px 8px;font-size:8px;color:#778;">Open in editor</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Live Preview</h3>
+      <p>The canvas becomes a live preview of the tool as it's generated. AI writes code incrementally and the canvas renders/runs it. You see the tool actually working before the repo is published.</p>
+    </div>
+  </div>
+
+</div>

@@ -8,21 +8,6 @@
   -webkit-app-region: no-drag;
 }
 
-/* Drag shield covering the titlebar strip of the hero.
-   Real DOM element (not ::before) so Electron's elementFromPoint
-   hit-test picks it up. Descendant with `drag` overrides the
-   hero container's `no-drag`, per Electron docs. z-index 10 is
-   above all hero internals (max z-index 2). */
-.discover-hero-drag {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 32px;
-  z-index: 10;
-  -webkit-app-region: drag;
-}
-
 /* ── Crossfade layers ── */
 .discover-hero-layer {
   position: absolute;

@@ -1,3 +1,10 @@
+export type SkillFlavour = 'library' | 'codebase' | 'domain'
+
+export type RouteResult =
+  | { flavour: 'library'; content: string; validation: ValidationResult }
+  | { flavour: 'domain';  content: string; validation: ValidationResult }
+  | { flavour: 'codebase'; system: string; practice: string; systemValidation: ValidationResult; practiceValidation: ValidationResult }
+
 export type RepoType =
   | 'library'
   | 'cli-tool'

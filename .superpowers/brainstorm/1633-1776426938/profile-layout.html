@@ -1,0 +1,149 @@
+<h2>Profile Section Layout</h2>
+<p class="subtitle">How should the Profile page be structured? Pick the approach that feels right.</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="display:flex;gap:12px;padding:16px;background:#0d0d10;border-radius:6px;font-size:11px;font-family:monospace;">
+        <div style="width:38%;display:flex;flex-direction:column;gap:8px;">
+          <div style="width:52px;height:52px;border-radius:50%;background:#6d28d9;margin:0 auto;"></div>
+          <div style="height:10px;background:#2a2a30;border-radius:3px;width:80%;margin:0 auto;"></div>
+          <div style="height:8px;background:#1e1e24;border-radius:3px;width:60%;margin:0 auto;"></div>
+          <div style="height:7px;background:#1e1e24;border-radius:3px;width:70%;margin:0 auto;margin-top:4px;"></div>
+          <div style="height:7px;background:#1e1e24;border-radius:3px;width:55%;margin:0 auto;"></div>
+          <div style="height:7px;background:#1e1e24;border-radius:3px;width:65%;margin:0 auto;"></div>
+          <div style="height:22px;background:#6d28d9;border-radius:4px;width:80%;margin:4px auto;opacity:0.8;"></div>
+          <div style="height:1px;background:#2a2a30;margin:2px 0;"></div>
+          <div style="display:flex;justify-content:space-around;margin-top:4px;">
+            <div style="text-align:center;"><div style="height:12px;background:#2a2a30;border-radius:2px;width:22px;margin-bottom:3px;"></div><div style="height:7px;background:#1e1e24;border-radius:2px;width:30px;"></div></div>
+            <div style="text-align:center;"><div style="height:12px;background:#2a2a30;border-radius:2px;width:22px;margin-bottom:3px;"></div><div style="height:7px;background:#1e1e24;border-radius:2px;width:30px;"></div></div>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;gap:4px;margin-bottom:4px;">
+            <div style="height:20px;background:#1a1a1e;border-radius:3px;padding:0 8px;display:flex;align-items:center;font-size:9px;color:#9a9ab0;border:1px solid #2a2a30;">Repositories</div>
+            <div style="height:20px;background:#1a1a1e;border-radius:3px;padding:0 8px;display:flex;align-items:center;font-size:9px;color:#9a9ab0;border:1px solid #2a2a30;">Starred</div>
+          </div>
+          <div style="background:#1a1a1e;border:1px solid #2a2a30;border-radius:5px;padding:8px;display:flex;flex-direction:column;gap:4px;">
+            <div style="height:9px;background:#2a2a30;border-radius:2px;width:60%;"></div>
+            <div style="height:7px;background:#1e1e24;border-radius:2px;width:80%;"></div>
+            <div style="display:flex;gap:6px;margin-top:2px;"><div style="height:7px;background:#6d28d9;border-radius:2px;width:30px;opacity:0.6;"></div><div style="height:7px;background:#1e1e24;border-radius:2px;width:20px;"></div></div>
+          </div>
+          <div style="background:#1a1a1e;border:1px solid #2a2a30;border-radius:5px;padding:8px;display:flex;flex-direction:column;gap:4px;">
+            <div style="height:9px;background:#2a2a30;border-radius:2px;width:50%;"></div>
+            <div style="height:7px;background:#1e1e24;border-radius:2px;width:90%;"></div>
+            <div style="display:flex;gap:6px;margin-top:2px;"><div style="height:7px;background:#059669;border-radius:2px;width:25px;opacity:0.6;"></div><div style="height:7px;background:#1e1e24;border-radius:2px;width:20px;"></div></div>
+          </div>
+          <div style="background:#1a1a1e;border:1px solid #2a2a30;border-radius:5px;padding:8px;display:flex;flex-direction:column;gap:4px;">
+            <div style="height:9px;background:#2a2a30;border-radius:2px;width:70%;"></div>
+            <div style="height:7px;background:#1e1e24;border-radius:2px;width:75%;"></div>
+            <div style="display:flex;gap:6px;margin-top:2px;"><div style="height:7px;background:#d97706;border-radius:2px;width:35px;opacity:0.6;"></div><div style="height:7px;background:#1e1e24;border-radius:2px;width:20px;"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — GitHub-Style Split</h3>
+      <p>Fixed profile sidebar on the left (avatar, bio, stats, follow counts). Repos listed on the right with tab switching. Closest to what GitHub itself looks like.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="display:flex;flex-direction:column;gap:8px;padding:16px;background:#0d0d10;border-radius:6px;">
+        <div style="display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid #2a2a30;">
+          <div style="width:44px;height:44px;border-radius:50%;background:#6d28d9;flex-shrink:0;"></div>
+          <div style="flex:1;">
+            <div style="height:10px;background:#2a2a30;border-radius:3px;width:45%;margin-bottom:4px;"></div>
+            <div style="height:8px;background:#1e1e24;border-radius:3px;width:30%;"></div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <div style="text-align:center;"><div style="height:12px;background:#2a2a30;border-radius:2px;width:22px;margin-bottom:3px;margin:0 auto 3px;"></div><div style="height:7px;background:#1e1e24;border-radius:2px;width:30px;"></div></div>
+            <div style="text-align:center;"><div style="height:12px;background:#2a2a30;border-radius:2px;width:22px;margin-bottom:3px;margin:0 auto 3px;"></div><div style="height:7px;background:#1e1e24;border-radius:2px;width:30px;"></div></div>
+            <div style="text-align:center;"><div style="height:12px;background:#2a2a30;border-radius:2px;width:22px;margin-bottom:3px;margin:0 auto 3px;"></div><div style="height:7px;background:#1e1e24;border-radius:2px;width:30px;"></div></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:4px;">
+          <div style="height:18px;background:#6d28d9;border-radius:3px;padding:0 8px;display:flex;align-items:center;font-size:9px;color:#fff;opacity:0.9;">Repositories</div>
+          <div style="height:18px;background:#1a1a1e;border-radius:3px;padding:0 8px;display:flex;align-items:center;font-size:9px;color:#6b6b80;border:1px solid #2a2a30;">Starred</div>
+          <div style="height:18px;background:#1a1a1e;border-radius:3px;padding:0 8px;display:flex;align-items:center;font-size:9px;color:#6b6b80;border:1px solid #2a2a30;">Followers</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <div style="background:#1a1a1e;border:1px solid #2a2a30;border-radius:5px;padding:7px;">
+            <div style="height:8px;background:#2a2a30;border-radius:2px;width:65%;margin-bottom:4px;"></div>
+            <div style="height:6px;background:#1e1e24;border-radius:2px;width:90%;margin-bottom:6px;"></div>
+            <div style="height:6px;background:#6d28d9;border-radius:2px;width:30px;opacity:0.6;"></div>
+          </div>
+          <div style="background:#1a1a1e;border:1px solid #2a2a30;border-radius:5px;padding:7px;">
+            <div style="height:8px;background:#2a2a30;border-radius:2px;width:50%;margin-bottom:4px;"></div>
+            <div style="height:6px;background:#1e1e24;border-radius:2px;width:80%;margin-bottom:6px;"></div>
+            <div style="height:6px;background:#059669;border-radius:2px;width:25px;opacity:0.6;"></div>
+          </div>
+          <div style="background:#1a1a1e;border:1px solid #2a2a30;border-radius:5px;padding:7px;">
+            <div style="height:8px;background:#2a2a30;border-radius:2px;width:70%;margin-bottom:4px;"></div>
+            <div style="height:6px;background:#1e1e24;border-radius:2px;width:75%;margin-bottom:6px;"></div>
+            <div style="height:6px;background:#d97706;border-radius:2px;width:35px;opacity:0.6;"></div>
+          </div>
+          <div style="background:#1a1a1e;border:1px solid #2a2a30;border-radius:5px;padding:7px;">
+            <div style="height:8px;background:#2a2a30;border-radius:2px;width:55%;margin-bottom:4px;"></div>
+            <div style="height:6px;background:#1e1e24;border-radius:2px;width:85%;margin-bottom:6px;"></div>
+            <div style="height:6px;background:#6d28d9;border-radius:2px;width:28px;opacity:0.6;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Compact Header + Tabbed Grid</h3>
+      <p>Slim banner-style header with avatar, name, and stats in a single row. Tabbed content below (Repos, Starred, Followers, Following) shown as a card grid. Maximizes content space.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="display:flex;flex-direction:column;gap:8px;padding:16px;background:#0d0d10;border-radius:6px;">
+        <div style="background:linear-gradient(135deg,#3b1a6b,#1a1a2e);border-radius:6px;padding:12px;display:flex;align-items:center;gap:10px;">
+          <div style="width:48px;height:48px;border-radius:50%;background:#6d28d9;border:2px solid rgba(109,40,217,0.5);flex-shrink:0;"></div>
+          <div style="flex:1;">
+            <div style="height:11px;background:rgba(255,255,255,0.3);border-radius:3px;width:40%;margin-bottom:5px;"></div>
+            <div style="height:8px;background:rgba(255,255,255,0.15);border-radius:3px;width:60%;margin-bottom:5px;"></div>
+            <div style="height:7px;background:rgba(255,255,255,0.1);border-radius:3px;width:50%;"></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;">
+          <div style="background:#1a1a1e;border:1px solid #2a2a30;border-radius:5px;padding:6px;text-align:center;">
+            <div style="height:12px;background:#6d28d9;border-radius:2px;width:24px;margin:0 auto 3px;opacity:0.7;"></div>
+            <div style="height:6px;background:#1e1e24;border-radius:2px;width:80%;margin:0 auto;"></div>
+          </div>
+          <div style="background:#1a1a1e;border:1px solid #2a2a30;border-radius:5px;padding:6px;text-align:center;">
+            <div style="height:12px;background:#059669;border-radius:2px;width:24px;margin:0 auto 3px;opacity:0.7;"></div>
+            <div style="height:6px;background:#1e1e24;border-radius:2px;width:80%;margin:0 auto;"></div>
+          </div>
+          <div style="background:#1a1a1e;border:1px solid #2a2a30;border-radius:5px;padding:6px;text-align:center;">
+            <div style="height:12px;background:#d97706;border-radius:2px;width:24px;margin:0 auto 3px;opacity:0.7;"></div>
+            <div style="height:6px;background:#1e1e24;border-radius:2px;width:80%;margin:0 auto;"></div>
+          </div>
+          <div style="background:#1a1a1e;border:1px solid #2a2a30;border-radius:5px;padding:6px;text-align:center;">
+            <div style="height:12px;background:#dc2626;border-radius:2px;width:24px;margin:0 auto 3px;opacity:0.7;"></div>
+            <div style="height:6px;background:#1e1e24;border-radius:2px;width:80%;margin:0 auto;"></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div style="background:#1a1a1e;border:1px solid #2a2a30;border-radius:5px;padding:7px;display:flex;gap:8px;align-items:center;">
+            <div style="width:28px;height:28px;border-radius:4px;background:#2a2a30;flex-shrink:0;"></div>
+            <div style="flex:1;"><div style="height:8px;background:#2a2a30;border-radius:2px;width:55%;margin-bottom:4px;"></div><div style="height:6px;background:#1e1e24;border-radius:2px;width:80%;"></div></div>
+            <div style="height:6px;background:#6d28d9;border-radius:2px;width:20px;opacity:0.6;"></div>
+          </div>
+          <div style="background:#1a1a1e;border:1px solid #2a2a30;border-radius:5px;padding:7px;display:flex;gap:8px;align-items:center;">
+            <div style="width:28px;height:28px;border-radius:4px;background:#2a2a30;flex-shrink:0;"></div>
+            <div style="flex:1;"><div style="height:8px;background:#2a2a30;border-radius:2px;width:65%;margin-bottom:4px;"></div><div style="height:6px;background:#1e1e24;border-radius:2px;width:70%;"></div></div>
+            <div style="height:6px;background:#059669;border-radius:2px;width:20px;opacity:0.6;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Hero Banner + Stats Dashboard</h3>
+      <p>Gradient hero banner with avatar and bio. Stats tiles below (repos, stars, followers, following). Repo list as a scrollable feed. More visually striking, app-native feel.</p>
+    </div>
+  </div>
+</div>

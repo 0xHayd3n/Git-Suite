@@ -45,7 +45,7 @@ vi.mock('./extraction-cache', () => ({
   },
 }))
 
-import { generate, enhance, generateComponents } from './pipeline'
+import { generate, generateComponents } from './pipeline'
 import { fetchFileTree, fetchRepoFiles, fetchManifest } from './github-files'
 import { classify } from './classifier'
 import { getExtractor } from './extractors/index'
@@ -296,129 +296,6 @@ describe('generate', () => {
   })
 })
 
-describe('enhance', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    mockCache.get.mockReturnValue(null)
-    mockFetchFileTree.mockResolvedValue(['src/index.ts', 'package.json'])
-    mockFetchManifest.mockResolvedValue({ filename: 'package.json', content: '{"name":"test"}' })
-    mockParseManifest.mockReturnValue({ ecosystem: 'node', name: 'test' })
-    mockClassify.mockReturnValue({ type: 'library', confidence: 0.8, signals: [] })
-    mockGetExtractor.mockReturnValue({
-      getFilesToFetch: () => ['src/index.ts'],
-      extract: () => ({ exports: [] }),
-    })
-    mockFetchRepoFiles.mockResolvedValue(new Map())
-    mockBuildPrompt.mockReturnValue('Enhance prompt')
-    mockGenerate.mockResolvedValue('## [CORE]\nimproved\n## [EXTENDED]\nbetter\n## [DEEP]\ndeep')
-    mockValidate.mockReturnValue({
-      content: '## [CORE]\nimproved\n## [EXTENDED]\nbetter\n## [DEEP]\ndeep',
-      result: { passed: true, errors: [], warnings: [], autoFixes: 0 },
-    })
-    mockInferFocus.mockResolvedValue(null)
-  })
-
-  it('uses Sonnet model with 4096 token budget', async () => {
-    const result = await enhance({
-      token: 'tok', owner: 'o', name: 'r', language: 'TS', topics: [], readme: 'README',
-      version: '1.0.0', defaultBranch: 'main', existingSkill: '## [CORE]\nold',
-    })
-    expect(mockGenerate).toHaveBeenCalledWith(
-      expect.any(String), 'README',
-      expect.objectContaining({ model: 'claude-sonnet-4-6', maxTokens: 4096 })
-    )
-    expect(result.tier).toBe(2)
-  })
-
-  it('includes existing skill in the prompt', async () => {
-    await enhance({
-      token: 'tok', owner: 'o', name: 'r', language: 'TS', topics: [], readme: 'README',
-      version: '1.0.0', defaultBranch: 'main', existingSkill: '## [CORE]\nold content',
-    })
-    expect(mockBuildPrompt).toHaveBeenCalled()
-  })
-
-  it('passes focus instructions to buildPromptFromTemplate in enhance', async () => {
-    mockInferFocus.mockResolvedValue('- ORM library focus')
-
-    await enhance({
-      token: 'tok', owner: 'o', name: 'r', language: 'TS', topics: [], readme: 'README',
-      version: '1.0.0', defaultBranch: 'main', existingSkill: '## [CORE]\nold',
-    })
-
-    expect(mockInferFocus).toHaveBeenCalled()
-    expect(mockBuildPrompt).toHaveBeenCalledWith(
-      'library', expect.anything(), 'README', 'o/r', '- ORM library focus', []
-    )
-  })
-
-  it('forwards typeBucket and typeSub to inferFocusInstructions in enhance', async () => {
-    await enhance({
-      token: 'tok', owner: 'o', name: 'r', language: 'TS', topics: [], readme: 'README',
-      version: '1.0.0', defaultBranch: 'main', existingSkill: '## [CORE]\nold',
-      typeBucket: 'frameworks', typeSub: 'web-framework',
-    })
-
-    expect(mockInferFocus).toHaveBeenCalledWith(
-      'library',
-      expect.anything(),
-      expect.any(String),
-      expect.objectContaining({ typeBucket: 'frameworks', typeSub: 'web-framework' })
-    )
-  })
-
-  it('uses cached extraction in enhance', async () => {
-    mockCache.get.mockReturnValue({
-      extraction: {
-        repoType: 'library',
-        manifest: { ecosystem: 'node', name: 'cached' },
-        fileTree: ['cached.ts'],
-      },
-      repoType: 'library',
-    })
-
-    await enhance({
-      token: 'tok', owner: 'o', name: 'r', language: 'TS', topics: [], readme: 'README',
-      version: '1.0.0', defaultBranch: 'main', existingSkill: '## [CORE]\nold',
-    })
-
-    expect(mockFetchFileTree).not.toHaveBeenCalled()
-    expect(mockBuildPrompt).toHaveBeenCalled()
-  })
-
-  it('retries once on structural validation error in enhance', async () => {
-    mockValidate
-      .mockReturnValueOnce({
-        content: '## [CORE]\nimproved',
-        result: { passed: false, errors: [{ check: 'structure', message: 'Missing EXTENDED' }], warnings: [], autoFixes: 0 },
-      })
-      .mockReturnValueOnce({
-        content: '## [CORE]\nimproved\n## [EXTENDED]\nbetter\n## [DEEP]\ndeep',
-        result: { passed: true, errors: [], warnings: [], autoFixes: 0 },
-      })
-    mockGenerate
-      .mockResolvedValueOnce('## [CORE]\nimproved')
-      .mockResolvedValueOnce('## [CORE]\nimproved\n## [EXTENDED]\nbetter\n## [DEEP]\ndeep')
-
-    const result = await enhance({
-      token: 'tok', owner: 'o', name: 'r', language: 'TS', topics: [], readme: 'README',
-      version: '1.0.0', defaultBranch: 'main', existingSkill: '## [CORE]\nold',
-    })
-    expect(mockGenerate).toHaveBeenCalledTimes(2)
-    expect(result.content).toContain('## [EXTENDED]')
-    expect(result.tier).toBe(2)
-  })
-
-  it('skips cache when token is null in enhance', async () => {
-    await enhance({
-      token: null, owner: 'o', name: 'r', language: 'TS', topics: [], readme: 'README',
-      version: '1.0.0', defaultBranch: 'main', existingSkill: '## [CORE]\nold',
-    })
-
-    expect(mockCache.get).not.toHaveBeenCalled()
-    expect(mockCache.set).not.toHaveBeenCalled()
-  })
-})
 
 describe('generateComponents', () => {
   beforeEach(() => {

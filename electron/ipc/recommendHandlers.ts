@@ -196,9 +196,14 @@ export async function getRecommendedHandler(): Promise<RecommendationResponse> {
   const queries = planQueries(profile)
   let candidates = await fetchCandidates(token, queries)
 
-  // Filter repos the user already has
+  // Filter repos the user already has or owns
   const existingIds = new Set(userRepos.map((r) => String(r.id)))
-  candidates = candidates.filter((c) => !existingIds.has(String(c.id)))
+  const githubUsernameRow = db.prepare("SELECT value FROM settings WHERE key = 'github_username'").get() as { value: string } | undefined
+  const githubUsername = githubUsernameRow?.value?.toLowerCase() ?? null
+  candidates = candidates.filter((c) =>
+    !existingIds.has(String(c.id)) &&
+    (!githubUsername || c.owner.login.toLowerCase() !== githubUsername)
+  )
 
   const ranked = rankCandidates(candidates, profile, topicStats)
 

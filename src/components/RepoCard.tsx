@@ -296,7 +296,6 @@ const RepoCard = memo(function RepoCard({ repo, onNavigate, onTagClick, onOwnerC
               {repo.language && (
                 <span
                   className="repo-card-icon-badge"
-                  title={repo.language}
                   style={{ '--badge-color': getLangColor(repo.language), cursor: onLanguageClick ? 'pointer' : undefined } as React.CSSProperties}
                   onClick={onLanguageClick ? (e) => { e.stopPropagation(); onLanguageClick(repo.language!) } : undefined}
                 >
@@ -309,7 +308,6 @@ const RepoCard = memo(function RepoCard({ repo, onNavigate, onTagClick, onOwnerC
               {typeConfig && typeSub && (
                 <span
                   className="repo-card-icon-badge"
-                  title={typeConfig.label}
                   style={{ '--badge-color': typeConfig.accentColor, cursor: onSubtypeClick ? 'pointer' : undefined } as React.CSSProperties}
                   onClick={onSubtypeClick ? (e) => { e.stopPropagation(); onSubtypeClick(typeSub) } : undefined}
                 >

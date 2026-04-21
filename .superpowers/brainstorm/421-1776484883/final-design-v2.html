@@ -1,0 +1,202 @@
+<style>
+  .scenes { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+  .scene-wrap { display: flex; flex-direction: column; gap: 8px; }
+  .scene-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); }
+
+  .scene {
+    width: 300px;
+    height: 300px;
+    background: #0a0a0c;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.07);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .content-area {
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 58px;
+    background: #121214;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px 16px;
+  }
+  .cl-head { height: 14px; border-radius: 4px; background: rgba(255,255,255,0.08); margin-bottom: 6px; }
+  .cl-card { height: 50px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); }
+
+  /* Rail — compact pill, TOP-LEFT aligned */
+  .rail {
+    position: absolute;
+    left: 9px;
+    top: 12px;
+    width: 40px;
+    background: rgba(20,20,20,0.88);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.04) inset;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0;
+    gap: 8px;
+    z-index: 10;
+    height: fit-content;
+  }
+
+  .ri {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    background: rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ri.active {
+    background: rgba(99,102,241,0.28);
+    box-shadow: 0 0 0 1px rgba(99,102,241,0.4);
+  }
+  .ri-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.25); }
+  .ri.active .ri-dot { background: rgba(150,150,240,0.9); }
+
+  /* Panel — full height floating, overlays content */
+  .panel {
+    position: absolute;
+    left: 57px;
+    top: 10px;
+    bottom: 10px;
+    width: 145px;
+    background: rgba(20,20,20,0.88);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.04) inset;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 9;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 10px 12px 8px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.35);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    flex-shrink: 0;
+  }
+  .panel-body {
+    padding: 10px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .pr { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.07); }
+  .pr.w { width: 88%; }
+  .pr.m { width: 65%; }
+  .pr.s { width: 48%; }
+  .pr-section { height: 1px; background: rgba(255,255,255,0.06); margin: 6px 0; }
+  .pr-label { height: 7px; width: 40%; border-radius: 4px; background: rgba(255,255,255,0.2); }
+
+  .panel.hidden {
+    opacity: 0;
+    transform: translateX(-8px);
+    pointer-events: none;
+  }
+</style>
+
+<h2>Floating sidebar — rail top-left aligned</h2>
+<p class="subtitle">Rail sits at the top-left as a compact glass pill. Panel spans full height beside it.</p>
+
+<div class="scenes" style="margin-top: 24px;">
+
+  <div class="scene-wrap">
+    <div class="scene-title">Panel open</div>
+    <div class="scene">
+      <div class="content-area">
+        <div class="cl-head" style="width:55%"></div>
+        <div class="cl-card"></div>
+        <div class="cl-card"></div>
+        <div class="cl-card"></div>
+      </div>
+      <div class="rail">
+        <div class="ri active"><div class="ri-dot"></div></div>
+        <div class="ri"><div class="ri-dot"></div></div>
+        <div class="ri"><div class="ri-dot"></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">Filters</div>
+        <div class="panel-body">
+          <div class="pr-label"></div>
+          <div class="pr w"></div><div class="pr m"></div><div class="pr s"></div>
+          <div class="pr-section"></div>
+          <div class="pr-label"></div>
+          <div class="pr w"></div><div class="pr m"></div>
+          <div class="pr-section"></div>
+          <div class="pr-label"></div>
+          <div class="pr w"></div><div class="pr m"></div><div class="pr s"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scene-wrap">
+    <div class="scene-title">Panel closed</div>
+    <div class="scene">
+      <div class="content-area">
+        <div class="cl-head" style="width:55%"></div>
+        <div class="cl-card"></div>
+        <div class="cl-card"></div>
+        <div class="cl-card"></div>
+      </div>
+      <div class="rail">
+        <div class="ri"><div class="ri-dot"></div></div>
+        <div class="ri"><div class="ri-dot"></div></div>
+        <div class="ri"><div class="ri-dot"></div></div>
+      </div>
+      <div class="panel hidden">
+        <div class="panel-header">Filters</div>
+        <div class="panel-body">
+          <div class="pr w"></div><div class="pr m"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scene-wrap">
+    <div class="scene-title">Before → After</div>
+    <div class="scene" style="width: 340px;">
+      <div style="position:absolute; left:0; top:0; bottom:0; width:50%; background:#0a0a0c; border-right:1px solid rgba(255,255,255,0.06); overflow:hidden;">
+        <div style="position:absolute; left:0; top:0; bottom:0; width:48px; background:rgba(20,20,20,0.85); border-right:1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; align-items:center; padding:14px 0; gap:8px;">
+          <div class="ri"><div class="ri-dot"></div></div>
+          <div class="ri"><div class="ri-dot"></div></div>
+          <div class="ri"><div class="ri-dot"></div></div>
+        </div>
+        <div style="padding: 16px 10px 16px 58px; display:flex; flex-direction:column; gap:8px;">
+          <div class="cl-head" style="width:70%"></div>
+          <div class="cl-card" style="height:36px"></div>
+          <div class="cl-card" style="height:36px"></div>
+        </div>
+        <div style="position:absolute; bottom:8px; left:50%; transform:translateX(-50%); font-size:10px; color:rgba(255,255,255,0.25); white-space:nowrap;">Before</div>
+      </div>
+      <div style="position:absolute; right:0; top:0; bottom:0; width:50%; background:#121214; overflow:hidden;">
+        <div style="padding: 16px 10px 16px 10px; display:flex; flex-direction:column; gap:8px;">
+          <div class="cl-head" style="width:70%"></div>
+          <div class="cl-card" style="height:36px"></div>
+          <div class="cl-card" style="height:36px"></div>
+        </div>
+        <div class="rail" style="left:7px; top:12px;">
+          <div class="ri active"><div class="ri-dot"></div></div>
+          <div class="ri"><div class="ri-dot"></div></div>
+          <div class="ri"><div class="ri-dot"></div></div>
+        </div>
+        <div style="position:absolute; bottom:8px; left:50%; transform:translateX(-50%); font-size:10px; color:rgba(99,102,241,0.7); white-space:nowrap;">After</div>
+      </div>
+    </div>
+  </div>
+
+</div>

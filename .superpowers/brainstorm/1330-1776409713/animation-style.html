@@ -1,0 +1,26 @@
+<h2>How does the transformation animate?</h2>
+<p class="subtitle">The header collapses and the body becomes a file tree — but how does it feel?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Smooth morph — everything moves at once</h3>
+      <p>The header height shrinks, all header elements scale down and slide left simultaneously, while the body cross-fades from current content to the file tree. One fluid ~300ms motion.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Staged — body fades out first, then header collapses</h3>
+      <p>Step 1: body content fades out (~150ms). Step 2: header shrinks to compact titlebar (~200ms). Step 3: file tree fades in (~150ms). Feels more deliberate.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Dramatic — panel collapses to a line, then expands as explorer</h3>
+      <p>The whole panel squishes down to just the titlebar height, pauses a beat, then expands back up with the file tree already inside. Like a window minimize/restore.</p>
+    </div>
+  </div>
+</div>

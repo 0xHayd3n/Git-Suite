@@ -36,7 +36,6 @@ export default function ViewModeBar({
   searchValue, onSearchChange,
 }: ViewModeBarProps) {
   const [sortOpen, setSortOpen] = useState(false)
-  const [searchExpanded, setSearchExpanded] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
@@ -52,56 +51,40 @@ export default function ViewModeBar({
     return () => document.removeEventListener('mousedown', handleClick)
   }, [sortOpen])
 
-  // Focus search input when expanded
-  useEffect(() => {
-    if (searchExpanded && searchInputRef.current) searchInputRef.current.focus()
-  }, [searchExpanded])
-
-  // Listen for Ctrl+Shift+F keyboard shortcut
+  // Listen for Ctrl+Shift+F keyboard shortcut — focus search
   useEffect(() => {
     if (!onSearchChange) return
-    function handleFocusSearch() { setSearchExpanded(true) }
+    function handleFocusSearch() { searchInputRef.current?.focus() }
     window.addEventListener('files-toolbar:focus-search', handleFocusSearch as EventListener)
     return () => window.removeEventListener('files-toolbar:focus-search', handleFocusSearch as EventListener)
   }, [onSearchChange])
 
   return (
     <div className="view-mode-bar">
-      <div className="view-mode-bar__controls">
-        {/* Search */}
-        {onSearchChange && (
-          searchExpanded ? (
-            <div className="view-mode-bar__search view-mode-bar__search--expanded">
-              <Search size={12} className="view-mode-bar__search-icon" />
-              <input
-                ref={searchInputRef}
-                className="view-mode-bar__search-input"
-                type="text"
-                placeholder="Search files..."
-                value={searchValue ?? ''}
-                onChange={e => onSearchChange(e.target.value)}
-                onBlur={() => { if (!searchValue) setSearchExpanded(false) }}
-              />
-              {searchValue && (
-                <button
-                  className="view-mode-bar__search-clear"
-                  onMouseDown={e => { e.preventDefault(); onSearchChange('') }}
-                >
-                  <X size={10} />
-                </button>
-              )}
-            </div>
-          ) : (
+      {/* Search — left side */}
+      {onSearchChange && (
+        <div className="view-mode-bar__search view-mode-bar__search--expanded">
+          <Search size={12} className="view-mode-bar__search-icon" />
+          <input
+            ref={searchInputRef}
+            className="view-mode-bar__search-input"
+            type="text"
+            placeholder="Search files..."
+            value={searchValue ?? ''}
+            onChange={e => onSearchChange(e.target.value)}
+          />
+          {searchValue && (
             <button
-              className="view-mode-bar__search-btn"
-              title="Search files (Ctrl+Shift+F)"
-              onClick={() => setSearchExpanded(true)}
+              className="view-mode-bar__search-clear"
+              onMouseDown={e => { e.preventDefault(); onSearchChange('') }}
             >
-              <Search size={13} />
+              <X size={10} />
             </button>
-          )
-        )}
+          )}
+        </div>
+      )}
 
+      <div className="view-mode-bar__controls">
         {/* Sort dropdown */}
         <div className="view-mode-bar__sort" ref={dropdownRef}>
           <button

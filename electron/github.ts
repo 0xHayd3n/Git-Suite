@@ -231,6 +231,20 @@ export async function getUserRepos(token: string, username: string, sort = 'star
   return res.json() as Promise<any[]>
 }
 
+export async function getMyRepos(token: string): Promise<any[]> {
+  const pages: any[] = []
+  for (let page = 1; page <= 3; page++) {
+    const res = await fetch(`${BASE}/user/repos?type=all&sort=pushed&per_page=100&page=${page}`, {
+      headers: githubHeaders(token),
+    })
+    if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
+    const batch = await res.json() as any[]
+    pages.push(...batch)
+    if (batch.length < 100) break
+  }
+  return pages
+}
+
 export async function getUserStarred(token: string, username: string): Promise<any[]> {
   const res = await fetch(`${BASE}/users/${username}/starred?per_page=30`, {
     headers: githubHeaders(token),

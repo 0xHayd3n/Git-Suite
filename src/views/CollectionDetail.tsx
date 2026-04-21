@@ -50,7 +50,7 @@ export default function CollectionDetail() {
     setInstalling(prev => new Set(prev).add(key))
     try {
       await window.api.github.saveRepo(owner, name)
-      await window.api.skill.generate(owner, name)
+      await window.api.skill.generate(owner, name, { flavour: 'library' })
       const rows = await window.api.collection.getDetail(id)
       setDetail(rows)
       toast(`${name} installed`, 'success')
@@ -70,7 +70,7 @@ export default function CollectionDetail() {
         setInstalling(prev => new Set(prev).add(key))
         try {
           await window.api.github.saveRepo(r.owner, r.name)
-          await window.api.skill.generate(r.owner, r.name)
+          await window.api.skill.generate(r.owner, r.name, { flavour: 'library' })
         } catch {
           // individual failure — continue
         } finally {

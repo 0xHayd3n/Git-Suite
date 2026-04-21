@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { Mail, Volume2 } from 'lucide-react'
+import { Mail, Volume2, File, Globe } from 'lucide-react'
+import gitSuiteLogo from '../assets/logo-transparent.png'
 import { useNavigate } from 'react-router-dom'
 import ReactMarkdown, { defaultUrlTransform } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -177,8 +178,6 @@ function rehypeExtractMentions() {
       return true
     })
 
-    if (collected.length === 0) return
-
     // Extract mentions: links (with href) and plain-text names from the collected nodes.
     // Walks all collected content and pulls out <a> elements and leaf text from <li>/<p>.
     const mentions: Array<{ text: string; href?: string }> = []
@@ -220,6 +219,50 @@ function rehypeExtractMentions() {
 
     for (const node of collected) extractMentions(node)
 
+    // Also extract body-level logo rows (paragraphs of only externally-linked
+    // images, e.g. CNCF sandbox badge, foundation logos) — move them to mentions
+    // so they don't clutter the article body.  GitHub avatar URLs are excluded
+    // because those are contributor grids handled separately.
+    ;(tree as any).children = (tree as any).children.filter((node: any) => {
+      if (node.type !== 'element' || (node as Element).tagName !== 'p') return true
+      const sig = (node as Element).children.filter(
+        (c: any) => !(c.type === 'text' && (c as Text).value.trim() === '')
+      )
+      if (sig.length === 0) return true
+
+      const allExtLinkedImgs = sig.every((c: any) => {
+        if (c.type !== 'element') return false
+        const el = c as Element
+        if (el.tagName !== 'a') return false
+        const href = String(el.properties?.href ?? '')
+        if (!href.startsWith('http')) return false
+        if (href.includes('avatars.githubusercontent.com')) return false
+        return el.children.some(
+          (ch: any) => ch.type === 'element' && (ch as Element).tagName === 'img'
+        )
+      })
+      if (!allExtLinkedImgs) return true
+
+      // Extract as mentions
+      for (const c of sig) {
+        const el = c as Element
+        const href = String(el.properties?.href ?? '')
+        const imgEl = el.children.find(
+          (ch: any) => ch.type === 'element' && (ch as Element).tagName === 'img'
+        ) as Element | undefined
+        const alt = String(imgEl?.properties?.alt ?? '').trim()
+        let text = alt
+        if (!text) {
+          try { text = new URL(href).hostname.replace(/^www\./, '') } catch { /* skip */ }
+        }
+        if (text && !seen.has(text.toLowerCase())) {
+          seen.add(text.toLowerCase())
+          mentions.push({ text, href })
+        }
+      }
+      return false  // remove logo row from body
+    })
+
     if (mentions.length === 0) return
 
     // Build flat inline list: "name, name, name" with links preserved
@@ -259,6 +302,44 @@ function rehypeExtractMentions() {
       ],
     }
     tree.children.push(section)
+  }
+}
+
+// ── Rehype plugin: remove locale-switcher paragraphs ─────────────
+// Detects paragraphs whose only content is locale-language links
+// (e.g. "English | 中文 | 日本語") and removes them entirely.
+// These navigation aids are irrelevant when the app handles translation.
+
+const LOCALE_LANG_NAMES = /^(?:english|中文|日本語|한국어|deutsch|français|español|português|русский|عربي|türkçe|italiano|polski|简体中文|繁體中文|traditional chinese|simplified chinese|bahasa indonesia|bahasa melayu|tiếng việt|ภาษาไทย|українська|čeština|română|nederlands|svenska|dansk|suomi|norsk|magyar|正體中文|हिन्दी|বাংলা|தமிழ்|اردو|فارسی|עברית|ελληνικά|日语)$/i
+
+function isLocaleLink(el: Element): boolean {
+  const href = String(el.properties?.href ?? '')
+  const text = extractNodeText(el).trim()
+  if (LOCALE_LANG_NAMES.test(text)) return true
+  // href points to a README variant (e.g. README.zh-CN.md, README_EN.md)
+  if (/readme[^/]*\.(md|rst|txt)$/i.test(href)) return true
+  return false
+}
+
+function rehypeRemoveLocaleSwitcher() {
+  return (tree: Root) => {
+    ;(tree as any).children = tree.children.filter((node: any) => {
+      if (node.type !== 'element' || (node as Element).tagName !== 'p') return true
+
+      // Significant children = anything that isn't whitespace/separator text
+      const significant = (node as Element).children.filter(
+        c => !(c.type === 'text' && /^[\s|·•\/\-–—]+$/.test((c as Text).value))
+      )
+
+      if (significant.length < 2) return true  // need ≥ 2 locale options
+
+      // Keep node unless ALL significant children are locale links
+      return !significant.every(c => {
+        if (c.type !== 'element') return false
+        const el = c as Element
+        return el.tagName === 'a' && isLocaleLink(el)
+      })
+    })
   }
 }
 
@@ -448,39 +529,6 @@ function rehypeBlobLinks(repoOwner: string, repoName: string, basePath: string) 
 
       node.properties = node.properties ?? {}
       node.properties.dataBlobPath = resolvedPath
-
-      // Append inline file icon (SVG as hast element)
-      const iconSvg: Element = {
-        type: 'element',
-        tagName: 'svg',
-        properties: {
-          width: '14',
-          height: '14',
-          viewBox: '0 0 24 24',
-          fill: 'none',
-          stroke: 'currentColor',
-          strokeWidth: '2',
-          strokeLinecap: 'round',
-          strokeLinejoin: 'round',
-          className: ['rm-blob-link-icon'],
-          style: 'display:inline;vertical-align:middle;margin-left:2px;opacity:0.5',
-        },
-        children: [
-          {
-            type: 'element',
-            tagName: 'path',
-            properties: { d: 'M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z' },
-            children: [],
-          },
-          {
-            type: 'element',
-            tagName: 'polyline',
-            properties: { points: '14 2 14 8 20 8' },
-            children: [],
-          },
-        ],
-      }
-      node.children.push(iconSvg)
     })
   }
 }
@@ -650,6 +698,37 @@ const sanitizeSchema = {
     'picture', 'source',
     'svg', 'path', 'polyline',
   ],
+}
+
+// ── GitHub asset media — img with <video> fallback ────────────────
+// GitHub converts uploaded GIFs to MP4 and serves them at github.com/*/assets/* URLs.
+// <img> can't display MP4, so on error we swap to <video autoplay loop muted>.
+function GitHubAssetMedia({ src, alt }: { src: string; alt: string }) {
+  const [useVideo, setUseVideo] = useState(false)
+
+  if (useVideo) {
+    return (
+      <video
+        src={src}
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="rm-img-content rm-gh-asset-video"
+        onError={(e) => { (e.target as HTMLVideoElement).style.display = 'none' }}
+      />
+    )
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className="rm-img-content"
+      loading="lazy"
+      onError={() => setUseVideo(true)}
+    />
+  )
 }
 
 // ── Copy-enabled code block ────────────────────────────────────────
@@ -944,12 +1023,16 @@ export default function ReadmeRenderer({ content, repoOwner, repoName, branch = 
       }
     }
 
+    let lastAnchor: HTMLAnchorElement | null = null
     const handleOver = (e: MouseEvent) => {
-      const target = e.target as HTMLElement
-      const anchor = target.closest('a')
+      const anchor = (e.target as HTMLElement).closest('a') as HTMLAnchorElement | null
+      if (anchor === lastAnchor) return
+      lastAnchor = anchor
       if (anchor && el.contains(anchor)) {
         const url = anchor.getAttribute('href') ?? ''
         setStatus(url.startsWith('http://') || url.startsWith('https://') ? url : null)
+      } else {
+        setStatus(null)
       }
     }
 
@@ -1040,14 +1123,22 @@ export default function ReadmeRenderer({ content, repoOwner, repoName, branch = 
       return out.join('\n')
     })()
 
-    // Step 0b: strip everything before the first heading (language switchers,
-    // preamble nav links, etc.).  Badges are already extracted upstream by
-    // extractBadges(), so only non-badge clutter remains here.
+    // Step 0b: strip everything before the first h2+ heading (skips h1 title,
+    // badges after the title, language switchers, and any other preamble noise
+    // between the h1 and the first real section).  Falls back to first heading
+    // of any level when no h2 exists (e.g. simple single-section READMEs).
     const noPreamble = (() => {
       const lines = noToc.split('\n')
+      // First pass: look for h2+ ATX heading or setext h2 (--- underline)
+      for (let i = 0; i < lines.length; i++) {
+        if (/^#{2,6}\s/.test(lines[i])) return lines.slice(i).join('\n')
+        if (lines[i].trim() && i + 1 < lines.length && /^-{3,}\s*$/.test(lines[i + 1])) {
+          return lines.slice(i).join('\n')
+        }
+      }
+      // Fallback: any heading (h1 or setext h1) when no h2 exists
       for (let i = 0; i < lines.length; i++) {
         if (/^#{1,6}\s/.test(lines[i])) return lines.slice(i).join('\n')
-        // Setext heading: non-empty line followed by === or ---
         if (lines[i].trim() && i + 1 < lines.length && /^={3,}\s*$/.test(lines[i + 1])) {
           return lines.slice(i).join('\n')
         }
@@ -1066,6 +1157,18 @@ export default function ReadmeRenderer({ content, repoOwner, repoName, branch = 
         /src="(?!https?:\/\/)([^"]+)"/g,
         (_, src) =>
           `src="https://raw.githubusercontent.com/${repoOwner}/${repoName}/${branch}/${src.replace(/^\.\//, '')}"`
+      )
+      // Step 1b: convert github.com blob URLs for images to raw.githubusercontent.com
+      // GitHub renders these transparently on their site but they return HTML in <img> tags
+      .replace(
+        /!\[([^\]]*)\]\(https:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/([^)]+)\)/g,
+        (_, alt, owner, repo, br, path) =>
+          `![${alt}](https://raw.githubusercontent.com/${owner}/${repo}/${br}/${path})`
+      )
+      .replace(
+        /src="https:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/([^"]+)"/g,
+        (_, owner, repo, br, path) =>
+          `src="https://raw.githubusercontent.com/${owner}/${repo}/${br}/${path}"`
       )
 
     // Step 2: rewrite badge image URLs https:// → badge://
@@ -1111,7 +1214,11 @@ export default function ReadmeRenderer({ content, repoOwner, repoName, branch = 
     const links = container.querySelectorAll<HTMLAnchorElement>(
       'a[href^="http"]:not([data-yt-id]):not([data-img-only]):not([data-gh-owner])'
     )
-    links.forEach(el => observer.observe(el))
+    links.forEach(el => {
+      // Skip image-only links (contributor grids, avatar rows, etc.) — no preview needed
+      if (el.children.length === 1 && el.children[0].tagName === 'IMG') return
+      observer.observe(el)
+    })
 
     // Prefetch GitHub repo metadata for all repo links visible in this render
     const ghLinks = container.querySelectorAll<HTMLAnchorElement>('a[data-gh-owner]')
@@ -1201,7 +1308,7 @@ export default function ReadmeRenderer({ content, repoOwner, repoName, branch = 
     p: ({ children, node }: any) => {
       const ttsSentence = node?.properties?.dataTtsSentence as string | undefined
       if (node?.properties?.dataBadgeRow === true) {
-        return <p className="rm-badge-row" data-tts-sentence={ttsSentence}>{children}</p>
+        return null  // badges are shown in the sidebar; suppress inline badge rows
       }
       if (node?.properties?.dataLogoRow === true) {
         return <p className="rm-logo-row" data-tts-sentence={ttsSentence}>{children}</p>
@@ -1320,6 +1427,7 @@ export default function ReadmeRenderer({ content, repoOwner, repoName, branch = 
             }}
           >
             {children}
+            <img src={gitSuiteLogo} alt="" className="rm-gh-link-gitsuite-icon" />
           </a>
         )
       }
@@ -1338,6 +1446,7 @@ export default function ReadmeRenderer({ content, repoOwner, repoName, branch = 
             }}
           >
             {children}
+            <File size={12} className="rm-file-link-icon" />
           </a>
         )
       }
@@ -1442,6 +1551,7 @@ export default function ReadmeRenderer({ content, repoOwner, repoName, branch = 
         >
           {href?.startsWith('mailto:') && <Mail size={12} className="rm-mail-icon" />}
           {children}
+          {isExternal && !hasImgOnly && <Globe size={12} className="rm-ext-link-icon" />}
         </a>
       )
     },
@@ -1475,9 +1585,16 @@ export default function ReadmeRenderer({ content, repoOwner, repoName, branch = 
       // Badge images: render inline at fixed height (src was rewritten to badge:// in preprocessing)
       if (src?.startsWith('badge://')) {
         return (
-          <img src={src} alt={alt ?? ''} className="rm-img-badge"
+          <img src={src} alt={alt ?? ''} className="rm-img-badge" loading="lazy"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
         )
+      }
+
+      // GitHub asset URLs (github.com/*/assets/* and private-user-images) are often
+      // served as MP4 video — use a component that falls back from <img> to <video>
+      const isGhAsset = /github\.com\/[^/]+\/[^/]+\/assets\/|private-user-images\.githubusercontent\.com\//.test(src ?? '')
+      if (isGhAsset) {
+        return <GitHubAssetMedia src={src ?? ''} alt={alt ?? ''} />
       }
 
       // Existing classification logic follows unchanged
@@ -1490,7 +1607,7 @@ export default function ReadmeRenderer({ content, repoOwner, repoName, branch = 
 
       if (treatment === 'logo') {
         return (
-          <img src={src} alt={alt ?? ''} className="rm-img-logo"
+          <img src={src} alt={alt ?? ''} className="rm-img-logo" loading="lazy"
             {...(declaredHeight ? { height: declaredHeight } : {})}
             {...(declaredWidth  ? { width:  declaredWidth  } : {})}
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
@@ -1498,7 +1615,7 @@ export default function ReadmeRenderer({ content, repoOwner, repoName, branch = 
       }
 
       return (
-        <img src={src} alt={alt ?? ''} className="rm-img-content"
+        <img src={src} alt={alt ?? ''} className="rm-img-content" loading="lazy"
           {...(declaredHeight ? { height: declaredHeight } : {})}
           {...(declaredWidth  ? { width:  declaredWidth  } : {})}
           onClick={() => src && setLightbox({ src, alt: alt ?? '' })}
@@ -1531,7 +1648,7 @@ export default function ReadmeRenderer({ content, repoOwner, repoName, branch = 
       <div className="rm-content">
         <ReactMarkdown
           remarkPlugins={[remarkGfm, [remarkEmoji, { accessible: false }]]}
-          rehypePlugins={[rehypeRaw, [rehypeSanitize, sanitizeSchema], rehypeRemoveTocSection, rehypeExtractMentions, rehypeImageClassifier, rehypeAddHeadingIds, rehypeYouTubeLinks, rehypeGitHubRepoLinks, rehypeBlobLinks(repoOwner, repoName, basePath), rehypeFootnoteLinks, rehypeImageOnlyLinks, [rehypeTtsAnnotate, { output: ttsOutput.current }]]}
+          rehypePlugins={[rehypeRaw, [rehypeSanitize, sanitizeSchema], rehypeRemoveTocSection, rehypeRemoveLocaleSwitcher, rehypeExtractMentions, rehypeImageClassifier, rehypeAddHeadingIds, rehypeYouTubeLinks, rehypeGitHubRepoLinks, rehypeBlobLinks(repoOwner, repoName, basePath), rehypeFootnoteLinks, rehypeImageOnlyLinks, [rehypeTtsAnnotate, { output: ttsOutput.current }]]}
           urlTransform={(url) => url.startsWith('badge://') ? url : defaultUrlTransform(url)}
           components={mdComponents}
         >

@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx vitest:*)",
+      "Bash(cmd.exe /c \"rmdir /s /q .git\\\\worktrees\\\\repo-verification\")",
+      "Bash(cmd.exe /c \"rmdir /s /q .git\\\\worktrees\\\\discover-redesign\")",
+      "Bash(icacls \".git/worktrees/repo-verification\")",
+      "Bash(icacls \".git/worktrees/repo-verification\" /grant \"haydo:F\" /t)",
+      "Bash(rm -rf .git/worktrees/repo-verification)",
+      "Bash(cmd.exe /c 'icacls \"\".git\\\\worktrees\\\\repo-verification\"\" /grant haydo:F /t')",
+      "Bash(cmd.exe /c \"icacls .git\\\\worktrees\\\\repo-verification /grant haydo:F /t && rmdir /s /q .git\\\\worktrees\\\\repo-verification && icacls .git\\\\worktrees\\\\discover-redesign /grant haydo:F /t && rmdir /s /q .git\\\\worktrees\\\\discover-redesign\")",
+      "Bash(ls CLAUDE.md .claude/hooks*)"
+    ]
+  }
+}

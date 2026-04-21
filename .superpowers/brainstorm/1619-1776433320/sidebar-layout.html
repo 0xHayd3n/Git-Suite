@@ -1,0 +1,182 @@
+<h2>Library Sidebar: Tab Layout</h2>
+<p class="subtitle">How should the Repositories + Collections tabs look and behave?</p>
+
+<div class="section">
+  <p class="label">Current structure (for reference)</p>
+  <div style="display:flex;gap:16px;margin-bottom:24px">
+    <div style="flex:none">
+      <div style="display:flex;height:320px;border:1px solid rgba(255,255,255,0.12);border-radius:8px;overflow:hidden;background:rgba(0,0,0,0.3)">
+        <!-- NavRail -->
+        <div style="width:48px;background:rgba(255,255,255,0.04);border-right:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:16px">
+          <div style="width:24px;height:24px;background:rgba(255,255,255,0.15);border-radius:4px"></div>
+        </div>
+        <!-- Current sidebar - repo list only -->
+        <div style="width:180px;background:rgba(255,255,255,0.03);border-right:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column">
+          <div style="display:flex;gap:4px;padding:8px">
+            <div style="flex:1;padding:3px 0;font-size:10px;text-align:center;background:rgba(255,255,255,0.1);border-radius:4px;color:rgba(255,255,255,0.9)">All</div>
+            <div style="flex:1;padding:3px 0;font-size:10px;text-align:center;color:rgba(255,255,255,0.35)">Active</div>
+            <div style="flex:1;padding:3px 0;font-size:10px;text-align:center;color:rgba(255,255,255,0.35)">Inactive</div>
+          </div>
+          <div style="flex:1;overflow:hidden;padding:4px 0">
+            <div style="display:flex;align-items:center;gap:6px;padding:3px 8px;background:rgba(255,255,255,0.06)">
+              <div style="width:16px;height:16px;border-radius:3px;background:#4a90d9;flex-shrink:0"></div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.85)">anthropic-sdk</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;padding:3px 8px">
+              <div style="width:16px;height:16px;border-radius:3px;background:#5cb85c;flex-shrink:0"></div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.85)">claude-code</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;padding:3px 8px">
+              <div style="width:16px;height:16px;border-radius:3px;background:#e67e22;flex-shrink:0"></div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.85)">react</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;padding:3px 8px">
+              <div style="width:16px;height:16px;border-radius:3px;background:#9b59b6;flex-shrink:0"></div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.5)">typescript</div>
+            </div>
+          </div>
+        </div>
+        <!-- Main -->
+        <div style="flex:1;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center">
+          <div style="font-size:11px;color:rgba(255,255,255,0.25)">detail area</div>
+        </div>
+      </div>
+      <p style="font-size:11px;color:rgba(255,255,255,0.4);text-align:center;margin-top:6px">Current layout</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <p class="label">Choose an approach for the new tabbed sidebar</p>
+</div>
+
+<div class="cards">
+
+  <!-- Option A: Tabs at top of sidebar panel -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px">
+      <div style="display:flex;height:260px;border:1px solid rgba(255,255,255,0.12);border-radius:6px;overflow:hidden;background:rgba(0,0,0,0.3)">
+        <div style="width:40px;background:rgba(255,255,255,0.04);border-right:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;align-items:center;padding:10px 0">
+          <div style="width:20px;height:20px;background:rgba(255,255,255,0.15);border-radius:3px"></div>
+        </div>
+        <div style="width:160px;background:rgba(255,255,255,0.03);border-right:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column">
+          <!-- Tabs at top -->
+          <div style="display:flex;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0">
+            <div style="flex:1;padding:7px 4px;font-size:10px;font-weight:600;text-align:center;color:rgba(255,255,255,0.9);border-bottom:2px solid rgba(255,255,255,0.7);margin-bottom:-1px">Repos</div>
+            <div style="flex:1;padding:7px 4px;font-size:10px;font-weight:500;text-align:center;color:rgba(255,255,255,0.35)">Collections</div>
+          </div>
+          <!-- Sub-filter -->
+          <div style="display:flex;gap:3px;padding:6px">
+            <div style="flex:1;padding:2px 0;font-size:9px;text-align:center;background:rgba(255,255,255,0.1);border-radius:3px;color:rgba(255,255,255,0.9)">All</div>
+            <div style="flex:1;padding:2px 0;font-size:9px;text-align:center;color:rgba(255,255,255,0.3)">Active</div>
+            <div style="flex:1;padding:2px 0;font-size:9px;text-align:center;color:rgba(255,255,255,0.3)">Inactive</div>
+          </div>
+          <!-- List -->
+          <div style="flex:1;overflow:hidden;padding:2px 0">
+            <div style="display:flex;align-items:center;gap:5px;padding:3px 7px;background:rgba(255,255,255,0.06)">
+              <div style="width:14px;height:14px;border-radius:2px;background:#4a90d9;flex-shrink:0"></div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.85)">anthropic-sdk</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;padding:3px 7px">
+              <div style="width:14px;height:14px;border-radius:2px;background:#5cb85c;flex-shrink:0"></div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.85)">claude-code</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;padding:3px 7px">
+              <div style="width:14px;height:14px;border-radius:2px;background:#e67e22;flex-shrink:0"></div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.85)">react</div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center">
+          <div style="font-size:10px;color:rgba(255,255,255,0.25)">main area</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Tabs at top of panel</h3>
+      <p>Tab strip sits above the content. Click the active tab to collapse the whole panel. Familiar tab pattern.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Icon buttons in NavRail drive the panel -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px">
+      <div style="display:flex;height:260px;border:1px solid rgba(255,255,255,0.12);border-radius:6px;overflow:hidden;background:rgba(0,0,0,0.3)">
+        <div style="width:40px;background:rgba(255,255,255,0.04);border-right:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:8px">
+          <div style="width:20px;height:20px;background:rgba(255,255,255,0.15);border-radius:3px"></div>
+          <div style="width:32px;height:28px;border-radius:4px;background:rgba(255,255,255,0.15);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+            <div style="width:12px;height:1.5px;background:rgba(255,255,255,0.7);border-radius:1px"></div>
+            <div style="width:12px;height:1.5px;background:rgba(255,255,255,0.7);border-radius:1px"></div>
+            <div style="font-size:7px;color:rgba(255,255,255,0.6);margin-top:1px">Repos</div>
+          </div>
+          <div style="width:32px;height:28px;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+            <div style="width:12px;height:12px;border:1.5px solid rgba(255,255,255,0.35);border-radius:2px"></div>
+            <div style="font-size:7px;color:rgba(255,255,255,0.3)">Colls</div>
+          </div>
+        </div>
+        <!-- Panel showing repos -->
+        <div style="width:150px;background:rgba(255,255,255,0.03);border-right:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column">
+          <div style="padding:7px 8px 4px;font-size:10px;font-weight:600;color:rgba(255,255,255,0.8)">Repositories</div>
+          <div style="display:flex;gap:3px;padding:0 6px 5px">
+            <div style="flex:1;padding:2px 0;font-size:9px;text-align:center;background:rgba(255,255,255,0.1);border-radius:3px;color:rgba(255,255,255,0.9)">All</div>
+            <div style="flex:1;padding:2px 0;font-size:9px;text-align:center;color:rgba(255,255,255,0.3)">Active</div>
+            <div style="flex:1;padding:2px 0;font-size:9px;text-align:center;color:rgba(255,255,255,0.3)">Inactive</div>
+          </div>
+          <div style="flex:1;overflow:hidden;padding:2px 0">
+            <div style="display:flex;align-items:center;gap:5px;padding:3px 7px;background:rgba(255,255,255,0.06)">
+              <div style="width:14px;height:14px;border-radius:2px;background:#4a90d9;flex-shrink:0"></div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.85)">anthropic-sdk</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;padding:3px 7px">
+              <div style="width:14px;height:14px;border-radius:2px;background:#5cb85c;flex-shrink:0"></div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.85)">claude-code</div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center">
+          <div style="font-size:10px;color:rgba(255,255,255,0.25)">main area</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — NavRail icon buttons</h3>
+      <p>Repos and Collections are icon+label buttons in the left rail. Click active button to collapse the panel. Feels like VS Code explorer.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Tabs at top, with icon-only collapsed rail -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px">
+      <div style="display:flex;height:260px;border:1px solid rgba(255,255,255,0.12);border-radius:6px;overflow:hidden;background:rgba(0,0,0,0.3)">
+        <div style="width:40px;background:rgba(255,255,255,0.04);border-right:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;align-items:center;padding:10px 0">
+          <div style="width:20px;height:20px;background:rgba(255,255,255,0.15);border-radius:3px"></div>
+        </div>
+        <!-- Collapsed: just tab icons in narrow strip -->
+        <div style="width:36px;background:rgba(255,255,255,0.04);border-right:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:6px">
+          <div style="width:28px;height:28px;border-radius:4px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center">
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <div style="width:10px;height:1.5px;background:rgba(255,255,255,0.8);border-radius:1px"></div>
+              <div style="width:10px;height:1.5px;background:rgba(255,255,255,0.8);border-radius:1px"></div>
+              <div style="width:10px;height:1.5px;background:rgba(255,255,255,0.8);border-radius:1px"></div>
+            </div>
+          </div>
+          <div style="width:28px;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center">
+            <div style="width:12px;height:12px;border:1.5px solid rgba(255,255,255,0.35);border-radius:2px"></div>
+          </div>
+        </div>
+        <!-- COLLAPSED state - no panel open, wider main -->
+        <div style="flex:1;background:rgba(0,0,0,0.2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+          <div style="font-size:10px;color:rgba(255,255,255,0.4)">panel collapsed</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.2)">main area expands</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Tab icons in rail (collapsed state shown)</h3>
+      <p>Like B but clicking an active tab shows icon-only rail instead of fully hiding. Keeps icons visible for quick switching.</p>
+    </div>
+  </div>
+
+</div>
+
+<p style="margin-top:20px;font-size:13px;color:rgba(255,255,255,0.5)">Click a card to select it, then let me know in the terminal.</p>

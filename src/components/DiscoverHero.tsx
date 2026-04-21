@@ -134,7 +134,6 @@ export default function DiscoverHero({ repo, onNavigate }: DiscoverHeroProps) {
 
   return (
     <div className="discover-hero" onClick={handleClick}>
-      <div className="discover-hero-drag" aria-hidden="true" />
       {outgoingRepo && (
         <HeroLayer key={outgoingRepo.id + '-out'} repo={outgoingRepo} animClass="discover-hero-layer--out" />
       )}

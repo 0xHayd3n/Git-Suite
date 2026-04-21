@@ -1,0 +1,167 @@
+<style>
+  .demo-wrap { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
+
+  .scene {
+    width: 280px;
+    height: 220px;
+    background: #0e0e10;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  /* main content area filler */
+  .content-area {
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    background: #121214;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+  }
+  .content-line { height: 10px; border-radius: 4px; background: rgba(255,255,255,0.05); }
+
+  /* shared rail style */
+  .rail {
+    position: absolute;
+    left: 10px;
+    width: 40px;
+    background: rgba(22,22,28,0.92);
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.55);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0;
+    gap: 8px;
+    z-index: 2;
+  }
+  .ri { width: 26px; height: 26px; border-radius: 6px; background: rgba(255,255,255,0.07); }
+  .ri.active { background: rgba(99,102,241,0.35); }
+
+  /* floating panel */
+  .fpanel {
+    position: absolute;
+    left: 58px;
+    background: rgba(22,22,28,0.92);
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.55);
+    padding: 10px 10px;
+    width: 110px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 2;
+  }
+  .pr { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.08); }
+  .pr.w { width: 90%; }
+  .pr.m { width: 65%; }
+  .pr.s { width: 45%; }
+
+  /* label tag */
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: rgba(99,102,241,0.18);
+    color: rgba(150,150,240,0.9);
+    margin-bottom: 6px;
+  }
+</style>
+
+<h2>Where should the rail sit, and does the panel overlay content?</h2>
+<p class="subtitle">All options use the same glass-rounded-panel style. The difference is placement and how the main content reacts.</p>
+
+<div class="demo-wrap options" style="margin-top: 20px;">
+
+  <div class="option" data-choice="a" onclick="toggleSelect(this)" style="flex-direction: column; align-items: flex-start; padding: 0; overflow: hidden; max-width: 310px;">
+    <div class="demo-label" style="width:100%;box-sizing:border-box;">A &nbsp;·&nbsp; Rail flush-left, panel overlays</div>
+    <div style="padding: 14px;">
+      <div class="scene">
+        <!-- content pushed right by 60px for rail gutter, panel overlays on top -->
+        <div class="content-area" style="left: 60px;">
+          <div class="content-line" style="width:80%"></div>
+          <div class="content-line" style="width:60%"></div>
+          <div class="content-line" style="width:75%"></div>
+          <div class="content-line" style="width:50%"></div>
+          <div class="content-line" style="width:70%"></div>
+        </div>
+        <div class="rail" style="top: 20px; bottom: 20px; height: auto;">
+          <div class="ri active"></div>
+          <div class="ri"></div>
+          <div class="ri"></div>
+        </div>
+        <div class="fpanel" style="top: 20px;">
+          <div class="pr w"></div>
+          <div class="pr m"></div>
+          <div class="pr s"></div>
+          <div class="pr w"></div>
+          <div class="pr m"></div>
+        </div>
+      </div>
+      <p style="font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 10px;">Rail is always in the left gutter (content reserves space). Panel floats overtop — no layout shift when it opens.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)" style="flex-direction: column; align-items: flex-start; padding: 0; overflow: hidden; max-width: 310px;">
+    <div class="demo-label" style="width:100%;box-sizing:border-box;">B &nbsp;·&nbsp; Rail flush-left, panel pushes content</div>
+    <div style="padding: 14px;">
+      <div class="scene">
+        <div class="content-area" style="left: 185px;">
+          <div class="content-line" style="width:80%"></div>
+          <div class="content-line" style="width:60%"></div>
+          <div class="content-line" style="width:75%"></div>
+          <div class="content-line" style="width:50%"></div>
+        </div>
+        <div class="rail" style="top: 20px; bottom: 20px; height: auto;">
+          <div class="ri active"></div>
+          <div class="ri"></div>
+          <div class="ri"></div>
+        </div>
+        <div class="fpanel" style="top: 20px;">
+          <div class="pr w"></div>
+          <div class="pr m"></div>
+          <div class="pr s"></div>
+          <div class="pr w"></div>
+          <div class="pr m"></div>
+        </div>
+      </div>
+      <p style="font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 10px;">Rail in gutter. Opening the panel shifts main content to the right — same behavior as today, re-styled.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)" style="flex-direction: column; align-items: flex-start; padding: 0; overflow: hidden; max-width: 310px;">
+    <div class="demo-label" style="width:100%;box-sizing:border-box;">C &nbsp;·&nbsp; Rail floats inset, panel overlays</div>
+    <div style="padding: 14px;">
+      <div class="scene">
+        <div class="content-area" style="left: 0;">
+          <div class="content-line" style="width:80%"></div>
+          <div class="content-line" style="width:60%"></div>
+          <div class="content-line" style="width:75%"></div>
+          <div class="content-line" style="width:50%"></div>
+          <div class="content-line" style="width:70%"></div>
+        </div>
+        <div class="rail" style="top: 20px; bottom: 20px; height: auto; left: 10px;">
+          <div class="ri active"></div>
+          <div class="ri"></div>
+          <div class="ri"></div>
+        </div>
+        <div class="fpanel" style="top: 20px; left: 58px;">
+          <div class="pr w"></div>
+          <div class="pr m"></div>
+          <div class="pr s"></div>
+          <div class="pr w"></div>
+          <div class="pr m"></div>
+        </div>
+      </div>
+      <p style="font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 10px;">Rail and panel both fully overlay content — content starts at 0, rail floats on top with a margin. Maximum content width.</p>
+    </div>
+  </div>
+
+</div>

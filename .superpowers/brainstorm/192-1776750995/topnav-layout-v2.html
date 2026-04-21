@@ -1,0 +1,358 @@
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+.section { padding: 24px 24px 8px; text-align: center; }
+.section h2 { font-size: 17px; font-weight: 600; color: rgba(255,255,255,0.9); margin-bottom: 6px; }
+.section p { font-size: 13px; color: rgba(255,255,255,0.45); }
+
+.layouts { display: flex; flex-direction: column; gap: 32px; padding: 16px 32px 40px; max-width: 900px; margin: 0 auto; }
+
+.layout-block {}
+.layout-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(255,255,255,0.35); margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.layout-label .letter {
+  width: 18px; height: 18px; border-radius: 5px; background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.6); font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+/* clickable card wrapper */
+.layout-card {
+  border-radius: 10px;
+  border: 1.5px solid rgba(255,255,255,0.1);
+  overflow: visible;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  position: relative;
+}
+.layout-card:hover { border-color: rgba(255,255,255,0.22); }
+.layout-card.selected { border-color: #7c3aed !important; box-shadow: 0 0 0 3px rgba(124,58,237,0.25); }
+
+.selected-tag {
+  display: none;
+  position: absolute; top: -10px; right: 12px;
+  background: #7c3aed; color: white; font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 5px; z-index: 20;
+}
+.layout-card.selected .selected-tag { display: block; }
+
+/* window chrome */
+.win-bar {
+  background: #1c1c22; height: 30px;
+  display: flex; align-items: center; padding: 0 12px; gap: 5px;
+  border-radius: 9px 9px 0 0;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-r { background: #ff5f57; }
+.dot-y { background: #febc2e; }
+.dot-g { background: #28c840; }
+.win-title { font-size: 11px; color: rgba(255,255,255,0.3); margin: 0 auto; }
+
+/* app area */
+.app-area {
+  background: #111116;
+  border-radius: 0 0 8px 8px;
+  position: relative;
+  height: 300px;
+  overflow: hidden;
+}
+
+/* fake hero — blue/purple gradient with texture */
+.hero-bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(145deg, #1e1060 0%, #0e0e1a 55%, #111116 100%);
+}
+.hero-img-fake {
+  position: absolute; top: 0; right: 0; width: 50%; height: 100%;
+  background: linear-gradient(135deg, rgba(100,60,200,0.25) 0%, transparent 70%);
+}
+.hero-words {
+  position: absolute; left: 20px; bottom: 130px;
+  font-size: 15px; font-weight: 700; color: rgba(255,255,255,0.85);
+}
+.hero-sub { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 3px; }
+
+/* card strip at bottom */
+.card-strip {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 120px;
+  display: flex; gap: 6px; padding: 6px 8px;
+  background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 100%);
+}
+.mini-card {
+  flex: 1; border-radius: 6px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ─── NAV STYLES ─── */
+
+/* A: compact pill centered */
+.nav-pill {
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 2px;
+  background: rgba(22,22,30,0.92);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 14px; padding: 5px 7px;
+  backdrop-filter: blur(16px);
+  z-index: 10; white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+.pill-sep { width: 1px; height: 18px; background: rgba(255,255,255,0.12); margin: 0 5px; }
+.pill-logo { width: 24px; height: 24px; border-radius: 7px; background: rgba(124,58,237,0.5); border: 1px solid rgba(124,58,237,0.4); margin: 0 3px; flex-shrink: 0; }
+
+/* B: wide island, logo center */
+.nav-island {
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center;
+  background: rgba(22,22,30,0.92);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 16px; padding: 6px 10px;
+  backdrop-filter: blur(16px);
+  z-index: 10; white-space: nowrap;
+  min-width: 520px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+.island-side { display: flex; align-items: center; gap: 2px; flex: 1; }
+.island-side.right { justify-content: flex-end; }
+.island-center { display: flex; flex-direction: column; align-items: center; margin: 0 14px; }
+.island-logo { width: 26px; height: 26px; border-radius: 8px; background: rgba(124,58,237,0.5); border: 1px solid rgba(124,58,237,0.35); }
+.island-wordmark { font-size: 8px; font-weight: 700; letter-spacing: 0.12em; color: rgba(255,255,255,0.3); margin-top: 2px; text-transform: uppercase; }
+
+/* C: full width bar */
+.nav-bar {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 46px;
+  display: flex; align-items: center; gap: 8px; padding: 0 14px;
+  background: rgba(16,16,22,0.82);
+  border-bottom: 1px solid rgba(255,255,255,0.09);
+  backdrop-filter: blur(20px);
+  z-index: 10;
+}
+.bar-side { display: flex; align-items: center; gap: 2px; flex: 1; }
+.bar-side.right { justify-content: flex-end; }
+.bar-center { display: flex; align-items: center; gap: 7px; }
+.bar-logo { width: 22px; height: 22px; border-radius: 6px; background: rgba(124,58,237,0.5); flex-shrink: 0; }
+.bar-wordmark { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.65); letter-spacing: 0.01em; }
+
+/* nav buttons shared */
+.nb {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 9px;
+  font-size: 11px; font-weight: 500; font-family: inherit;
+  color: rgba(255,255,255,0.5);
+  background: none; border: none; cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+  white-space: nowrap;
+}
+.nb:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.75); }
+.nb.on { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); }
+.nb svg { flex-shrink: 0; }
+
+/* drop panel */
+.drop {
+  position: absolute;
+  background: rgba(20,20,28,0.97);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 11px;
+  width: 220px;
+  padding: 10px 12px;
+  z-index: 9;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+}
+.dp-title { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 7px; }
+.dp-row { height: 7px; border-radius: 4px; background: rgba(255,255,255,0.08); margin-bottom: 5px; }
+.dp-row.sel { background: rgba(124,58,237,0.4); }
+
+/* Option A drop: centered below pill */
+.drop-a { top: 56px; left: 50%; transform: translateX(-50%); }
+/* Option B drop: right-aligned from Blocks button */
+.drop-b { top: 60px; right: 50px; }
+/* Option C drop: flush under bar */
+.drop-c { top: 47px; right: 60px; border-top: none; border-top-left-radius: 0; border-top-right-radius: 0; }
+</style>
+
+<div class="section">
+  <h2>Top nav layout — which feels right?</h2>
+  <p>Same Home / Browse / Blocks / Filters functionality as the sidebar, just at the top. Click to select.</p>
+</div>
+
+<div class="layouts">
+
+  <!-- A: compact pill -->
+  <div class="layout-block">
+    <div class="layout-label"><span class="letter">A</span> Compact centered pill — logo between nav groups</div>
+    <div class="layout-card option" data-choice="a" onclick="toggleSelect(this)">
+      <div class="selected-tag">✓ Selected</div>
+      <div class="win-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <div class="win-title">Git Suite — Discover</div>
+      </div>
+      <div class="app-area">
+        <div class="hero-bg"></div>
+        <div class="hero-img-fake"></div>
+        <div class="hero-words">d2l-ai / d2l-en <div class="hero-sub">Interactive deep learning book</div></div>
+
+        <div class="nav-pill">
+          <button class="nb on">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            Home
+          </button>
+          <button class="nb">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93z"/></svg>
+            Browse
+          </button>
+          <div class="pill-sep"></div>
+          <div class="pill-logo"></div>
+          <div class="pill-sep"></div>
+          <button class="nb on">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z"/></svg>
+            Blocks
+          </button>
+          <button class="nb">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5 3A7.5 7.5 0 1 0 18 10.5c0-.88-.15-1.73-.43-2.5H20V6h-3.22A7.5 7.5 0 0 0 10.5 3zm0 2a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11zM9 8v3H6v2h3v3h2v-3h3v-2h-3V8H9z"/></svg>
+            Filters
+          </button>
+        </div>
+
+        <!-- panel showing -->
+        <div class="drop drop-a">
+          <div class="dp-title">Blocks — Language</div>
+          <div class="dp-row sel" style="width:70%"></div>
+          <div class="dp-row" style="width:90%"></div>
+          <div class="dp-row" style="width:55%"></div>
+          <div class="dp-title" style="margin-top:8px">Type</div>
+          <div class="dp-row" style="width:80%"></div>
+          <div class="dp-row" style="width:50%"></div>
+        </div>
+
+        <div class="card-strip">
+          <div class="mini-card"></div><div class="mini-card"></div>
+          <div class="mini-card"></div><div class="mini-card"></div><div class="mini-card"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B: wide island -->
+  <div class="layout-block">
+    <div class="layout-label"><span class="letter">B</span> Wide island — logo truly centered, nav split left/right</div>
+    <div class="layout-card option" data-choice="b" onclick="toggleSelect(this)">
+      <div class="selected-tag">✓ Selected</div>
+      <div class="win-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <div class="win-title">Git Suite — Discover</div>
+      </div>
+      <div class="app-area">
+        <div class="hero-bg"></div>
+        <div class="hero-img-fake"></div>
+        <div class="hero-words">d2l-ai / d2l-en <div class="hero-sub">Interactive deep learning book</div></div>
+
+        <div class="nav-island">
+          <div class="island-side">
+            <button class="nb on">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+              Home
+            </button>
+            <button class="nb">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93z"/></svg>
+              Browse
+            </button>
+          </div>
+          <div class="island-center">
+            <div class="island-logo"></div>
+            <div class="island-wordmark">Git Suite</div>
+          </div>
+          <div class="island-side right">
+            <button class="nb on">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z"/></svg>
+              Blocks
+            </button>
+            <button class="nb">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5 3A7.5 7.5 0 1 0 18 10.5c0-.88-.15-1.73-.43-2.5H20V6h-3.22A7.5 7.5 0 0 0 10.5 3zm0 2a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11zM9 8v3H6v2h3v3h2v-3h3v-2h-3V8H9z"/></svg>
+              Filters
+            </button>
+          </div>
+        </div>
+
+        <div class="drop drop-b">
+          <div class="dp-title">Blocks — Language</div>
+          <div class="dp-row sel" style="width:70%"></div>
+          <div class="dp-row" style="width:90%"></div>
+          <div class="dp-row" style="width:55%"></div>
+          <div class="dp-title" style="margin-top:8px">Type</div>
+          <div class="dp-row" style="width:80%"></div>
+          <div class="dp-row" style="width:50%"></div>
+        </div>
+
+        <div class="card-strip">
+          <div class="mini-card"></div><div class="mini-card"></div>
+          <div class="mini-card"></div><div class="mini-card"></div><div class="mini-card"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- C: full-width bar -->
+  <div class="layout-block">
+    <div class="layout-label"><span class="letter">C</span> Full-width bar — flush to top, extends edge to edge</div>
+    <div class="layout-card option" data-choice="c" onclick="toggleSelect(this)">
+      <div class="selected-tag">✓ Selected</div>
+      <div class="win-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <div class="win-title">Git Suite — Discover</div>
+      </div>
+      <div class="app-area">
+        <div class="hero-bg"></div>
+        <div class="hero-img-fake"></div>
+        <div class="hero-words" style="bottom:100px">d2l-ai / d2l-en <div class="hero-sub">Interactive deep learning book</div></div>
+
+        <div class="nav-bar">
+          <div class="bar-side">
+            <button class="nb on">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+              Home
+            </button>
+            <button class="nb">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93z"/></svg>
+              Browse
+            </button>
+          </div>
+          <div class="bar-center">
+            <div class="bar-logo"></div>
+            <div class="bar-wordmark">Git Suite</div>
+          </div>
+          <div class="bar-side right">
+            <button class="nb on">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z"/></svg>
+              Blocks
+            </button>
+            <button class="nb">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5 3A7.5 7.5 0 1 0 18 10.5c0-.88-.15-1.73-.43-2.5H20V6h-3.22A7.5 7.5 0 0 0 10.5 3zm0 2a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11zM9 8v3H6v2h3v3h2v-3h3v-2h-3V8H9z"/></svg>
+              Filters
+            </button>
+          </div>
+        </div>
+
+        <div class="drop drop-c">
+          <div class="dp-title">Blocks — Language</div>
+          <div class="dp-row sel" style="width:70%"></div>
+          <div class="dp-row" style="width:90%"></div>
+          <div class="dp-row" style="width:55%"></div>
+          <div class="dp-title" style="margin-top:8px">Type</div>
+          <div class="dp-row" style="width:80%"></div>
+          <div class="dp-row" style="width:50%"></div>
+        </div>
+
+        <div class="card-strip">
+          <div class="mini-card"></div><div class="mini-card"></div>
+          <div class="mini-card"></div><div class="mini-card"></div><div class="mini-card"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

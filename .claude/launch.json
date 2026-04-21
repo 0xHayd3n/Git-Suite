@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["electron-vite", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "brainstorm",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", ".superpowers/brainstorm/1314-1776308199", "-l", "8765"],
+      "port": 8765
+    }
+  ]
+}

@@ -166,7 +166,7 @@ export default function Starred() {
     setInstallStates((p) => ({ ...p, [key]: 'GENERATING' }))
     try {
       await saveRepo(owner, name)
-      await window.api.skill.generate(owner, name)
+      await window.api.skill.generate(owner, name, { flavour: 'library' })
       setInstallStates((p) => ({ ...p, [key]: 'INSTALLED' }))
     } catch (err) {
       setInstallStates((p) => ({ ...p, [key]: 'UNINSTALLED' }))

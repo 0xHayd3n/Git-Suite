@@ -1,0 +1,140 @@
+<h2>Collections: where does the detail go?</h2>
+<p class="subtitle">When you click a collection in the sidebar, where does its detail panel open?</p>
+
+<div class="cards">
+
+  <!-- Option A: Detail replaces main content (like repo detail does now) -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px">
+      <div style="display:flex;height:240px;border:1px solid rgba(255,255,255,0.12);border-radius:6px;overflow:hidden;background:rgba(0,0,0,0.3)">
+        <!-- Rail -->
+        <div style="width:40px;background:rgba(255,255,255,0.04);border-right:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:8px">
+          <div style="width:20px;height:20px;background:rgba(255,255,255,0.15);border-radius:3px"></div>
+          <div style="width:30px;height:26px;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px">
+            <div style="width:12px;height:1.5px;background:rgba(255,255,255,0.35)"></div>
+            <div style="width:12px;height:1.5px;background:rgba(255,255,255,0.35)"></div>
+            <div style="font-size:7px;color:rgba(255,255,255,0.3);margin-top:1px">Repos</div>
+          </div>
+          <div style="width:30px;height:26px;border-radius:4px;background:rgba(255,255,255,0.12);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px">
+            <div style="width:12px;height:12px;border:1.5px solid rgba(255,255,255,0.7);border-radius:2px"></div>
+            <div style="font-size:7px;color:rgba(255,255,255,0.7)">Colls</div>
+          </div>
+        </div>
+        <!-- Collections panel -->
+        <div style="width:140px;background:rgba(255,255,255,0.03);border-right:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column">
+          <div style="padding:7px 8px 5px;font-size:10px;font-weight:600;color:rgba(255,255,255,0.8)">Collections</div>
+          <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;background:rgba(255,255,255,0.08)">
+            <div style="width:10px;height:10px;border-radius:2px;background:#7c3aed;flex-shrink:0"></div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.9)">My Stack</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:4px 8px">
+            <div style="width:10px;height:10px;border-radius:2px;background:#0ea5e9;flex-shrink:0"></div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.55)">AI Tools</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:4px 8px">
+            <div style="width:10px;height:10px;border-radius:2px;background:#10b981;flex-shrink:0"></div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.55)">Web Dev</div>
+          </div>
+          <div style="margin-top:auto;padding:8px">
+            <div style="font-size:9px;text-align:center;color:rgba(255,255,255,0.3);padding:4px;border:1px dashed rgba(255,255,255,0.15);border-radius:4px">+ New</div>
+          </div>
+        </div>
+        <!-- Main area: collection detail -->
+        <div style="flex:1;background:rgba(0,0,0,0.2);padding:10px;overflow:hidden">
+          <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.8);margin-bottom:6px">My Stack</div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="display:flex;align-items:center;gap:5px;padding:4px 6px;background:rgba(255,255,255,0.05);border-radius:4px">
+              <div style="width:12px;height:12px;border-radius:2px;background:#4a90d9"></div>
+              <div style="font-size:9px;color:rgba(255,255,255,0.75)">anthropic-sdk</div>
+              <div style="margin-left:auto;font-size:8px;color:#5cb85c">✓</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;padding:4px 6px;background:rgba(255,255,255,0.05);border-radius:4px">
+              <div style="width:12px;height:12px;border-radius:2px;background:#5cb85c"></div>
+              <div style="font-size:9px;color:rgba(255,255,255,0.75)">claude-code</div>
+              <div style="margin-left:auto;font-size:8px;color:#5cb85c">✓</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;padding:4px 6px;background:rgba(255,255,255,0.05);border-radius:4px">
+              <div style="width:12px;height:12px;border-radius:2px;background:#9b59b6"></div>
+              <div style="font-size:9px;color:rgba(255,255,255,0.75)">typescript</div>
+              <div style="margin-left:auto;font-size:8px;color:rgba(255,165,0,0.8)">install</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Detail in main area</h3>
+      <p>Selecting a collection shows its repos in the main content area, same pattern as repo detail. Clean separation.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Detail expands inline within the sidebar panel -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px">
+      <div style="display:flex;height:240px;border:1px solid rgba(255,255,255,0.12);border-radius:6px;overflow:hidden;background:rgba(0,0,0,0.3)">
+        <!-- Rail -->
+        <div style="width:40px;background:rgba(255,255,255,0.04);border-right:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:8px">
+          <div style="width:20px;height:20px;background:rgba(255,255,255,0.15);border-radius:3px"></div>
+          <div style="width:30px;height:26px;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px">
+            <div style="width:12px;height:1.5px;background:rgba(255,255,255,0.35)"></div>
+            <div style="width:12px;height:1.5px;background:rgba(255,255,255,0.35)"></div>
+            <div style="font-size:7px;color:rgba(255,255,255,0.3);margin-top:1px">Repos</div>
+          </div>
+          <div style="width:30px;height:26px;border-radius:4px;background:rgba(255,255,255,0.12);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px">
+            <div style="width:12px;height:12px;border:1.5px solid rgba(255,255,255,0.7);border-radius:2px"></div>
+            <div style="font-size:7px;color:rgba(255,255,255,0.7)">Colls</div>
+          </div>
+        </div>
+        <!-- Wider panel with list + nested detail -->
+        <div style="width:220px;background:rgba(255,255,255,0.03);border-right:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column">
+          <div style="padding:7px 8px 5px;font-size:10px;font-weight:600;color:rgba(255,255,255,0.8)">Collections</div>
+          <!-- Selected collection with expand -->
+          <div style="background:rgba(255,255,255,0.06);border-left:2px solid rgba(255,255,255,0.4)">
+            <div style="display:flex;align-items:center;gap:6px;padding:4px 8px">
+              <div style="width:10px;height:10px;border-radius:2px;background:#7c3aed;flex-shrink:0"></div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.9)">My Stack</div>
+              <div style="margin-left:auto;font-size:9px;color:rgba(255,255,255,0.3)">▾</div>
+            </div>
+            <!-- Expanded repos inline -->
+            <div style="padding:2px 8px 6px 24px;display:flex;flex-direction:column;gap:3px">
+              <div style="display:flex;align-items:center;gap:4px">
+                <div style="width:10px;height:10px;border-radius:2px;background:#4a90d9"></div>
+                <div style="font-size:9px;color:rgba(255,255,255,0.7)">anthropic-sdk</div>
+                <div style="margin-left:auto;font-size:8px;color:#5cb85c">✓</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:4px">
+                <div style="width:10px;height:10px;border-radius:2px;background:#5cb85c"></div>
+                <div style="font-size:9px;color:rgba(255,255,255,0.7)">claude-code</div>
+                <div style="margin-left:auto;font-size:8px;color:#5cb85c">✓</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:4px">
+                <div style="width:10px;height:10px;border-radius:2px;background:#9b59b6"></div>
+                <div style="font-size:9px;color:rgba(255,255,255,0.7)">typescript</div>
+                <div style="margin-left:auto;font-size:8px;color:rgba(255,165,0,0.7)">install</div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:4px 8px">
+            <div style="width:10px;height:10px;border-radius:2px;background:#0ea5e9;flex-shrink:0"></div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.45)">AI Tools</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:4px 8px">
+            <div style="width:10px;height:10px;border-radius:2px;background:#10b981;flex-shrink:0"></div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.45)">Web Dev</div>
+          </div>
+        </div>
+        <!-- Main area: empty / other content -->
+        <div style="flex:1;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center">
+          <div style="font-size:9px;color:rgba(255,255,255,0.2)">main area</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Expand inline in sidebar</h3>
+      <p>Clicking a collection expands its repo list directly inside the wider sidebar panel. Main area stays free for something else.</p>
+    </div>
+  </div>
+
+</div>
+
+<p style="margin-top:20px;font-size:13px;color:rgba(255,255,255,0.5)">Click a card, then reply in the terminal.</p>

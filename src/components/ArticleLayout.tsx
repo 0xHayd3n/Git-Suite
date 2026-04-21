@@ -24,6 +24,8 @@ export type ArticleLayoutProps = {
   scrollRef?: React.RefObject<HTMLDivElement>
   /** When provided, body renders as two columns: content | divider | toc. Pass only on readme tab. */
   tocSlot?: React.ReactNode
+  /** When provided, body renders a right-hand panel mirroring the TOC slot layout. Pass only on readme tab. */
+  statsSlot?: React.ReactNode
   /** Forwarded ref to the body-content scroll container when tocSlot is active (replaces scrollRef for TocNav) */
   bodyScrollRef?: React.RefObject<HTMLDivElement>
 }
@@ -44,6 +46,7 @@ export function ArticleLayout({
   fullBleedBody = false,
   scrollRef,
   tocSlot,
+  statsSlot,
   bodyScrollRef,
 }: ArticleLayoutProps) {
   const internalScrollRef = useRef<HTMLDivElement>(null)
@@ -113,7 +116,7 @@ export function ArticleLayout({
   return (
     <div
       ref={resolvedScrollRef}
-      className={`article-layout${fullBleedBody ? ' article-layout--fullbleed' : ''}${tocSlot ? ' article-layout--has-toc' : ''}`}
+      className={`article-layout${fullBleedBody ? ' article-layout--fullbleed' : ''}${(tocSlot || statsSlot) ? ' article-layout--has-toc' : ''}`}
       style={{ '--top-panel-height': `${topHeight}px` } as React.CSSProperties}
     >
       <div
@@ -129,20 +132,19 @@ export function ArticleLayout({
             {titleExtras && <div className="article-layout-title-extras">{titleExtras}</div>}
           </div>
           {description && <div className="article-layout-description">{description}</div>}
-          <div className="article-layout-actions">{actionRow}</div>
+          {actionRow != null && <div className="article-layout-actions">{actionRow}</div>}
           {actionRowExtras && <div className="article-layout-action-row-extras">{actionRowExtras}</div>}
         </div>
-        <hr className="article-layout-divider" />
         <div className="article-layout-tabs-slot">{tabs}</div>
-        <hr className="article-layout-divider" />
       </div>
       <div
-        className={`article-layout-body${fullBleedBody ? ' article-layout-body--full-bleed' : ''}${tocSlot ? ' article-layout-body--with-toc' : ''}`}
+        className={`article-layout-body${fullBleedBody ? ' article-layout-body--full-bleed' : ''}${(tocSlot || statsSlot) ? ' article-layout-body--with-toc' : ''}`}
       >
-        {tocSlot ? (
+        {(tocSlot || statsSlot) ? (
           <>
-            <div className="article-layout-toc-slot">{tocSlot}</div>
+            {tocSlot && <div className="article-layout-toc-slot">{tocSlot}</div>}
             <div ref={bodyScrollRef} className="article-layout-body-content">{body}</div>
+            {statsSlot && <div className="article-layout-stats-slot">{statsSlot}</div>}
           </>
         ) : body}
       </div>

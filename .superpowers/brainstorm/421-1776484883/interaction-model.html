@@ -1,0 +1,216 @@
+<style>
+  .demo-wrap {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .demo-card {
+    background: #18181c;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    overflow: hidden;
+    flex: 1;
+    min-width: 220px;
+    max-width: 280px;
+  }
+  .demo-label {
+    background: #222226;
+    padding: 10px 14px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .demo-body {
+    padding: 16px 14px;
+    min-height: 200px;
+    position: relative;
+    display: flex;
+    gap: 8px;
+  }
+
+  /* CURRENT STATE */
+  .rail-fixed {
+    width: 42px;
+    background: rgba(20,20,20,0.85);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 0;
+    gap: 10px;
+    height: 200px;
+  }
+  .rail-icon-dot {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .rail-icon-dot.active { background: rgba(99,102,241,0.3); }
+
+  .panel-fixed {
+    flex: 1;
+    background: #121214;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 0;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 8px;
+  }
+  .panel-row { height: 20px; border-radius: 4px; background: rgba(255,255,255,0.06); }
+  .panel-row.wide { width: 90%; }
+  .panel-row.medium { width: 65%; }
+  .panel-row.short { width: 45%; }
+
+  /* OPTION A — floating rail, hover reveals panel */
+  .rail-float {
+    width: 42px;
+    background: rgba(20,20,20,0.9);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    backdrop-filter: blur(20px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 0;
+    gap: 10px;
+    height: fit-content;
+    align-self: flex-start;
+    margin-top: 20px;
+  }
+
+  .panel-float {
+    background: rgba(20,20,20,0.9);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    backdrop-filter: blur(20px);
+    padding: 10px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 110px;
+    margin-top: 20px;
+    height: fit-content;
+    align-self: flex-start;
+  }
+
+  /* OPTION B — rail always visible, panel slides in on click */
+  .panel-float-click {
+    background: rgba(20,20,20,0.9);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    backdrop-filter: blur(20px);
+    padding: 10px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 110px;
+    height: 160px;
+    align-self: center;
+    opacity: 0.5;
+    border: 1px dashed rgba(255,255,255,0.2);
+  }
+
+  .hover-hint {
+    font-size: 10px;
+    color: rgba(255,255,255,0.3);
+    text-align: center;
+    margin-top: 4px;
+    font-style: italic;
+  }
+
+  .arrow-indicator {
+    position: absolute;
+    left: 58px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(99,102,241,0.8);
+    font-size: 16px;
+  }
+</style>
+
+<h2>How should the sidebar panel open?</h2>
+<p class="subtitle">The rail will always be a floating rounded panel. The question is how the expanded panel appears.</p>
+
+<div class="demo-wrap options" style="margin-top: 24px;">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)" style="flex-direction: column; align-items: flex-start; padding: 0; overflow: hidden; max-width: 300px;">
+    <div class="demo-label" style="width: 100%; box-sizing: border-box;">A &nbsp;·&nbsp; Hover reveals panel</div>
+    <div class="demo-body" style="width: 100%; box-sizing: border-box; min-height: 240px;">
+      <div class="rail-float">
+        <div class="rail-icon-dot active"></div>
+        <div class="rail-icon-dot"></div>
+        <div class="rail-icon-dot"></div>
+      </div>
+      <div style="position:absolute; left: 68px; top: 20px;">
+        <div class="panel-float">
+          <div class="panel-row wide"></div>
+          <div class="panel-row medium"></div>
+          <div class="panel-row short"></div>
+          <div class="panel-row wide"></div>
+          <div class="panel-row medium"></div>
+        </div>
+        <div class="hover-hint">panel appears on hover</div>
+      </div>
+    </div>
+    <div class="content" style="padding: 10px 14px; border-top: 1px solid rgba(255,255,255,0.06);">
+      <p style="margin:0; font-size: 12px; color: rgba(255,255,255,0.5);">Rail floats. Hovering the rail reveals the panel as an overlay. Click to pin/unpin.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)" style="flex-direction: column; align-items: flex-start; padding: 0; overflow: hidden; max-width: 300px;">
+    <div class="demo-label" style="width: 100%; box-sizing: border-box;">B &nbsp;·&nbsp; Click toggles panel</div>
+    <div class="demo-body" style="width: 100%; box-sizing: border-box; min-height: 240px;">
+      <div class="rail-float">
+        <div class="rail-icon-dot active"></div>
+        <div class="rail-icon-dot"></div>
+        <div class="rail-icon-dot"></div>
+      </div>
+      <div style="position:absolute; left: 68px; top: 20px;">
+        <div class="panel-float" style="opacity: 1; border: 1px solid rgba(255,255,255,0.12);">
+          <div class="panel-row wide"></div>
+          <div class="panel-row medium"></div>
+          <div class="panel-row short"></div>
+          <div class="panel-row wide"></div>
+          <div class="panel-row medium"></div>
+        </div>
+        <div class="hover-hint">click icon to show/hide</div>
+      </div>
+    </div>
+    <div class="content" style="padding: 10px 14px; border-top: 1px solid rgba(255,255,255,0.06);">
+      <p style="margin:0; font-size: 12px; color: rgba(255,255,255,0.5);">Rail floats. Clicking an icon toggles the floating panel beside it. Same behavior as now, just re-styled.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)" style="flex-direction: column; align-items: flex-start; padding: 0; overflow: hidden; max-width: 300px;">
+    <div class="demo-label" style="width: 100%; box-sizing: border-box;">C &nbsp;·&nbsp; Always visible, both float</div>
+    <div class="demo-body" style="width: 100%; box-sizing: border-box; min-height: 240px;">
+      <div class="rail-float">
+        <div class="rail-icon-dot active"></div>
+        <div class="rail-icon-dot"></div>
+        <div class="rail-icon-dot"></div>
+      </div>
+      <div style="position:absolute; left: 68px; top: 20px;">
+        <div class="panel-float" style="opacity: 1; width: 120px;">
+          <div class="panel-row wide"></div>
+          <div class="panel-row medium"></div>
+          <div class="panel-row short"></div>
+          <div class="panel-row wide"></div>
+          <div class="panel-row medium"></div>
+        </div>
+        <div class="hover-hint">always open by default</div>
+      </div>
+    </div>
+    <div class="content" style="padding: 10px 14px; border-top: 1px solid rgba(255,255,255,0.06);">
+      <p style="margin:0; font-size: 12px; color: rgba(255,255,255,0.5);">Both rail and panel always float. Panel is always open; toggle to collapse entirely.</p>
+    </div>
+  </div>
+</div>

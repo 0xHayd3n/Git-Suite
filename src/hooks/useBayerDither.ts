@@ -266,13 +266,22 @@ export function useBayerDither(
     canvas.height = h
 
     // Pause animation when card is not visible (performance optimization)
+    let cancelled = false
+    const renderFnRef: { fn: ((now: number) => void) | null } = { fn: null }
+
     const io = new IntersectionObserver(
-      ([entry]) => { visibleRef.current = entry.isIntersecting },
+      ([entry]) => {
+        const wasHidden = !visibleRef.current
+        visibleRef.current = entry.isIntersecting
+        // Restart the loop when the card scrolls back into view (it stopped itself when hidden)
+        if (entry.isIntersecting && wasHidden && !animRef.current && !cancelled && renderFnRef.fn) {
+          animRef.current = requestAnimationFrame(renderFnRef.fn)
+        }
+      },
       { threshold: 0 },
     )
     io.observe(canvas)
 
-    let cancelled = false
     const img = new Image()
     img.crossOrigin = 'anonymous'
 
@@ -301,9 +310,9 @@ export function useBayerDither(
 
       function render(now: number) {
         if (cancelled) return
-        // Skip rendering when not visible (saves CPU for off-screen cards)
         if (!visibleRef.current) {
-          animRef.current = requestAnimationFrame(render)
+          // Stop the loop — IntersectionObserver will restart it when the card is visible again
+          animRef.current = 0
           return
         }
         // Throttle to ~15fps — dithered art doesn't need 60fps
@@ -355,6 +364,7 @@ export function useBayerDither(
         animRef.current = requestAnimationFrame(render)
       }
 
+      renderFnRef.fn = render
       render(performance.now())
     }
 

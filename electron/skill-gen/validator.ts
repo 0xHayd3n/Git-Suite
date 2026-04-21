@@ -1,4 +1,4 @@
-import type { ExtractionResult, ValidateOutput, ValidationIssue, ValidationResult } from './types'
+import type { ExtractionResult, SkillFlavour, ValidateOutput, ValidationIssue, ValidationResult } from './types'
 
 function extractUrls(text: string): Set<string> {
   const urls = new Set<string>()
@@ -241,6 +241,98 @@ export function validate(content: string, extraction: ExtractionResult, readme: 
   }
 
   return { content: fixedContent, result }
+}
+
+export function validateSkill(
+  content: string,
+  readme: string,
+  extraction: ExtractionResult,
+  flavour: SkillFlavour,
+): ValidateOutput {
+  const errors: ValidationIssue[] = []
+  const warnings: ValidationIssue[] = []
+  let autoFixes = 0
+  let fixedContent = content
+
+  // 1. Structure check — generated markers must be present
+  if (!fixedContent.includes('<!-- generated:start -->')) {
+    errors.push({ check: 'structure', message: 'Missing <!-- generated:start --> marker' })
+  }
+  if (!fixedContent.includes('<!-- generated:end -->')) {
+    errors.push({ check: 'structure', message: 'Missing <!-- generated:end --> marker' })
+  }
+
+  // 2. URL hallucination strip
+  const { fixed: urlFixed, removedCount } = stripHallucinatedUrls(fixedContent, readme)
+  if (removedCount > 0) {
+    fixedContent = urlFixed
+    autoFixes += removedCount
+  }
+
+  // 3. Export + command verification — library only (domain skills don't assert API surface)
+  if (flavour === 'library') {
+    if (extraction.exports && extraction.exports.length >= 5) {
+      const knownExportNames = new Set(extraction.exports.map(e => e.name))
+      const textOutsideCode = getTextOutsideCodeBlocks(fixedContent)
+      const funcCallRe = /\b([a-zA-Z_$][a-zA-Z0-9_$]*)\(\)/g
+      const invalidNames = new Set<string>()
+      for (const m of textOutsideCode.matchAll(funcCallRe)) {
+        if (!knownExportNames.has(m[1])) {
+          invalidNames.add(m[1])
+          warnings.push({ check: 'export-verification', message: `Function '${m[1]}()' not in extraction exports — auto-stripped` })
+        }
+      }
+      if (invalidNames.size > 0) {
+        const { fixed, removedCount: rc } = stripLinesWithReferences(
+          fixedContent, invalidNames, (name) => new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\(\\)`)
+        )
+        fixedContent = fixed
+        autoFixes += rc
+      }
+    } else if (extraction.exports && extraction.exports.length > 0) {
+      const knownExportNames = new Set(extraction.exports.map(e => e.name))
+      const textOutsideCode = getTextOutsideCodeBlocks(fixedContent)
+      const funcCallRe = /\b([a-zA-Z_$][a-zA-Z0-9_$]*)\(\)/g
+      for (const m of textOutsideCode.matchAll(funcCallRe)) {
+        if (!knownExportNames.has(m[1])) {
+          warnings.push({ check: 'export-verification', message: `Function '${m[1]}()' not in extraction exports` })
+        }
+      }
+    }
+
+    if (extraction.commands && extraction.commands.length > 0) {
+      const knownFlags = new Set<string>()
+      for (const cmd of extraction.commands) {
+        for (const flag of cmd.flags) {
+          knownFlags.add(flag.name)
+          if (flag.short) knownFlags.add(flag.short)
+        }
+      }
+      if (knownFlags.size >= 5) {
+        const textOutsideCode = getTextOutsideCodeBlocks(fixedContent)
+        const flagRe = /--[a-zA-Z][a-zA-Z0-9-]*/g
+        const invalidFlags = new Set<string>()
+        for (const m of textOutsideCode.matchAll(flagRe)) {
+          if (!knownFlags.has(m[0])) {
+            invalidFlags.add(m[0])
+            warnings.push({ check: 'command-verification', message: `Flag '${m[0]}' not in extraction commands — auto-stripped` })
+          }
+        }
+        if (invalidFlags.size > 0) {
+          const { fixed, removedCount: rc } = stripLinesWithReferences(
+            fixedContent, invalidFlags, (flag) => new RegExp(flag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+          )
+          fixedContent = fixed
+          autoFixes += rc
+        }
+      }
+    }
+  }
+
+  return {
+    content: fixedContent,
+    result: { passed: errors.length === 0, errors, warnings, autoFixes },
+  }
 }
 
 export function validateComponents(content: string, readme: string): ValidateOutput {

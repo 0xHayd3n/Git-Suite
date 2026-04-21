@@ -1,13 +1,14 @@
-import type { RepoType, ExtractionResult, ValidationResult, ManifestInfo } from './types'
+import type { RepoType, SkillFlavour, RouteResult, ExtractionResult, ValidationResult, ManifestInfo } from './types'
 import { fetchFileTree, fetchRepoFiles, fetchManifest } from './github-files'
 import { parseManifest } from './manifest-parser'
 import { classify } from './classifier'
 import { getExtractor } from './extractors/index'
 import { buildPromptFromTemplate, buildComponentsPrompt } from './templates/index'
-import { validate, validateComponents } from './validator'
+import { validate, validateSkill, validateComponents } from './validator'
 import { generateWithRawPrompt } from './legacy'
 import { inferFocusInstructions } from './focus-inference'
 import { extractionCache } from './extraction-cache'
+import { buildLibraryPrompt, buildDomainPrompt, buildSystemPrompt, buildPracticePrompt } from './prompts'
 
 export interface GenerateInput {
   token: string | null
@@ -125,66 +126,58 @@ export async function generate(input: GenerateInput): Promise<GenerateResult> {
   return { content, tier: 1, repoType, validation: validationResult, focusInferenceFailed }
 }
 
-export async function enhance(
-  input: GenerateInput & { existingSkill: string }
-): Promise<GenerateResult> {
-  const { owner, name, readme, apiKey, topics, existingSkill, typeBucket, typeSub } = input
-  const repoFullName = `${owner}/${name}`
+// ── Flavour-specific generators ───────────────────────────────────────────────
 
-  const { repoType, extraction } = await getOrExtract(input)
-
-  // Infer focus instructions
-  let focusInstructions: string | null = null
-  try {
-    focusInstructions = await inferFocusInstructions(
-      repoType, extraction, readme.slice(0, 2000), { apiKey, typeBucket, typeSub }
-    )
-  } catch (err) {
-    console.error(`[skill-gen] Focus inference failed for enhance, continuing without:`, err)
-  }
-
-  const focusInferenceFailed = focusInstructions === null && repoType !== 'generic'
-
-  // Build enhance prompt
-  const basePrompt = buildPromptFromTemplate(repoType, extraction, readme, repoFullName, focusInstructions, topics)
-  const enhancePrompt = `${basePrompt}
-
---- EXISTING SKILL (Tier 1) ---
-${existingSkill}
---- END EXISTING SKILL ---
-
-You are enhancing an existing skill file. The above is the current Tier 1 version.
-Improve it by:
-- Adding more detailed code examples
-- Covering more API surface from the extracted data
-- Expanding edge cases and advanced patterns
-- Making the content more precise and actionable for AI code generation
-Keep the same three-section structure (## [CORE], ## [EXTENDED], ## [DEEP]).
-Start immediately with ## [CORE].`
-
-  let rawContent = await generateWithRawPrompt(enhancePrompt, readme, {
-    model: 'claude-sonnet-4-6',
-    maxTokens: 4096,
-    apiKey,
-  })
-
-  let { content, result: validationResult } = validate(rawContent, extraction, readme)
-
-  // Retry once if structural errors
-  if (!validationResult.passed && validationResult.errors.some(e => e.check === 'structure')) {
-    const retryPrompt = enhancePrompt + '\n\nIMPORTANT: Your previous output was missing required sections. You MUST include all three sections: ## [CORE], ## [EXTENDED], and ## [DEEP]. Start immediately with ## [CORE].'
-    rawContent = await generateWithRawPrompt(retryPrompt, readme, {
-      model: 'claude-sonnet-4-6',
-      maxTokens: 4096,
-      apiKey,
-    })
-    const retryValidation = validate(rawContent, extraction, readme)
-    content = retryValidation.content
-    validationResult = retryValidation.result
-  }
-
-  return { content, tier: 2, repoType, validation: validationResult, focusInferenceFailed }
+async function generateLibrary(input: GenerateInput, extraction: ExtractionOutput): Promise<{ content: string; validation: ValidationResult }> {
+  const prompt = buildLibraryPrompt(input, extraction.extraction)
+  const raw = await generateWithRawPrompt(prompt, input.readme, { model: 'claude-sonnet-4-6', maxTokens: 4096, apiKey: input.apiKey })
+  const { content, result } = validateSkill(raw, input.readme, extraction.extraction, 'library')
+  return { content, validation: result }
 }
+
+async function generateDomain(input: GenerateInput, extraction: ExtractionOutput): Promise<{ content: string; validation: ValidationResult }> {
+  const prompt = buildDomainPrompt(input, extraction.extraction)
+  const raw = await generateWithRawPrompt(prompt, input.readme, { model: 'claude-haiku-4-5', maxTokens: 2048, apiKey: input.apiKey })
+  const { content, result } = validateSkill(raw, input.readme, extraction.extraction, 'domain')
+  return { content, validation: result }
+}
+
+async function generateSystem(input: GenerateInput, extraction: ExtractionOutput): Promise<{ content: string; validation: ValidationResult }> {
+  const prompt = buildSystemPrompt(input, extraction.extraction)
+  const raw = await generateWithRawPrompt(prompt, input.readme, { model: 'claude-sonnet-4-6', maxTokens: 3072, apiKey: input.apiKey })
+  const { content, result } = validateSkill(raw, input.readme, extraction.extraction, 'codebase')
+  return { content, validation: result }
+}
+
+async function generatePractice(input: GenerateInput, extraction: ExtractionOutput): Promise<{ content: string; validation: ValidationResult }> {
+  const prompt = buildPracticePrompt(input, extraction.extraction)
+  const raw = await generateWithRawPrompt(prompt, input.readme, { model: 'claude-sonnet-4-6', maxTokens: 2048, apiKey: input.apiKey })
+  const { content, result } = validateSkill(raw, input.readme, extraction.extraction, 'codebase')
+  return { content, validation: result }
+}
+
+export async function route(flavour: SkillFlavour, input: GenerateInput): Promise<RouteResult> {
+  const extraction = await getOrExtract(input)
+
+  switch (flavour) {
+    case 'library': {
+      const r = await generateLibrary(input, extraction)
+      return { flavour: 'library', ...r }
+    }
+    case 'domain': {
+      const r = await generateDomain(input, extraction)
+      return { flavour: 'domain', ...r }
+    }
+    case 'codebase': {
+      const [system, practice] = await Promise.all([
+        generateSystem(input, extraction),
+        generatePractice(input, extraction),
+      ])
+      return { flavour: 'codebase', system: system.content, practice: practice.content, systemValidation: system.validation, practiceValidation: practice.validation }
+    }
+  }
+}
+
 
 export async function generateComponents(
   input: GenerateInput & {

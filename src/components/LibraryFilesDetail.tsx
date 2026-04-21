@@ -23,8 +23,8 @@ export default function LibraryFilesDetail({ row, onToggleActive, onInstalled }:
     setInstalling(true)
     setInstallError(null)
     try {
-      const result = await window.api.skill.generate(row.owner, row.name)
-      onInstalled(result)
+      const result = await window.api.skill.generate(row.owner, row.name, { flavour: 'library' })
+      onInstalled({ content: result.content ?? '', version: result.version, generated_at: result.generated_at })
     } catch {
       setInstallError('Install failed')
     } finally {

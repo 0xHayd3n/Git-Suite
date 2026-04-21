@@ -1,0 +1,121 @@
+<h2>Design Section 1 — Navigation & Template Gallery</h2>
+<p class="subtitle">How Create fits into the app, and what the user sees first. Does this look right?</p>
+
+<div class="section">
+  <h3>Dock Placement</h3>
+  <div style="display:flex;justify-content:center;margin:12px 0;">
+    <div style="background:#111122;border-radius:12px;padding:10px 20px;display:flex;gap:16px;align-items:center;border:1px solid #2a2a3a;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:0.5;">
+        <div style="width:20px;height:20px;background:#333;border-radius:4px;"></div>
+        <div style="font-size:8px;color:#556;">Library</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;background:#1a2a3a;border-radius:6px;padding:4px 8px;border:1px solid #3a5a7a;">
+        <div style="width:20px;height:20px;background:#3a6a9a;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;">✦</div>
+        <div style="font-size:8px;color:#7ab;">Create</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:0.5;">
+        <div style="width:20px;height:20px;background:#333;border-radius:4px;"></div>
+        <div style="font-size:8px;color:#556;">Discover</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:0.5;">
+        <div style="width:20px;height:20px;background:#333;border-radius:4px;"></div>
+        <div style="font-size:8px;color:#556;">Profile</div>
+      </div>
+    </div>
+  </div>
+  <p style="font-size:11px;color:#667;text-align:center;">Create sits between Library and Discover in the dock</p>
+</div>
+
+<div class="section">
+  <h3>Template Gallery Landing</h3>
+  <div style="background:#0a0a15;border-radius:8px;padding:16px;">
+    <!-- Search bar -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
+      <div style="flex:1;background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;padding:7px 12px;font-size:10px;color:#556;">Search templates...</div>
+      <div style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;padding:7px 12px;font-size:10px;color:#778;">All types ▾</div>
+    </div>
+
+    <!-- Category tabs -->
+    <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
+      <div style="background:#1e2a4a;border-radius:20px;padding:4px 10px;font-size:9px;color:#7ab;border:1px solid #3a5a9a;">All</div>
+      <div style="background:#1a1a2e;border-radius:20px;padding:4px 10px;font-size:9px;color:#556;">MCP Server</div>
+      <div style="background:#1a1a2e;border-radius:20px;padding:4px 10px;font-size:9px;color:#556;">Web App</div>
+      <div style="background:#1a1a2e;border-radius:20px;padding:4px 10px;font-size:9px;color:#556;">CLI Tool</div>
+      <div style="background:#1a1a2e;border-radius:20px;padding:4px 10px;font-size:9px;color:#556;">Desktop Widget</div>
+      <div style="background:#1a1a2e;border-radius:20px;padding:4px 10px;font-size:9px;color:#556;">Browser Ext</div>
+    </div>
+
+    <!-- Template grid -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+
+      <!-- MCP Server template -->
+      <div style="background:#111122;border:1px solid #2a2a3a;border-radius:8px;overflow:hidden;cursor:pointer;">
+        <div style="height:70px;background:linear-gradient(135deg,#1a2a4a,#0f1520);display:flex;align-items:center;justify-content:center;position:relative;">
+          <div style="font-size:24px;">🔌</div>
+          <div style="position:absolute;top:6px;right:6px;background:#1e3a5a;border-radius:3px;padding:2px 5px;font-size:7px;color:#5a9aca;">MCP SERVER</div>
+        </div>
+        <div style="padding:8px;">
+          <div style="font-size:10px;color:#99a;margin-bottom:3px;">MCP Server Starter</div>
+          <div style="font-size:8px;color:#556;line-height:1.4;">Plug into Claude Code. Expose tools, resources, and prompts to any MCP client.</div>
+        </div>
+      </div>
+
+      <!-- 3D Web App -->
+      <div style="background:#111122;border:1px solid #2a2a3a;border-radius:8px;overflow:hidden;cursor:pointer;">
+        <div style="height:70px;background:linear-gradient(135deg,#1a1a3a,#0f0f20);display:flex;align-items:center;justify-content:center;position:relative;">
+          <div style="font-size:24px;">🎮</div>
+          <div style="position:absolute;top:6px;right:6px;background:#2a1e3a;border-radius:3px;padding:2px 5px;font-size:7px;color:#9a7aca;">WEB APP</div>
+        </div>
+        <div style="padding:8px;">
+          <div style="font-size:10px;color:#99a;margin-bottom:3px;">3D Interactive App</div>
+          <div style="font-size:8px;color:#556;line-height:1.4;">Browser-based 3D experience. Mix Three.js, physics, and shaders.</div>
+        </div>
+      </div>
+
+      <!-- CLI Tool -->
+      <div style="background:#111122;border:1px solid #2a2a3a;border-radius:8px;overflow:hidden;cursor:pointer;">
+        <div style="height:70px;background:linear-gradient(135deg,#1a2a1a,#0f150f);display:flex;align-items:center;justify-content:center;position:relative;">
+          <div style="font-size:24px;">⚡</div>
+          <div style="position:absolute;top:6px;right:6px;background:#1e3a1e;border-radius:3px;padding:2px 5px;font-size:7px;color:#5aca6a;">CLI TOOL</div>
+        </div>
+        <div style="padding:8px;">
+          <div style="font-size:10px;color:#99a;margin-bottom:3px;">CLI Tool</div>
+          <div style="font-size:8px;color:#556;line-height:1.4;">Terminal utility. Runs on Windows and macOS. Ship as a binary.</div>
+        </div>
+      </div>
+
+      <!-- Desktop Widget -->
+      <div style="background:#111122;border:1px solid #2a2a3a;border-radius:8px;overflow:hidden;cursor:pointer;">
+        <div style="height:70px;background:linear-gradient(135deg,#2a1a1a,#150f0f);display:flex;align-items:center;justify-content:center;position:relative;">
+          <div style="font-size:24px;">🖥️</div>
+          <div style="position:absolute;top:6px;right:6px;background:#3a1e1e;border-radius:3px;padding:2px 5px;font-size:7px;color:#ca5a5a;">DESKTOP</div>
+        </div>
+        <div style="padding:8px;">
+          <div style="font-size:10px;color:#99a;margin-bottom:3px;">Desktop Widget</div>
+          <div style="font-size:8px;color:#556;line-height:1.4;">Always-on-top Electron widget. Taskbar or overlay. Cross-platform.</div>
+        </div>
+      </div>
+
+      <!-- Data Dashboard -->
+      <div style="background:#111122;border:1px solid #2a2a3a;border-radius:8px;overflow:hidden;cursor:pointer;">
+        <div style="height:70px;background:linear-gradient(135deg,#1a2a2a,#0f1515);display:flex;align-items:center;justify-content:center;position:relative;">
+          <div style="font-size:24px;">📊</div>
+          <div style="position:absolute;top:6px;right:6px;background:#1e3a3a;border-radius:3px;padding:2px 5px;font-size:7px;color:#5acaca;">WEB APP</div>
+        </div>
+        <div style="padding:8px;">
+          <div style="font-size:10px;color:#99a;margin-bottom:3px;">Data Dashboard</div>
+          <div style="font-size:8px;color:#556;line-height:1.4;">Charts, tables, live data. Connect any API or local dataset.</div>
+        </div>
+      </div>
+
+      <!-- Blank Canvas -->
+      <div style="background:#0f0f1a;border:1px dashed #2a2a3a;border-radius:8px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:110px;">
+        <div style="font-size:20px;margin-bottom:4px;opacity:0.5;">+</div>
+        <div style="font-size:9px;color:#445;">Start from scratch</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<p style="font-size:11px;color:#667;margin-top:12px;">Does this template gallery feel right? Any template types missing or should be renamed?</p>

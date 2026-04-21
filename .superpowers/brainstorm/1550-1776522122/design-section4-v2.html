@@ -1,0 +1,85 @@
+<h2>Design Section 4 (revised) — Live Draft Publishing</h2>
+<p class="subtitle">No separate review stage. The tool is always a live draft. You publish when ready, then push updates as the AI keeps building.</p>
+
+<div style="display:flex;flex-direction:column;gap:16px;">
+
+  <!-- State A: Unpublished draft -->
+  <div class="section">
+    <h3>State A — Draft (before first publish)</h3>
+    <div style="background:#0a0a15;border-radius:8px;overflow:hidden;border:1px solid #1a1a2e;">
+      <div style="background:#111122;border-bottom:1px solid #1e1e35;padding:8px 14px;display:flex;align-items:center;gap:10px;">
+        <div style="font-size:10px;color:#99a;font-weight:600;">✦ PhysArt</div>
+        <div style="background:#1e2a4a;border-radius:3px;padding:2px 7px;font-size:8px;color:#7ab;">3D Web App</div>
+        <div style="display:flex;gap:5px;margin-left:4px;">
+          <div style="background:#1e2a4a;border:1px solid #3a5a9a;border-radius:3px;padding:2px 7px;font-size:8px;color:#7ab;">three.js ×</div>
+          <div style="background:#2a1e3a;border:1px solid #6a3a8a;border-radius:3px;padding:2px 7px;font-size:8px;color:#b7a;">rapier ×</div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+          <!-- Draft pill -->
+          <div style="background:#2a2a1a;border:1px solid #4a4a2a;border-radius:4px;padding:3px 8px;font-size:8px;color:#8a8a4a;">● Draft</div>
+          <!-- Publish button -->
+          <div style="background:#1e3a5a;border:1px solid #3a6a9a;border-radius:4px;padding:3px 12px;font-size:8px;color:#5a9aca;font-weight:600;">Publish ↗</div>
+        </div>
+      </div>
+      <div style="padding:10px 14px;font-size:9px;color:#445;line-height:1.6;">
+        The canvas and AI chat are active. Code is generated locally. When you're happy with the live preview, hit Publish — this creates a GitHub repo under your account and pushes the current code.
+      </div>
+    </div>
+  </div>
+
+  <!-- State B: Published, no changes -->
+  <div class="section">
+    <h3>State B — Published & Up To Date</h3>
+    <div style="background:#0a0a15;border-radius:8px;overflow:hidden;border:1px solid #1a1a2e;">
+      <div style="background:#111122;border-bottom:1px solid #1e1e35;padding:8px 14px;display:flex;align-items:center;gap:10px;">
+        <div style="font-size:10px;color:#99a;font-weight:600;">✦ PhysArt</div>
+        <div style="background:#1e2a4a;border-radius:3px;padding:2px 7px;font-size:8px;color:#7ab;">3D Web App</div>
+        <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+          <!-- Published pill with GH link -->
+          <div style="background:#1a2a1a;border:1px solid #2a4a2a;border-radius:4px;padding:3px 8px;font-size:8px;color:#5a8a5a;display:flex;align-items:center;gap:4px;">
+            <span>✓ Published</span>
+            <span style="color:#3a5a3a;">·</span>
+            <span style="color:#4a7a4a;text-decoration:underline;">github.com/haydo/physart ↗</span>
+          </div>
+          <!-- Push update (greyed — nothing to push) -->
+          <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4px;padding:3px 12px;font-size:8px;color:#333;">Push Update</div>
+        </div>
+      </div>
+      <div style="padding:10px 14px;font-size:9px;color:#445;line-height:1.6;">
+        Repo is live. Continue chatting with the AI to refine the tool — Push Update activates as soon as there are local changes.
+      </div>
+    </div>
+  </div>
+
+  <!-- State C: Published, has local changes -->
+  <div class="section">
+    <h3>State C — Published, Local Changes Pending</h3>
+    <div style="background:#0a0a15;border-radius:8px;overflow:hidden;border:1px solid #1a2a3a;">
+      <div style="background:#111122;border-bottom:1px solid #1e2a3a;padding:8px 14px;display:flex;align-items:center;gap:10px;">
+        <div style="font-size:10px;color:#99a;font-weight:600;">✦ PhysArt</div>
+        <div style="background:#1e2a4a;border-radius:3px;padding:2px 7px;font-size:8px;color:#7ab;">3D Web App</div>
+        <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+          <!-- Published + changes badge -->
+          <div style="background:#1a2a1a;border:1px solid #2a4a2a;border-radius:4px;padding:3px 8px;font-size:8px;color:#5a8a5a;display:flex;align-items:center;gap:4px;">
+            <span>✓ Published</span>
+            <span style="background:#3a5a2a;border-radius:2px;padding:1px 5px;color:#8aca6a;font-size:7px;">3 changes</span>
+          </div>
+          <!-- Push Update — active -->
+          <div style="background:#1e3a5a;border:1px solid #3a6a9a;border-radius:4px;padding:3px 12px;font-size:8px;color:#5a9aca;font-weight:600;">Push Update ↑</div>
+        </div>
+      </div>
+      <!-- Change summary strip -->
+      <div style="background:#0d1520;border-bottom:1px solid #1a2a3a;padding:6px 14px;display:flex;gap:10px;font-family:monospace;font-size:8px;">
+        <span style="color:#5a9a6a;">+ particles.ts</span>
+        <span style="color:#7ab;">~ scene.ts</span>
+        <span style="color:#7ab;">~ audio.ts</span>
+      </div>
+      <div style="padding:10px 14px;font-size:9px;color:#445;line-height:1.6;">
+        AI added particle effects and updated the scene. A diff strip shows exactly what changed. Push Update commits and pushes to the existing GitHub repo.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p style="font-size:11px;color:#667;margin-top:10px;">Always a live draft. Publish creates the repo. Push Update keeps it in sync as the AI keeps building. Does this flow feel right?</p>

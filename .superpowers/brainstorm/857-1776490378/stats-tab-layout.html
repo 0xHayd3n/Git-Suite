@@ -1,0 +1,134 @@
+<h2>Stats Tab Layout</h2>
+<p class="subtitle">All sidebar content moves here — how should it be arranged in the wider panel?</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#0d0d1a;border-radius:8px;padding:10px;min-height:130px">
+        <div style="display:flex;gap:4px;margin-bottom:8px">
+          <span style="background:#2a2a4a;color:#aaa;padding:2px 7px;border-radius:3px;font-size:9px">README</span>
+          <span style="background:#3a3a6a;color:#ccc;padding:2px 7px;border-radius:3px;font-size:9px;font-weight:bold">Stats</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+          <div style="background:#1a1a2e;border-radius:6px;padding:7px">
+            <div style="color:#888;font-size:8px;text-transform:uppercase;margin-bottom:5px">STATS</div>
+            <div style="height:3px;background:#4a4aaa;border-radius:2px;margin-bottom:3px;width:60%"></div>
+            <div style="height:3px;background:#333;border-radius:2px;margin-bottom:3px;width:45%"></div>
+            <div style="height:3px;background:#333;border-radius:2px;width:55%"></div>
+          </div>
+          <div style="background:#1a1a2e;border-radius:6px;padding:7px">
+            <div style="color:#888;font-size:8px;text-transform:uppercase;margin-bottom:5px">REPOSITORY</div>
+            <div style="height:3px;background:#333;border-radius:2px;margin-bottom:3px;width:70%"></div>
+            <div style="height:3px;background:#333;border-radius:2px;margin-bottom:3px;width:55%"></div>
+            <div style="height:3px;background:#333;border-radius:2px;width:65%"></div>
+          </div>
+          <div style="background:#1a1a2e;border-radius:6px;padding:7px">
+            <div style="color:#888;font-size:8px;text-transform:uppercase;margin-bottom:5px">TOPICS</div>
+            <div style="display:flex;flex-wrap:wrap;gap:2px">
+              <div style="background:#2a3a4a;border-radius:3px;height:8px;width:28px"></div>
+              <div style="background:#2a3a4a;border-radius:3px;height:8px;width:22px"></div>
+              <div style="background:#2a3a4a;border-radius:3px;height:8px;width:35px"></div>
+            </div>
+          </div>
+          <div style="background:#1a1a2e;border-radius:6px;padding:7px;grid-column:span 2">
+            <div style="color:#888;font-size:8px;text-transform:uppercase;margin-bottom:5px">SKILLS FOLDER</div>
+            <div style="height:3px;background:#059669;border-radius:2px;margin-bottom:3px;width:75%"></div>
+            <div style="height:3px;background:#7c3aed;border-radius:2px;margin-bottom:3px;width:55%"></div>
+            <div style="height:3px;background:#4c1d95;border-radius:2px;width:40%"></div>
+          </div>
+          <div style="background:#1a1a2e;border-radius:6px;padding:7px">
+            <div style="color:#888;font-size:8px;text-transform:uppercase;margin-bottom:5px">BADGES</div>
+            <div style="height:3px;background:#333;border-radius:2px;margin-bottom:3px;width:80%"></div>
+            <div style="height:3px;background:#333;border-radius:2px;width:65%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Masonry/grid tiles</h3>
+      <p>Each section is a card tile in a responsive grid. Uses the full width well. Sections can span different column counts based on content density.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#0d0d1a;border-radius:8px;padding:10px;min-height:130px">
+        <div style="display:flex;gap:4px;margin-bottom:8px">
+          <span style="background:#2a2a4a;color:#aaa;padding:2px 7px;border-radius:3px;font-size:9px">README</span>
+          <span style="background:#3a3a6a;color:#ccc;padding:2px 7px;border-radius:3px;font-size:9px;font-weight:bold">Stats</span>
+        </div>
+        <div style="display:flex;gap:8px;height:100px">
+          <div style="flex:1;background:#1a1a2e;border-radius:6px;padding:8px">
+            <div style="color:#888;font-size:8px;text-transform:uppercase;margin-bottom:6px">STATS</div>
+            <div style="height:3px;background:#4a4aaa;border-radius:2px;margin-bottom:3px;width:60%"></div>
+            <div style="height:3px;background:#333;border-radius:2px;margin-bottom:3px;width:45%"></div>
+            <div style="color:#888;font-size:8px;text-transform:uppercase;margin:6px 0 4px">REPOSITORY</div>
+            <div style="height:3px;background:#333;border-radius:2px;margin-bottom:3px;width:70%"></div>
+            <div style="height:3px;background:#333;border-radius:2px;width:55%"></div>
+          </div>
+          <div style="flex:1;background:#1a1a2e;border-radius:6px;padding:8px">
+            <div style="color:#888;font-size:8px;text-transform:uppercase;margin-bottom:6px">SKILLS FOLDER</div>
+            <div style="height:3px;background:#059669;border-radius:2px;margin-bottom:3px;width:75%"></div>
+            <div style="height:3px;background:#7c3aed;border-radius:2px;margin-bottom:3px;width:55%"></div>
+            <div style="height:3px;background:#4c1d95;border-radius:2px;width:40%"></div>
+          </div>
+          <div style="flex:1;background:#1a1a2e;border-radius:6px;padding:8px;overflow:hidden">
+            <div style="color:#888;font-size:8px;text-transform:uppercase;margin-bottom:5px">TOPICS</div>
+            <div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:6px">
+              <div style="background:#2a3a4a;border-radius:3px;height:8px;width:28px"></div>
+              <div style="background:#2a3a4a;border-radius:3px;height:8px;width:22px"></div>
+              <div style="background:#2a3a4a;border-radius:3px;height:8px;width:35px"></div>
+            </div>
+            <div style="color:#888;font-size:8px;text-transform:uppercase;margin-bottom:5px">BADGES</div>
+            <div style="height:3px;background:#333;border-radius:2px;margin-bottom:3px;width:80%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Fixed 3-column equal split</h3>
+      <p>Three equal columns, each scrolling independently if needed. Clean, predictable, easy to scan.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#0d0d1a;border-radius:8px;padding:10px;min-height:130px">
+        <div style="display:flex;gap:4px;margin-bottom:8px">
+          <span style="background:#2a2a4a;color:#aaa;padding:2px 7px;border-radius:3px;font-size:9px">README</span>
+          <span style="background:#3a3a6a;color:#ccc;padding:2px 7px;border-radius:3px;font-size:9px;font-weight:bold">Stats</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;height:100px;overflow:hidden">
+          <div style="background:#1a1a2e;border-radius:6px;padding:6px;display:flex;gap:8px;align-items:center">
+            <div style="color:#888;font-size:8px;text-transform:uppercase;width:70px;flex-shrink:0">STATS</div>
+            <div style="display:flex;gap:6px;flex:1">
+              <div style="height:3px;background:#4a4aaa;border-radius:2px;width:40px"></div>
+              <div style="height:3px;background:#333;border-radius:2px;width:30px"></div>
+              <div style="height:3px;background:#333;border-radius:2px;width:35px"></div>
+            </div>
+          </div>
+          <div style="background:#1a1a2e;border-radius:6px;padding:6px;display:flex;gap:8px;align-items:center">
+            <div style="color:#888;font-size:8px;text-transform:uppercase;width:70px;flex-shrink:0">REPOSITORY</div>
+            <div style="display:flex;gap:6px;flex:1">
+              <div style="height:3px;background:#333;border-radius:2px;width:50px"></div>
+              <div style="height:3px;background:#333;border-radius:2px;width:40px"></div>
+            </div>
+          </div>
+          <div style="background:#1a1a2e;border-radius:6px;padding:6px;display:flex;gap:8px;align-items:center">
+            <div style="color:#888;font-size:8px;text-transform:uppercase;width:70px;flex-shrink:0">SKILLS</div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+              <div style="height:3px;background:#059669;border-radius:2px;width:65%"></div>
+              <div style="height:3px;background:#7c3aed;border-radius:2px;width:45%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Horizontal rows (sidebar style stretched)</h3>
+      <p>Each section is a horizontal row with label on the left, content on the right. Like the old sidebar but stretched full-width. Familiar but uses space less efficiently.</p>
+    </div>
+  </div>
+
+</div>

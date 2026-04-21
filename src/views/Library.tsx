@@ -3,6 +3,7 @@ import { useNavigate, useMatch, Routes, Route } from 'react-router-dom'
 import { type LibraryRow, type StarredRepoRow, type RepoRow } from '../types/repo'
 import type { CollectionRow } from '../types/repo'
 import { useToast } from '../contexts/Toast'
+import { useRepoNav } from '../contexts/RepoNav'
 import NavRail from '../components/NavRail'
 import LibrarySidebar from '../components/LibrarySidebar'
 import CollectionsSidebar from '../components/CollectionsSidebar'
@@ -14,6 +15,8 @@ type ActivePanel = 'repos' | 'collections' | null
 export default function Library() {
   const { toast } = useToast()
   const navigate = useNavigate()
+  const { state: repoNav } = useRepoNav()
+  const isMiniTab = repoNav.activeTab === 'files' || repoNav.activeTab === 'components'
 
   const repoMatch  = useMatch('/library/repo/:owner/:name')
   const collMatch  = useMatch('/library/collection/:id')
@@ -24,12 +27,21 @@ export default function Library() {
   const [starredRows, setStarredRows] = useState<StarredRepoRow[]>([])
   const [activeSegment, setActiveSegment] = useState<'all' | 'active' | 'inactive'>('all')
 
-  useEffect(() => {
+  const refreshRows = useCallback(() => {
     window.api.library.getAll().then(setRows).catch(() => {
       toast('Failed to load library', 'error')
     })
-    window.api.starred.getAll().then(setStarredRows).catch(() => {})
   }, [toast])
+
+  useEffect(() => {
+    refreshRows()
+    window.api.starred.getAll().then(setStarredRows).catch(() => {})
+  }, [refreshRows])
+
+  useEffect(() => {
+    window.addEventListener('library:changed', refreshRows)
+    return () => window.removeEventListener('library:changed', refreshRows)
+  }, [refreshRows])
 
   const repoSelectedId = useMemo(() => {
     if (!repoMatch) return null
@@ -60,7 +72,7 @@ export default function Library() {
       <NavRail activePanel={activePanel} onPanelToggle={handlePanelToggle} />
 
       <div
-        className={`library-panel${activePanel === 'repos' ? '' : ' collapsed'}`}
+        className={`library-panel${activePanel === 'repos' ? '' : ' collapsed'}${isMiniTab ? ' mini' : ''}`}
         aria-hidden={activePanel !== 'repos'}
       >
         <LibrarySidebar

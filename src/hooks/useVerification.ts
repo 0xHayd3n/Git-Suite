@@ -1,5 +1,5 @@
 // src/hooks/useVerification.ts
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 
 type VerificationTier = 'verified' | 'likely' | null
 
@@ -15,8 +15,12 @@ interface UseVerificationResult {
   seedFromDb:  (repoIds: string[]) => void
 }
 
+const EMPTY_SIGNALS: string[] = []
+
 export function useVerification(): UseVerificationResult {
   const [cache, setCache] = useState<Map<string, VerificationEntry>>(new Map())
+  const cacheRef = useRef(cache)
+  cacheRef.current = cache
 
   useEffect(() => {
     const handler = (data: { repoId: string; tier: VerificationTier; signals: string[] }) => {
@@ -30,11 +34,10 @@ export function useVerification(): UseVerificationResult {
     return () => { window.api.verification.offUpdated(handler) }
   }, [])
 
-  // Seed cache from DB for a batch of repo IDs (e.g. on Discover mount / restore)
+  // Stable callback — uses cacheRef so it never needs cache in its deps
   const seedFromDb = useCallback((repoIds: string[]) => {
     if (!repoIds.length) return
-    // Only request IDs we don't already have cached
-    const missing = repoIds.filter(id => !cache.has(id))
+    const missing = repoIds.filter(id => !cacheRef.current.has(id))
     if (!missing.length) return
     window.api.verification.getBatchScores(missing).then(results => {
       setCache(prev => {
@@ -47,12 +50,15 @@ export function useVerification(): UseVerificationResult {
         return next
       })
     }).catch(() => { /* ignore */ })
-  }, [cache])
+  }, [])
 
-  return {
-    getTier:     (repoId) => cache.get(repoId)?.tier ?? null,
-    getSignals:  (repoId) => cache.get(repoId)?.signals ?? [],
-    isResolving: (repoId) => !cache.has(repoId),
+  // Stable object reference — only changes when cache or seedFromDb changes.
+  // EMPTY_SIGNALS is a stable reference so getSignals never returns a fresh [] literal,
+  // which would bust memo(RepoCard) on every render for uncached repos.
+  return useMemo(() => ({
+    getTier:     (repoId: string) => cache.get(repoId)?.tier ?? null,
+    getSignals:  (repoId: string) => cache.get(repoId)?.signals ?? EMPTY_SIGNALS,
+    isResolving: (repoId: string) => !cache.has(repoId),
     seedFromDb,
-  }
+  }), [cache, seedFromDb])
 }

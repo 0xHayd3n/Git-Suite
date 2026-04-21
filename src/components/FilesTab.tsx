@@ -628,12 +628,6 @@ export default function FilesTab({ owner, name, branch, initialPath }: Props) {
           />
         </div>
       </div>
-      {/* Status bar anchored to bottom */}
-      {(selectedEntry?.type === 'tree' || !selectedPath) && selectedDirEntries && (
-        <div className="files-tab__statusbar">
-          {selectedDirEntries.length} item{selectedDirEntries.length !== 1 ? 's' : ''}
-        </div>
-      )}
       {ctxMenu && (
         <ContextMenu
           x={ctxMenu.x}

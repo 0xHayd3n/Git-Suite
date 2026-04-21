@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld('api', {
     getReleases:   (owner: string, name: string) => ipcRenderer.invoke('github:getReleases', owner, name),
     saveRepo:        (owner: string, name: string) => ipcRenderer.invoke('github:saveRepo', owner, name),
     getSavedRepos:   () => ipcRenderer.invoke('github:getSavedRepos'),
+    getMyRepos:      () => ipcRenderer.invoke('github:getMyRepos'),
     getRelatedRepos: (owner: string, name: string, topicsJson: string) =>
       ipcRenderer.invoke('github:getRelatedRepos', owner, name, topicsJson),
     starRepo:   (owner: string, name: string) => ipcRenderer.invoke('github:starRepo', owner, name),
@@ -305,6 +306,15 @@ contextBridge.exposeInMainWorld('api', {
         callbackWrappers.delete(cb)
       }
     },
+  },
+
+  projects: {
+    scanFolder:    (folderPath: string) => ipcRenderer.invoke('projects:scanFolder', folderPath),
+    openFolder:    (folderPath: string) => ipcRenderer.invoke('projects:openFolder', folderPath),
+    readFile:      (folderPath: string, filename: string) => ipcRenderer.invoke('projects:readFile', folderPath, filename),
+    listDir:       (folderPath: string, subPath: string) => ipcRenderer.invoke('projects:listDir', folderPath, subPath),
+    renameFolder:  (folderPath: string, newName: string) => ipcRenderer.invoke('projects:renameFolder', folderPath, newName),
+    writeFile:     (folderPath: string, filename: string, content: string) => ipcRenderer.invoke('projects:writeFile', folderPath, filename, content),
   },
 
 })

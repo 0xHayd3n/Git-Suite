@@ -1,0 +1,161 @@
+<h2>Profile — Updated Navigation Placement</h2>
+<p class="subtitle">Profile is now a Dock nav item next to Starred, not a sidebar tab.</p>
+
+<div class="mockup" style="padding:0;overflow:hidden;">
+  <div class="mockup-header">Profile Section — Dock nav placement</div>
+  <div class="mockup-body" style="padding:0;">
+    <div style="display:flex;height:420px;background:#121214;font-family:-apple-system,sans-serif;font-size:12px;color:#d0d0dc;">
+
+      <!-- Left: App Dock -->
+      <div style="width:52px;background:#0e0e11;border-right:1px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:4px;flex-shrink:0;">
+        <!-- Discover -->
+        <div style="width:34px;height:34px;border-radius:7px;background:#1a1a1e;display:flex;align-items:center;justify-content:center;opacity:0.45;" title="Discover">
+          <div style="width:13px;height:13px;border-radius:50%;border:2px solid #6b6b80;"></div>
+        </div>
+        <!-- Library -->
+        <div style="width:34px;height:34px;border-radius:7px;background:#1a1a1e;display:flex;align-items:center;justify-content:center;opacity:0.45;" title="Library">
+          <div style="width:12px;height:11px;background:#6b6b80;border-radius:2px;"></div>
+        </div>
+        <!-- Collections -->
+        <div style="width:34px;height:34px;border-radius:7px;background:#1a1a1e;display:flex;align-items:center;justify-content:center;opacity:0.45;" title="Collections">
+          <div style="display:flex;flex-direction:column;gap:2px;">
+            <div style="width:12px;height:2px;background:#6b6b80;border-radius:1px;"></div>
+            <div style="width:12px;height:2px;background:#6b6b80;border-radius:1px;"></div>
+            <div style="width:8px;height:2px;background:#6b6b80;border-radius:1px;"></div>
+          </div>
+        </div>
+        <!-- Starred -->
+        <div style="width:34px;height:34px;border-radius:7px;background:#1a1a1e;display:flex;align-items:center;justify-content:center;opacity:0.45;" title="Starred">
+          <div style="font-size:13px;color:#6b6b80;">★</div>
+        </div>
+        <!-- Profile — ACTIVE -->
+        <div style="width:34px;height:34px;border-radius:7px;background:rgba(109,40,217,0.2);border:1px solid rgba(109,40,217,0.45);display:flex;align-items:center;justify-content:center;position:relative;" title="Profile">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+          <!-- Active indicator -->
+          <div style="position:absolute;left:-1px;top:50%;transform:translateY(-50%);width:3px;height:18px;background:#6d28d9;border-radius:0 2px 2px 0;"></div>
+        </div>
+        <div style="flex:1;"></div>
+        <!-- Settings -->
+        <div style="width:34px;height:34px;border-radius:7px;background:#1a1a1e;display:flex;align-items:center;justify-content:center;opacity:0.45;">
+          <div style="width:13px;height:13px;border-radius:50%;border:2px solid #6b6b80;position:relative;">
+            <div style="width:5px;height:5px;border-radius:50%;background:#6b6b80;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Left: Profile Sidebar -->
+      <div style="width:210px;border-right:1px solid rgba(255,255,255,0.07);padding:20px 16px;display:flex;flex-direction:column;gap:12px;flex-shrink:0;background:#121214;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+          <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#6d28d9,#4c1d95);border:3px solid rgba(109,40,217,0.4);"></div>
+          <div style="text-align:center;">
+            <div style="height:13px;background:rgba(255,255,255,0.85);border-radius:3px;width:110px;margin:0 auto 5px;"></div>
+            <div style="height:9px;background:#6b6b80;border-radius:2px;width:70px;margin:0 auto;"></div>
+          </div>
+        </div>
+        <div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:10px;">
+          <div style="height:7px;background:#9a9ab0;border-radius:2px;width:100%;margin-bottom:4px;opacity:0.6;"></div>
+          <div style="height:7px;background:#9a9ab0;border-radius:2px;width:75%;opacity:0.6;"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <div style="display:flex;align-items:center;gap:7px;"><div style="width:10px;height:10px;border-radius:50%;border:1.5px solid #4b5563;flex-shrink:0;"></div><div style="height:7px;background:#6b6b80;border-radius:2px;width:65%;"></div></div>
+          <div style="display:flex;align-items:center;gap:7px;"><div style="width:10px;height:5px;background:#4b5563;border-radius:1px;flex-shrink:0;"></div><div style="height:7px;background:#6b6b80;border-radius:2px;width:50%;"></div></div>
+          <div style="display:flex;align-items:center;gap:7px;"><div style="width:10px;height:7px;background:#4b5563;border-radius:1px;flex-shrink:0;opacity:0.7;"></div><div style="height:7px;background:#6b6b80;border-radius:2px;width:70%;"></div></div>
+          <div style="display:flex;align-items:center;gap:7px;"><div style="width:10px;height:10px;border:1.5px solid #4b5563;border-radius:1px;flex-shrink:0;"></div><div style="height:7px;background:#6b6b80;border-radius:2px;width:55%;"></div></div>
+        </div>
+        <div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:10px;display:flex;gap:16px;">
+          <div><div style="height:13px;background:rgba(255,255,255,0.8);border-radius:2px;width:22px;margin-bottom:3px;"></div><div style="height:7px;background:#6b6b80;border-radius:2px;width:44px;"></div></div>
+          <div><div style="height:13px;background:rgba(255,255,255,0.8);border-radius:2px;width:22px;margin-bottom:3px;"></div><div style="height:7px;background:#6b6b80;border-radius:2px;width:44px;"></div></div>
+        </div>
+        <div style="height:28px;background:#1a1a1e;border:1px solid rgba(255,255,255,0.1);border-radius:6px;display:flex;align-items:center;justify-content:center;gap:5px;">
+          <div style="height:7px;background:#9a9ab0;border-radius:2px;width:65px;"></div>
+        </div>
+      </div>
+
+      <!-- Right: Content -->
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <!-- Tab bar (view-internal tabs) -->
+        <div style="display:flex;align-items:center;gap:2px;padding:10px 16px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
+          <div style="height:30px;padding:0 14px;display:flex;align-items:center;border-bottom:2px solid #6d28d9;color:#fff;font-size:11px;font-weight:600;">Repositories</div>
+          <div style="height:30px;padding:0 14px;display:flex;align-items:center;color:#6b6b80;font-size:11px;">Starred</div>
+          <div style="height:30px;padding:0 14px;display:flex;align-items:center;color:#6b6b80;font-size:11px;">Following</div>
+          <div style="height:30px;padding:0 14px;display:flex;align-items:center;color:#6b6b80;font-size:11px;">Followers</div>
+          <div style="flex:1;"></div>
+          <div style="display:flex;gap:4px;padding-bottom:8px;">
+            <div style="height:22px;background:#1a1a1e;border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:0 9px;display:flex;align-items:center;font-size:10px;color:#9a9ab0;">Stars ↓</div>
+          </div>
+        </div>
+        <!-- Repo list -->
+        <div style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px;">
+          <div style="background:#1a1a1e;border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:12px 14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+              <div style="display:flex;align-items:center;gap:7px;">
+                <div style="width:14px;height:14px;border-radius:3px;background:#6d28d9;opacity:0.7;"></div>
+                <div style="height:11px;background:#a78bfa;border-radius:2px;width:120px;"></div>
+                <div style="height:14px;background:#1e1e24;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:0 7px;display:flex;align-items:center;font-size:9px;color:#6b6b80;">Public</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:4px;">
+                <div style="font-size:9px;color:#d97706;">★</div>
+                <div style="height:7px;background:#6b6b80;border-radius:2px;width:22px;"></div>
+              </div>
+            </div>
+            <div style="height:7px;background:#6b6b80;border-radius:2px;width:70%;margin-bottom:8px;opacity:0.6;"></div>
+            <div style="display:flex;gap:10px;">
+              <div style="display:flex;align-items:center;gap:4px;"><div style="width:7px;height:7px;border-radius:50%;background:#f59e0b;"></div><div style="height:6px;background:#6b6b80;border-radius:2px;width:48px;"></div></div>
+              <div style="height:6px;background:#6b6b80;border-radius:2px;width:50px;"></div>
+            </div>
+          </div>
+          <div style="background:#1a1a1e;border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:12px 14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+              <div style="display:flex;align-items:center;gap:7px;">
+                <div style="width:14px;height:14px;border-radius:3px;background:#059669;opacity:0.7;"></div>
+                <div style="height:11px;background:#6ee7b7;border-radius:2px;width:90px;opacity:0.8;"></div>
+                <div style="height:14px;background:#1e1e24;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:0 7px;display:flex;align-items:center;font-size:9px;color:#6b6b80;">Private</div>
+              </div>
+              <div style="height:6px;background:#6b6b80;border-radius:2px;width:35px;"></div>
+            </div>
+            <div style="height:7px;background:#6b6b80;border-radius:2px;width:55%;margin-bottom:8px;opacity:0.6;"></div>
+            <div style="display:flex;gap:10px;">
+              <div style="display:flex;align-items:center;gap:4px;"><div style="width:7px;height:7px;border-radius:50%;background:#3b82f6;"></div><div style="height:6px;background:#6b6b80;border-radius:2px;width:48px;"></div></div>
+            </div>
+          </div>
+          <div style="background:#1a1a1e;border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:12px 14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+              <div style="display:flex;align-items:center;gap:7px;">
+                <div style="width:14px;height:14px;border-radius:3px;background:#dc2626;opacity:0.7;"></div>
+                <div style="height:11px;background:#fca5a5;border-radius:2px;width:140px;opacity:0.8;"></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:4px;">
+                <div style="font-size:9px;color:#d97706;">★</div>
+                <div style="height:7px;background:#6b6b80;border-radius:2px;width:30px;"></div>
+              </div>
+            </div>
+            <div style="height:7px;background:#6b6b80;border-radius:2px;width:80%;margin-bottom:8px;opacity:0.6;"></div>
+            <div style="display:flex;gap:10px;">
+              <div style="display:flex;align-items:center;gap:4px;"><div style="width:7px;height:7px;border-radius:50%;background:#ec4899;"></div><div style="height:6px;background:#6b6b80;border-radius:2px;width:48px;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="options" style="margin-top:20px;">
+  <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>Approve — Profile icon in the Dock next to Starred</h3>
+      <p>Nav placement is correct, content layout looks right</p>
+    </div>
+  </div>
+  <div class="option" data-choice="change" onclick="toggleSelect(this)">
+    <div class="letter">✎</div>
+    <div class="content">
+      <h3>Change something</h3>
+      <p>Tell me what to adjust</p>
+    </div>
+  </div>
+</div>

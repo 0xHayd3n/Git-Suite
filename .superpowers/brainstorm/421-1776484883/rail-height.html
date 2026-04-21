@@ -1,0 +1,88 @@
+<style>
+  .scene {
+    width: 200px;
+    height: 260px;
+    background: #0e0e10;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .content-area {
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 60px;
+    background: #121214;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 12px;
+  }
+  .cl { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.05); }
+
+  .rail {
+    position: absolute;
+    left: 10px;
+    width: 40px;
+    background: rgba(22,22,28,0.92);
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.55);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0;
+    gap: 8px;
+    z-index: 2;
+  }
+  .ri { width: 26px; height: 26px; border-radius: 6px; background: rgba(255,255,255,0.07); }
+  .ri.active { background: rgba(99,102,241,0.35); }
+
+  .demo-group { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+</style>
+
+<h2>How tall should the rail be?</h2>
+<p class="subtitle">The rail is always in the left gutter. How much vertical space should it occupy?</p>
+
+<div class="demo-group options" style="margin-top: 20px;">
+
+  <div class="option" data-choice="a" onclick="toggleSelect(this)" style="flex-direction: column; align-items: flex-start; padding: 0; overflow: hidden; max-width: 230px;">
+    <div class="demo-label" style="width:100%;box-sizing:border-box;">A &nbsp;·&nbsp; Full height (with inset)</div>
+    <div style="padding: 14px;">
+      <div class="scene">
+        <div class="content-area"><div class="cl" style="width:80%"></div><div class="cl" style="width:60%"></div><div class="cl" style="width:70%"></div><div class="cl" style="width:50%"></div><div class="cl" style="width:75%"></div><div class="cl" style="width:55%"></div></div>
+        <div class="rail" style="top: 10px; bottom: 10px; height: auto; justify-content: flex-start;">
+          <div class="ri active"></div><div class="ri"></div><div class="ri"></div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:10px;">Rail spans nearly the full height with a small inset. Feels structural/permanent.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)" style="flex-direction: column; align-items: flex-start; padding: 0; overflow: hidden; max-width: 230px;">
+    <div class="demo-label" style="width:100%;box-sizing:border-box;">B &nbsp;·&nbsp; Compact — icons only</div>
+    <div style="padding: 14px;">
+      <div class="scene">
+        <div class="content-area"><div class="cl" style="width:80%"></div><div class="cl" style="width:60%"></div><div class="cl" style="width:70%"></div><div class="cl" style="width:50%"></div><div class="cl" style="width:75%"></div><div class="cl" style="width:55%"></div></div>
+        <div class="rail" style="top: 50%; transform: translateY(-50%); height: auto;">
+          <div class="ri active"></div><div class="ri"></div><div class="ri"></div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:10px;">Rail is only as tall as the icons — a compact pill. Feels lightweight, floaty.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)" style="flex-direction: column; align-items: flex-start; padding: 0; overflow: hidden; max-width: 230px;">
+    <div class="demo-label" style="width:100%;box-sizing:border-box;">C &nbsp;·&nbsp; Top-aligned, compact</div>
+    <div style="padding: 14px;">
+      <div class="scene">
+        <div class="content-area"><div class="cl" style="width:80%"></div><div class="cl" style="width:60%"></div><div class="cl" style="width:70%"></div><div class="cl" style="width:50%"></div><div class="cl" style="width:75%"></div><div class="cl" style="width:55%"></div></div>
+        <div class="rail" style="top: 10px; height: auto;">
+          <div class="ri active"></div><div class="ri"></div><div class="ri"></div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:10px;">Rail sits at the top, sized to content. Familiar top-left placement but still a floating panel.</p>
+    </div>
+  </div>
+
+</div>

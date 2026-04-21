@@ -59,7 +59,7 @@ export default function Collections() {
     setInstalling(prev => new Set(prev).add(key))
     try {
       await window.api.github.saveRepo(owner, name)
-      await window.api.skill.generate(owner, name)
+      await window.api.skill.generate(owner, name, { flavour: 'library' })
       if (selectedId) {
         const rows = await window.api.collection.getDetail(selectedId)
         setDetail(rows)
@@ -81,7 +81,7 @@ export default function Collections() {
         setInstalling(prev => new Set(prev).add(key))
         try {
           await window.api.github.saveRepo(r.owner, r.name)
-          await window.api.skill.generate(r.owner, r.name)
+          await window.api.skill.generate(r.owner, r.name, { flavour: 'library' })
         } catch {
           // individual install failure — continue with others
         } finally {

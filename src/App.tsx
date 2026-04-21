@@ -20,6 +20,7 @@ import RepoDetail from './views/RepoDetail'
 import Onboarding from './views/Onboarding'
 import Settings from './views/Settings'
 import Create from './views/Create'
+import LocalProjectDetail from './views/LocalProjectDetail'
 
 function ProfileOverlayPortal() {
   const { profileState } = useProfileOverlay()
@@ -65,6 +66,7 @@ function AppContent() {
             <Route path="/discover" element={<Discover />} />
             <Route path="/library/*" element={<Library />} />
             <Route path="/collections" element={<Navigate to="/library" replace />} />
+            <Route path="/local-project" element={<LocalProjectDetail />} />
             <Route path="/create" element={<Create />} />
             <Route path="/create/:sessionId" element={<Create />} />
             <Route path="/starred" element={<Starred />} />

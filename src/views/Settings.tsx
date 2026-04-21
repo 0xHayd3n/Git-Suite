@@ -3,7 +3,7 @@ import { useAppearance, type BackgroundMode } from '../contexts/Appearance'
 
 type SetupPhase = 'idle' | 'checking' | 'installing' | 'auth' | 'done' | 'error'
 type LoginPhase = 'idle' | 'logging-in' | 'done' | 'error'
-type CategoryId = 'general' | 'claude-desktop' | 'appearance' | 'language' | 'downloads'
+type CategoryId = 'general' | 'claude-desktop' | 'appearance' | 'language' | 'downloads' | 'projects'
 
 const BACKGROUND_OPTIONS: { value: BackgroundMode; label: string }[] = [
   { value: 'none', label: 'Default' },
@@ -59,12 +59,20 @@ const DownloadIcon = () => (
   </svg>
 )
 
+const ProjectsIcon = () => (
+  <svg {...iconProps}>
+    <path d="M2.5 5.5h11 M2.5 8h11 M2.5 10.5h7" />
+    <rect x="1.5" y="2.5" width="13" height="11" rx="1.5" />
+  </svg>
+)
+
 const CATEGORIES: { id: CategoryId; label: string; icon: ReactNode }[] = [
   { id: 'general', label: 'General', icon: <GeneralIcon /> },
   { id: 'claude-desktop', label: 'Claude Desktop', icon: <DesktopIcon /> },
   { id: 'appearance', label: 'Appearance', icon: <PaletteIcon /> },
   { id: 'language', label: 'Language & Speech', icon: <GlobeIcon /> },
   { id: 'downloads', label: 'Downloads', icon: <DownloadIcon /> },
+  { id: 'projects', label: 'Projects', icon: <ProjectsIcon /> },
 ]
 
 export default function Settings() {
@@ -77,6 +85,7 @@ export default function Settings() {
   const [preferredLanguage, setPreferredLanguage] = useState('en')
   const [downloadFolder, setDownloadFolder] = useState<string>('')
   const [defaultDownloadFolder, setDefaultDownloadFolder] = useState<string>('')
+  const [projectsFolder, setProjectsFolder] = useState<string>('')
 
   // TTS voice state
   const [ttsVoices, setTtsVoices] = useState<{ shortName: string; label: string }[]>([])
@@ -133,6 +142,9 @@ export default function Settings() {
     window.api.settings.get('downloadFolder').then((val: string | null) => {
       setDownloadFolder(val ?? '')
     })
+    window.api.settings.get('projectsFolder').then((val: string | null) => {
+      setProjectsFolder(val ?? '')
+    })
     window.api.tts.getVoices().then((voices: { shortName: string; label: string }[]) => {
       setTtsVoices(voices)
       if (voices.length > 0) {
@@ -154,6 +166,19 @@ export default function Settings() {
   const handleResetFolder = async () => {
     await window.api.settings.set('downloadFolder', '')
     setDownloadFolder('')
+  }
+
+  const handleChangeProjectsFolder = async () => {
+    const result = await window.api.download.pickFolder()
+    if (result) {
+      await window.api.settings.set('projectsFolder', result)
+      setProjectsFolder(result)
+    }
+  }
+
+  const handleClearProjectsFolder = async () => {
+    await window.api.settings.set('projectsFolder', '')
+    setProjectsFolder('')
   }
 
   const savePreferredLanguage = async (lang: string) => {
@@ -657,6 +682,33 @@ export default function Settings() {
     </div>
   )
 
+  const renderProjects = () => (
+    <div className="settings-group">
+      <div className="settings-group-title">Projects folder</div>
+      <div className="settings-group-body">
+        <div className="settings-group-row settings-group-row--full">
+          <div className="settings-group-row-label">Folder</div>
+          <div className="settings-group-row-sub" style={{ marginTop: 4 }}>
+            Local folders inside this directory are scanned and shown as projects in the Projects view. Git repos with a GitHub remote link directly to the repository.
+          </div>
+          <div className="settings-inline-row" style={{ marginTop: 10 }}>
+            <span className="settings-path">
+              {projectsFolder || 'No folder selected'}
+            </span>
+            <button className="settings-btn" onClick={handleChangeProjectsFolder}>
+              {projectsFolder ? 'Change' : 'Choose folder'}
+            </button>
+            {projectsFolder && (
+              <button className="settings-btn settings-btn--link" onClick={handleClearProjectsFolder}>
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
   const activeLabel = CATEGORIES.find(c => c.id === activeCategory)?.label ?? ''
 
   return (
@@ -686,6 +738,7 @@ export default function Settings() {
           {activeCategory === 'appearance' && renderAppearance()}
           {activeCategory === 'language' && renderLanguage()}
           {activeCategory === 'downloads' && renderDownloads()}
+          {activeCategory === 'projects' && renderProjects()}
         </div>
       </main>
     </div>

@@ -14,6 +14,10 @@
 
 .library-sidebar-seg {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   padding: 4px 0;
   font-size: 11px;
   font-weight: 500;
@@ -145,7 +149,7 @@
   position: fixed;
   left: 74px;
   top: 10px;
-  bottom: 10px;
+  bottom: 96px;
   width: 220px;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
@@ -153,11 +157,52 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  overflow: hidden;
   z-index: 199;
   opacity: 1;
   transform: translateX(0);
   visibility: visible;
-  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease, width 0.2s ease;
+}
+
+.library-panel.mini {
+  width: 78px;
+  bottom: 96px;
+}
+
+.library-panel.mini .library-sidebar-filter {
+  display: none;
+}
+
+.library-panel.mini .library-sidebar-name {
+  display: none;
+}
+
+.library-panel.mini .library-sidebar-list {
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 6px 0;
+}
+
+.library-panel.mini .library-sidebar-list::-webkit-scrollbar {
+  display: none;
+}
+
+.library-panel.mini .library-sidebar-item {
+  justify-content: center;
+  padding: 4px 0;
+  flex-shrink: 0;
+}
+
+.library-panel.mini .library-sidebar-avatar {
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  border-radius: 11px;
+}
+
+.library-panel.mini .library-sidebar-item.installed .library-sidebar-avatar {
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.7), 0 0 8px 2px rgba(255, 255, 255, 0.25);
 }
 
 .library-panel.collapsed {

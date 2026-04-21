@@ -72,6 +72,7 @@ declare global {
         getReleases:   (owner: string, name: string) => Promise<ReleaseRow[]>
         saveRepo:         (owner: string, name: string) => Promise<void>
         getSavedRepos:    () => Promise<{ owner: string; name: string }[]>
+        getMyRepos:       () => Promise<any[]>
         getRelatedRepos:  (owner: string, name: string, topicsJson: string) => Promise<RepoRow[]>
         starRepo:         (owner: string, name: string) => Promise<void>
         unstarRepo:       (owner: string, name: string) => Promise<void>
@@ -229,6 +230,20 @@ declare global {
         pushUpdate: (payload: unknown) => Promise<void>
         onStreamToken: (cb: (data: { sessionId: string; token: string }) => void) => void
         offStreamToken: (cb: (data: { sessionId: string; token: string }) => void) => void
+      }
+      projects: {
+        scanFolder: (folderPath: string) => Promise<Array<{
+          name: string
+          path: string
+          isGit: boolean
+          owner: string | null
+          repoName: string | null
+        }>>
+        openFolder: (folderPath: string) => Promise<void>
+        readFile: (folderPath: string, filename: string) => Promise<string | null>
+        listDir: (folderPath: string, subPath: string) => Promise<Array<{ name: string; path: string; type: 'dir' | 'file'; size: number | null }>>
+        renameFolder: (folderPath: string, newName: string) => Promise<string>
+        writeFile: (folderPath: string, filename: string, content: string) => Promise<void>
       }
     }
   }

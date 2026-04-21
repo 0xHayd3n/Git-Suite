@@ -1,0 +1,231 @@
+<h2>Hero Background Style</h2>
+<p class="subtitle">Three visual approaches for the cinematic featured repo banner. Pick the one that feels right for Git Suite's dark, high-contrast aesthetic.</p>
+
+<style>
+.approach-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 20px;
+}
+.approach-card {
+  border: 2px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+  background: #1a1a1e;
+}
+.approach-card:hover {
+  border-color: rgba(109,40,217,0.5);
+  transform: translateY(-2px);
+}
+.approach-card.selected {
+  border-color: #6d28d9;
+  box-shadow: 0 0 0 1px #6d28d9;
+}
+.hero-preview {
+  height: 160px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+/* Approach A: Dither art */
+.dither-bg {
+  background: #0d0d14;
+  position: relative;
+}
+.dither-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 30% 40%, rgba(109,40,217,0.35) 0%, transparent 60%),
+    radial-gradient(circle at 70% 60%, rgba(59,7,100,0.4) 0%, transparent 50%);
+}
+.dither-pattern {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect x='0' y='0' width='1' height='1' fill='%23fff'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%23fff'/%3E%3C/svg%3E");
+  background-size: 4px 4px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 30% 40%, black 0%, transparent 70%);
+  mask-image: radial-gradient(ellipse 80% 80% at 30% 40%, black 0%, transparent 70%);
+}
+/* Approach B: Blurred avatar + gradient */
+.blur-bg {
+  background:
+    linear-gradient(to right, rgba(5,5,10,0.95) 0%, rgba(5,5,10,0.5) 60%, rgba(5,5,10,0.2) 100%),
+    linear-gradient(135deg, #1a0a2e 0%, #0a1628 40%, #0d1a0d 100%);
+}
+.blur-bg .avatar-bg {
+  position: absolute;
+  right: -20px;
+  top: -20px;
+  width: 240px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59,130,246,0.6) 0%, rgba(109,40,217,0.4) 40%, transparent 70%);
+  filter: blur(40px);
+}
+/* Approach C: Color band */
+.color-bg {
+  background: linear-gradient(135deg, #0f0720 0%, #1a0e35 35%, #0e1a0f 100%);
+}
+.color-bg .band {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: linear-gradient(to bottom, #6d28d9, #059669);
+}
+.color-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(109,40,217,0.25) 0%, transparent 60%);
+}
+.hero-content {
+  position: relative;
+  z-index: 2;
+  padding: 14px 16px;
+  width: 100%;
+}
+.hero-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(167,139,250,0.8);
+  margin-bottom: 4px;
+}
+.hero-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 2px;
+  line-height: 1.2;
+}
+.hero-meta {
+  font-size: 10px;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 8px;
+}
+.hero-actions {
+  display: flex;
+  gap: 6px;
+}
+.hero-btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+.hero-btn-primary {
+  background: rgba(109,40,217,0.85);
+  color: #fff;
+}
+.hero-btn-secondary {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.7);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.approach-meta {
+  padding: 12px 14px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.approach-meta h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 4px;
+}
+.approach-meta p {
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  margin: 0;
+  line-height: 1.4;
+}
+.rec-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #a78bfa;
+  background: rgba(109,40,217,0.15);
+  border: 1px solid rgba(109,40,217,0.3);
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+</style>
+
+<div class="approach-cards">
+
+  <!-- Approach A -->
+  <div class="approach-card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="hero-preview dither-bg">
+      <div class="dither-pattern"></div>
+      <div class="hero-content">
+        <div class="hero-label">Featured</div>
+        <div class="hero-title">vercel / next.js</div>
+        <div class="hero-meta">JavaScript · ⭐ 128k · Updated 2h ago</div>
+        <div class="hero-actions">
+          <button class="hero-btn hero-btn-primary">View Repo ↗</button>
+          <button class="hero-btn hero-btn-secondary">♡</button>
+        </div>
+      </div>
+    </div>
+    <div class="approach-meta">
+      <h3>A — Dither Art <span class="rec-badge">Recommended</span></h3>
+      <p>Uses the existing Bayer dither effect from RepoCards, scaled up. Stays on-brand with the app's signature visual language. Purple glow from avatar color.</p>
+    </div>
+  </div>
+
+  <!-- Approach B -->
+  <div class="approach-card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="hero-preview blur-bg">
+      <div class="avatar-bg"></div>
+      <div class="hero-content">
+        <div class="hero-label">Featured</div>
+        <div class="hero-title">vercel / next.js</div>
+        <div class="hero-meta">JavaScript · ⭐ 128k · Updated 2h ago</div>
+        <div class="hero-actions">
+          <button class="hero-btn hero-btn-primary">View Repo ↗</button>
+          <button class="hero-btn hero-btn-secondary">♡</button>
+        </div>
+      </div>
+    </div>
+    <div class="approach-meta">
+      <h3>B — Blurred Glow</h3>
+      <p>Blurred avatar color projected as a glow on the right. Dark gradient protects text on left. More conventional "cinema" feel, like streaming apps.</p>
+    </div>
+  </div>
+
+  <!-- Approach C -->
+  <div class="approach-card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="hero-preview color-bg">
+      <div class="band"></div>
+      <div class="hero-content">
+        <div class="hero-label">Featured</div>
+        <div class="hero-title">vercel / next.js</div>
+        <div class="hero-meta">JavaScript · ⭐ 128k · Updated 2h ago</div>
+        <div class="hero-actions">
+          <button class="hero-btn hero-btn-primary">View Repo ↗</button>
+          <button class="hero-btn hero-btn-secondary">♡</button>
+        </div>
+      </div>
+    </div>
+    <div class="approach-meta">
+      <h3>C — Color Gradient</h3>
+      <p>Uses banner_color HSL data to build a rich gradient. No image required, always renders cleanly. Color accent bar on the left edge marks the repo type.</p>
+    </div>
+  </div>
+
+</div>
