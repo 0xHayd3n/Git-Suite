@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useState, useMemo, type ReactNode } from 'react'
 
 interface SearchContextValue {
   query: string
@@ -13,8 +13,13 @@ export function SearchProvider({ children }: { children: ReactNode }) {
   const [query, setQuery] = useState('')
   const [inputRef, setInputRef] = useState<React.RefObject<HTMLInputElement> | null>(null)
 
+  const value = useMemo(
+    () => ({ query, setQuery, inputRef, setInputRef }),
+    [query, inputRef],
+  )
+
   return (
-    <SearchContext.Provider value={{ query, setQuery, inputRef, setInputRef }}>
+    <SearchContext.Provider value={value}>
       {children}
     </SearchContext.Provider>
   )

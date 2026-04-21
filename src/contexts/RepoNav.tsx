@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react'
 
 interface RepoNavState {
   /** Currently active tab in RepoDetail (null when not on a repo page) */
@@ -82,8 +82,13 @@ export function RepoNavProvider({ children }: { children: ReactNode }) {
     }))
   }, [])
 
+  const value = useMemo(
+    () => ({ state, setActiveTab, setFilePath, setIsDirectory, setOnTabClick, setOnFilePathClick, setFileNav }),
+    [state, setActiveTab, setFilePath, setIsDirectory, setOnTabClick, setOnFilePathClick, setFileNav],
+  )
+
   return (
-    <RepoNavContext.Provider value={{ state, setActiveTab, setFilePath, setIsDirectory, setOnTabClick, setOnFilePathClick, setFileNav }}>
+    <RepoNavContext.Provider value={value}>
       {children}
     </RepoNavContext.Provider>
   )
