@@ -168,6 +168,10 @@ export default function Discover() {
   const fetchGeneration = useRef(0)
   const sentinelRef = useRef<HTMLDivElement>(null)
   const loadMoreRef = useRef<() => void>(() => {})
+  const renderLimitRef = useRef(renderLimit)
+  const allVisibleLengthRef = useRef(0)
+  const loadingMoreRef = useRef(false)
+  const loadingRef = useRef(false)
 
   const RENDER_CHUNK = 20
   const [renderLimit, setRenderLimit] = useState(RENDER_CHUNK)
@@ -244,6 +248,10 @@ export default function Discover() {
       scrollTop: scrollRef.current?.scrollTop ?? 0,
       page, hasMore, searchPath, topicMode,
     }
+    renderLimitRef.current = renderLimit
+    allVisibleLengthRef.current = allVisible.length
+    loadingMoreRef.current = loadingMore
+    loadingRef.current = loading
   })
 
   useEffect(() => {
@@ -680,13 +688,17 @@ export default function Discover() {
   const PER_PAGE = 100
 
   const loadMore = useCallback(async () => {
-    if (renderLimit < allVisible.length) {
+    const snap = liveSnapshotRef.current
+    if (!snap) return
+    if (renderLimitRef.current < allVisibleLengthRef.current) {
       setRenderLimit(prev => prev + RENDER_CHUNK)
       return
     }
-    if (loadingMore || loading || !hasMore) return
+    if (loadingMoreRef.current || loadingRef.current || !snap.hasMore) return
     setLoadingMore(true)
     const gen = fetchGeneration.current
+    const { page, searchPath, viewMode, selectedLanguages, appliedFilters, activeTags, repos, selectedSubtypes } = snap
+    const discoverQuery = snap.query
     const nextPage = page + 1
 
     try {
@@ -744,7 +756,7 @@ export default function Discover() {
         setLoadingMore(false)
       }
     }
-  }, [renderLimit, allVisible.length, loadingMore, loading, hasMore, page, searchPath, viewMode, selectedLanguages, appliedFilters, discoverQuery, activeTags, repos, selectedSubtypes, extractMissingColors])
+  }, [extractMissingColors])
 
   useEffect(() => { loadMoreRef.current = loadMore }, [loadMore])
 
@@ -834,12 +846,13 @@ export default function Discover() {
     handleSearch(undefined, entry)
   }
 
-  const handleSelectSubtype = (subTypeId: string) => {
+  const handleSelectSubtype = useCallback((subTypeId: string) => {
     setSelectedSubtypes([subTypeId])
-    setDiscoverQuery(''); setContextQuery('')
+    setDiscoverQuery('')
+    setContextQuery('')
     setShowSuggestions(false)
     setSuggestionIndex(-1)
-  }
+  }, [setContextQuery])
 
   const handleStar = useCallback((repoId: string, starred: boolean) => {
     if (starred && viewMode === 'recommended') {
