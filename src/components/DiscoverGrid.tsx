@@ -5,6 +5,7 @@ import type { LayoutPrefs } from './LayoutDropdown'
 import type { useVerification } from '../hooks/useVerification'
 import RepoCard from './RepoCard'
 import RepoListRow from './RepoListRow'
+import ViewportWindow from './ViewportWindow'
 
 export interface DiscoverGridProps {
   loading: boolean
@@ -120,24 +121,28 @@ export default function DiscoverGrid({
           <div className="repo-list-header-col repo-list-header-stats">Stats</div>
         </div>
         {visibleRepos.map((repo, i) => (
-          <RepoListRow
+          <ViewportWindow
             key={`${repo.owner}/${repo.name}`}
-            repo={repo}
-            onNavigate={onNavigate}
-            onTagClick={onTagClick}
-            onOwnerClick={onOwnerClick}
-            typeSub={repo.type_sub}
-            verificationTier={verification.getTier(repo.id)}
-            verificationSignals={verification.getSignals(repo.id)}
-            verificationResolving={verification.isResolving(repo.id)}
-            density={layoutPrefs.density}
-            fields={layoutPrefs.fields}
-            focused={i === focusIndex}
-            tagsExpanded={expandedTagsRepo === `${repo.owner}/${repo.name}`}
-            onToggleTags={() => setExpandedTagsRepo(prev =>
-              prev === `${repo.owner}/${repo.name}` ? null : `${repo.owner}/${repo.name}`
-            )}
-          />
+            placeholderHeight={52}
+          >
+            <RepoListRow
+              repo={repo}
+              onNavigate={onNavigate}
+              onTagClick={onTagClick}
+              onOwnerClick={onOwnerClick}
+              typeSub={repo.type_sub}
+              verificationTier={verification.getTier(repo.id)}
+              verificationSignals={verification.getSignals(repo.id)}
+              verificationResolving={verification.isResolving(repo.id)}
+              density={layoutPrefs.density}
+              fields={layoutPrefs.fields}
+              focused={i === focusIndex}
+              tagsExpanded={expandedTagsRepo === `${repo.owner}/${repo.name}`}
+              onToggleTags={() => setExpandedTagsRepo(prev =>
+                prev === `${repo.owner}/${repo.name}` ? null : `${repo.owner}/${repo.name}`
+              )}
+            />
+          </ViewportWindow>
         ))}
         {loadingMore && Array.from({ length: 3 }).map((_, i) => (
           <div key={`skel-${i}`} className="repo-list-row repo-list-row--comfortable" style={{
@@ -163,24 +168,28 @@ export default function DiscoverGrid({
         }}
       >
         {visibleRepos.map((repo, i) => (
-          <RepoCard
+          <ViewportWindow
             key={repo.id ?? `${repo.owner}/${repo.name}`}
-            repo={repo}
-            viewMode={viewMode}
-            onNavigate={onNavigate}
-            onTagClick={onTagClick}
-            onOwnerClick={onOwnerClick}
-            typeSub={repo.type_sub}
-            typeBucket={repo.type_bucket}
-            verificationTier={verification.getTier(repo.id)}
-            verificationSignals={verification.getSignals(repo.id)}
-            verificationResolving={verification.isResolving(repo.id)}
-            focused={i === focusIndex}
-            onStar={onStar}
-            onLanguageClick={onLanguageClick}
-            onSubtypeClick={onSubtypeClick}
-            anchors={anchorsByRepoId?.get(repo.id)}
-          />
+            placeholderHeight={280}
+          >
+            <RepoCard
+              repo={repo}
+              viewMode={viewMode}
+              onNavigate={onNavigate}
+              onTagClick={onTagClick}
+              onOwnerClick={onOwnerClick}
+              typeSub={repo.type_sub}
+              typeBucket={repo.type_bucket}
+              verificationTier={verification.getTier(repo.id)}
+              verificationSignals={verification.getSignals(repo.id)}
+              verificationResolving={verification.isResolving(repo.id)}
+              focused={i === focusIndex}
+              onStar={onStar}
+              onLanguageClick={onLanguageClick}
+              onSubtypeClick={onSubtypeClick}
+              anchors={anchorsByRepoId?.get(repo.id)}
+            />
+          </ViewportWindow>
         ))}
         {loadingMore && Array.from({ length: effectiveCols }).map((_, i) => (
           <div key={`skel-${i}`} className="repo-card-skeleton">

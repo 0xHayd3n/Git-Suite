@@ -1,5 +1,6 @@
 import LibraryCard from './LibraryCard'
 import LibraryListRow from './LibraryListRow'
+import ViewportWindow from './ViewportWindow'
 import type { LibraryRow } from '../types/repo'
 import type { LayoutPrefs } from './LayoutDropdown'
 
@@ -21,24 +22,27 @@ export default function LibraryGrid({
       className={isList ? 'library-list' : 'library-grid'}
       style={!isList ? { gridTemplateColumns: `repeat(${layoutPrefs.columns}, minmax(0, 1fr))` } : undefined}
     >
-      {rows.map(row =>
-        isList ? (
-          <LibraryListRow
-            key={row.id}
-            row={row}
-            selected={selectedId === row.id}
-            onSelect={() => onSelect(row)}
-          />
-        ) : (
-          <LibraryCard
-            key={row.id}
-            row={row}
-            selected={selectedId === row.id}
-            hasSubSkill={subSkillIds.has(row.id)}
-            onSelect={() => onSelect(row)}
-          />
-        )
-      )}
+      {rows.map(row => (
+        <ViewportWindow
+          key={row.id}
+          placeholderHeight={isList ? 52 : 220}
+        >
+          {isList ? (
+            <LibraryListRow
+              row={row}
+              selected={selectedId === row.id}
+              onSelect={() => onSelect(row)}
+            />
+          ) : (
+            <LibraryCard
+              row={row}
+              selected={selectedId === row.id}
+              hasSubSkill={subSkillIds.has(row.id)}
+              onSelect={() => onSelect(row)}
+            />
+          )}
+        </ViewportWindow>
+      ))}
     </div>
   )
 }
