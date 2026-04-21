@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, memo } from 'react'
+import { useState, useEffect, useRef, useMemo, memo } from 'react'
 import { Plus } from 'lucide-react'
 import { parseTopics, type RepoRow } from '../types/repo'
 import type { Anchor } from '../types/recommendation'
@@ -224,6 +224,7 @@ const RepoCard = memo(function RepoCard({ repo, onNavigate, onTagClick, onOwnerC
 
   const typeConfig = getSubTypeConfig(typeSub)
   const gradient = getBucketGradient(typeConfig?.accentColor ?? getBucketColor(typeBucket))
+  const parsedDescription = useMemo(() => parseEmoji(displayDescription), [displayDescription])
 
   const footerStats: { label: string; value: string }[] = []
 
@@ -269,7 +270,7 @@ const RepoCard = memo(function RepoCard({ repo, onNavigate, onTagClick, onOwnerC
               />
             </div>
             {displayDescription && (
-              <p className="repo-card-desc">{parseEmoji(displayDescription)}</p>
+              <p className="repo-card-desc">{parsedDescription}</p>
             )}
           </div>
         </div>

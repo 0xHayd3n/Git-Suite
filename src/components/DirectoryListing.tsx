@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Folder, ChevronRight, Image as ImageIcon, FileQuestion, Play, BookOpen } from 'lucide-react'
 import FileIcon from './FileIcon'
 import type { ViewMode, SortField, SortDirection } from './ViewModeBar'
@@ -104,13 +105,14 @@ function getFileType(filename: string): string {
 const IMAGE_EXTENSIONS_SET = new Set(['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'])
 
 export function DirectoryListing({ entries, onSelect, basePath, viewMode = 'details', filterText, sortField = 'name', sortDirection = 'asc', owner, name, branch, treeData, onContextMenu }: DirectoryListingProps) {
-  let sorted = sortEntries(entries, sortField, sortDirection)
-
-  // Filter entries when search is active
-  if (filterText) {
-    const lower = filterText.toLowerCase()
-    sorted = sorted.filter(e => e.path.toLowerCase().includes(lower))
-  }
+  const sortedEntries = useMemo(
+    () => sortEntries(entries, sortField, sortDirection),
+    [entries, sortField, sortDirection],
+  )
+  const sorted = useMemo(
+    () => filterText ? sortedEntries.filter(e => e.path.toLowerCase().includes(filterText.toLowerCase())) : sortedEntries,
+    [sortedEntries, filterText],
+  )
 
   const folderCount = sorted.filter(e => e.type === 'tree').length
   const fileCount = sorted.length - folderCount

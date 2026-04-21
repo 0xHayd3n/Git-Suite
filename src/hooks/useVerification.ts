@@ -52,13 +52,13 @@ export function useVerification(): UseVerificationResult {
     }).catch(() => { /* ignore */ })
   }, [])
 
-  // Stable object reference — only changes when cache or seedFromDb changes.
-  // EMPTY_SIGNALS is a stable reference so getSignals never returns a fresh [] literal,
-  // which would bust memo(RepoCard) on every render for uncached repos.
+  // Stable object — functions read via cacheRef so the object identity never changes
+  // when cache updates. This prevents all RepoCards from re-rendering each time a
+  // verification result resolves in the background.
   return useMemo(() => ({
-    getTier:     (repoId: string) => cache.get(repoId)?.tier ?? null,
-    getSignals:  (repoId: string) => cache.get(repoId)?.signals ?? EMPTY_SIGNALS,
-    isResolving: (repoId: string) => !cache.has(repoId),
+    getTier:     (repoId: string) => cacheRef.current.get(repoId)?.tier ?? null,
+    getSignals:  (repoId: string) => cacheRef.current.get(repoId)?.signals ?? EMPTY_SIGNALS,
+    isResolving: (repoId: string) => !cacheRef.current.has(repoId),
     seedFromDb,
-  }), [cache, seedFromDb])
+  }), [seedFromDb])
 }

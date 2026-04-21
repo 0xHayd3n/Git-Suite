@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 
 // Lazy-load shiki to avoid blocking initial render
 let highlighterPromise: Promise<import('shiki').HighlighterGeneric<any, any>> | null = null
@@ -58,7 +58,7 @@ export default function CodeViewer({ content, filename, wordWrap, onLineCountRea
   const [highlightedLine, setHighlightedLine] = useState<number | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const lang = detectLanguage(filename)
-  const lines = content.split('\n')
+  const lines = useMemo(() => content.split('\n'), [content])
   const lineCount = lines.length
 
   useEffect(() => {

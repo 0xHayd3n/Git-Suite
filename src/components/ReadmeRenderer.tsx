@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback, memo } from 'react'
 import { createPortal } from 'react-dom'
 import { Mail, Volume2, File, Globe } from 'lucide-react'
 import gitSuiteLogo from '../assets/logo-transparent.png'
@@ -928,7 +928,7 @@ interface Props {
   readmeBodyRef?: React.RefObject<HTMLDivElement>
 }
 
-export default function ReadmeRenderer({ content, repoOwner, repoName, branch = 'main', basePath = '', onNavigateToFile, onTocReady, readmeBodyRef }: Props) {
+function ReadmeRenderer({ content, repoOwner, repoName, branch = 'main', basePath = '', onNavigateToFile, onTocReady, readmeBodyRef }: Props) {
   const [lightbox, setLightbox] = useState<LightboxState | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -1772,3 +1772,13 @@ export default function ReadmeRenderer({ content, repoOwner, repoName, branch = 
     </div>
   )
 }
+
+export default memo(ReadmeRenderer, (prev, next) =>
+  prev.content === next.content &&
+  prev.repoOwner === next.repoOwner &&
+  prev.repoName === next.repoName &&
+  prev.branch === next.branch &&
+  prev.onNavigateToFile === next.onNavigateToFile &&
+  prev.onTocReady === next.onTocReady &&
+  prev.readmeBodyRef === next.readmeBodyRef
+)

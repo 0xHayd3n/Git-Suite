@@ -1,4 +1,4 @@
-import type { RefObject } from 'react'
+import { useRef, useLayoutEffect, type RefObject } from 'react'
 
 // ── Suggestion types ──────────────────────────────────────────────
 export type TopicSuggestion   = { kind: 'topic';   label: string }
@@ -32,13 +32,24 @@ export default function DiscoverSuggestions({
   onSelectSubtype,
   onSelectTopic,
 }: DiscoverSuggestionsProps) {
+  const dockSearchElRef = useRef<Element | null>(null)
+  const floatingDockElRef = useRef<Element | null>(null)
+  const searchBarElRef = useRef<Element | null>(null)
+
+  useLayoutEffect(() => {
+    if (above) {
+      dockSearchElRef.current = document.querySelector('.dock-search-floating.open')
+      floatingDockElRef.current = document.querySelector('.floating-dock')
+    } else {
+      searchBarElRef.current = document.querySelector('.dtn-search-bar')
+    }
+  })
+
   if (!anchor) return null
 
   let positionStyle: React.CSSProperties
   if (above) {
-    // Position above the floating search bar
-    const searchBar = document.querySelector('.dock-search-floating.open')
-    const searchRect = searchBar?.getBoundingClientRect()
+    const searchRect = dockSearchElRef.current?.getBoundingClientRect()
     if (searchRect) {
       positionStyle = {
         bottom: window.innerHeight - searchRect.top + 6,
@@ -46,8 +57,7 @@ export default function DiscoverSuggestions({
         width: searchRect.width,
       }
     } else {
-      const dockEl = document.querySelector('.floating-dock')
-      const dockRect = dockEl?.getBoundingClientRect()
+      const dockRect = floatingDockElRef.current?.getBoundingClientRect()
       if (dockRect) {
         positionStyle = {
           bottom: window.innerHeight - dockRect.top + 8,
@@ -63,8 +73,7 @@ export default function DiscoverSuggestions({
       }
     }
   } else {
-    const searchBarEl = document.querySelector('.dtn-search-bar')
-    const searchBarRect = searchBarEl?.getBoundingClientRect()
+    const searchBarRect = searchBarElRef.current?.getBoundingClientRect()
     if (searchBarRect) {
       positionStyle = { top: searchBarRect.bottom + 6, left: searchBarRect.left, width: searchBarRect.width }
     } else {
