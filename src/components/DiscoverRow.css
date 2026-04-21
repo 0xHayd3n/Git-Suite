@@ -89,3 +89,43 @@
   color: var(--t4);
   margin-top: 1px;
 }
+
+.discover-row-card-badges {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 5px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.discover-row-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 2px 5px 2px 3px;
+  max-width: 72px;
+  overflow: hidden;
+}
+
+.discover-row-badge-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--t2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.discover-row-badge-type-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
