@@ -4,6 +4,10 @@ import path from 'path'
 export function initSchema(db: Database.Database): void {
   db.pragma('journal_mode = WAL')
   db.pragma('foreign_keys = ON')
+  db.pragma('synchronous = NORMAL')
+  db.pragma('cache_size = -64000')        // 64 MB
+  db.pragma('mmap_size = 268435456')       // 256 MB
+  db.pragma('temp_store = MEMORY')
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS repos (
@@ -103,6 +107,7 @@ export function initSchema(db: Database.Database): void {
     );
 
     CREATE UNIQUE INDEX IF NOT EXISTS repos_owner_name ON repos (owner, name);
+    CREATE INDEX IF NOT EXISTS repos_saved_at         ON repos(saved_at);
   `)
 
   // Phase 3 migrations — idempotent via try/catch (SQLite has no ALTER TABLE ... IF NOT EXISTS)
@@ -169,6 +174,12 @@ export function initSchema(db: Database.Database): void {
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`)
+
+  // Post-migration indexes (reference columns added via ALTER TABLE)
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS repos_starred_at  ON repos(starred_at);
+    CREATE INDEX IF NOT EXISTS repos_type_bucket ON repos(type_bucket);
+  `)
 }
 
 let _db: Database.Database | null = null
