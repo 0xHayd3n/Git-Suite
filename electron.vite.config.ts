@@ -36,7 +36,16 @@ export default defineConfig({
     root: 'src',
     build: {
       rollupOptions: {
-        input: resolve('src/index.html')
+        input: resolve('src/index.html'),
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+            'markdown':     ['react-markdown', 'remark-gfm', 'remark-emoji', 'rehype-raw', 'rehype-sanitize'],
+            'pdfjs':        ['pdfjs-dist'],
+            'icons':        ['lucide-react'],
+            // react-icons intentionally NOT split — migrating off it in Phase 4
+          },
+        },
       }
     },
     resolve: {
