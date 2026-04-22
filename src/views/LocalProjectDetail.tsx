@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ArticleLayout } from '../components/ArticleLayout'
 import NavBar from '../components/NavBar'
 import DitherBackground from '../components/DitherBackground'
-import ReadmeRenderer from '../components/ReadmeRenderer'
+const ReadmeRenderer = lazy(() => import('../components/ReadmeRenderer'))
 import TocNav, { type TocItem } from '../components/TocNav'
 import FileIcon from '../components/FileIcon'
 
@@ -358,13 +358,15 @@ export default function LocalProjectDetail() {
         readme === 'loading' ? (
           <p className="repo-detail-placeholder">Loading…</p>
         ) : readme ? (
-          <ReadmeRenderer
-            content={readme}
-            repoOwner=""
-            repoName={displayName}
-            onTocReady={setTocHeadings}
-            readmeBodyRef={readmeBodyRef as React.RefObject<HTMLDivElement>}
-          />
+          <Suspense fallback={<div style={{ minHeight: 200 }} />}>
+            <ReadmeRenderer
+              content={readme}
+              repoOwner=""
+              repoName={displayName}
+              onTocReady={setTocHeadings}
+              readmeBodyRef={readmeBodyRef as React.RefObject<HTMLDivElement>}
+            />
+          </Suspense>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '48px 24px' }}>
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.25 }}>

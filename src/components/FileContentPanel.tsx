@@ -1,9 +1,12 @@
-import CodeViewer, { detectLanguage } from './CodeViewer'
-import ReadmeRenderer from './ReadmeRenderer'
-import PdfViewer from './PdfViewer'
+import { lazy, Suspense } from 'react'
+import { detectLanguage } from '../utils/detectLanguage'
 import { DirectoryListing, ImagePreview, VideoPlayer, FileMetaView, isImageFile, isVideoFile, isPdfFile } from './DirectoryListing'
 import CodeToolbar from './CodeToolbar'
 import type { ViewMode, SortField, SortDirection } from './ViewModeBar'
+
+const CodeViewer = lazy(() => import('./CodeViewer'))
+const ReadmeRenderer = lazy(() => import('./ReadmeRenderer'))
+const PdfViewer = lazy(() => import('./PdfViewer'))
 
 interface TreeEntry {
   path: string
@@ -133,7 +136,9 @@ export default function FileContentPanel({
       ) : isVideoFile(filename) ? (
         <VideoPlayer rawUrl={rawUrl} filename={filename} />
       ) : isPdfFile(filename) && selectedPath ? (
-        <PdfViewer owner={owner} name={name} branch={branch} path={selectedPath} />
+        <Suspense fallback={<div style={{ minHeight: 300 }}>Loading PDF viewer…</div>}>
+          <PdfViewer owner={owner} name={name} branch={branch} path={selectedPath} />
+        </Suspense>
       ) : blobLoading ? (
         <div className="file-content-panel__loading">
           <span className="spin-ring" style={{ width: 14, height: 14 }} />
@@ -157,16 +162,20 @@ export default function FileContentPanel({
           path={selectedPath}
         />
       ) : isMarkdownFile(filename) ? (
-        <ReadmeRenderer
-          content={blobContent}
-          repoOwner={owner}
-          repoName={name}
-          branch={branch}
-          basePath={basePath}
-          onNavigateToFile={onNavigateToFile}
-        />
+        <Suspense fallback={<div style={{ minHeight: 200 }} />}>
+          <ReadmeRenderer
+            content={blobContent}
+            repoOwner={owner}
+            repoName={name}
+            branch={branch}
+            basePath={basePath}
+            onNavigateToFile={onNavigateToFile}
+          />
+        </Suspense>
       ) : (
-        <CodeViewer content={blobContent} filename={filename} wordWrap={wordWrap} onLineCountReady={onLineCountReady} />
+        <Suspense fallback={null}>
+          <CodeViewer content={blobContent} filename={filename} wordWrap={wordWrap} onLineCountReady={onLineCountReady} />
+        </Suspense>
       )}
     </div>
   )

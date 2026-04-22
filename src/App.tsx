@@ -11,8 +11,9 @@ import { AppearanceProvider, useAppearance } from './contexts/Appearance'
 import ProfileOverlay from './components/ProfileOverlay'
 import Titlebar from './components/Titlebar'
 import Dock from './components/Dock'
-import AiDialogue from './components/AiDialogue'
 import AppLoadingFallback from './components/AppLoadingFallback'
+
+const AiDialogue = lazy(() => import('./components/AiDialogue'))
 
 const Discover = lazy(() => import('./views/Discover'))
 const Library = lazy(() => import('./views/Library'))
@@ -83,7 +84,11 @@ function AppContent() {
         </main>
       </div>
       <Dock onAiClick={toggleAi} aiOpen={aiOpen} />
-      <AiDialogue open={aiOpen} onClose={closeAi} />
+      {aiOpen && (
+        <Suspense fallback={null}>
+          <AiDialogue open={aiOpen} onClose={closeAi} />
+        </Suspense>
+      )}
       {createPortal(
         <div ref={tooltipRef} className="app-tooltip" style={{ opacity: tooltipText ? 1 : 0 }}>{tooltipText}</div>,
         document.body,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef, useDeferredValue } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef, useDeferredValue, lazy, Suspense } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Brain, FileDown, GitBranch } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
@@ -13,7 +13,7 @@ import { getLangConfig } from '../components/BannerSVG'
 import { classifyRepoBucket } from '../lib/classifyRepoType'
 import { getSubTypeConfig, getBucketGradient, getBucketColor } from '../config/repoTypeConfig'
 import DitherBackground from '../components/DitherBackground'
-import ReadmeRenderer from '../components/ReadmeRenderer'
+const ReadmeRenderer = lazy(() => import('../components/ReadmeRenderer'))
 import TocNav, { type TocItem } from '../components/TocNav'
 import NavBar from '../components/NavBar'
 import LanguageIcon from '../components/LanguageIcon'
@@ -44,8 +44,8 @@ import { extractCommands, type CommandBlock } from '../utils/commandParser'
 // websiteParser import removed — website links are now shown in the README's References section
 import FilesTab from '../components/FilesTab'
 import { useRepoNav } from '../contexts/RepoNav'
-import StorybookExplorer from '../components/StorybookExplorer'
-import ComponentExplorer from '../components/ComponentExplorer'
+const StorybookExplorer = lazy(() => import('../components/StorybookExplorer'))
+const ComponentExplorer = lazy(() => import('../components/ComponentExplorer'))
 import { isComponentLibraryRepo } from '../utils/componentLibraryDetector'
 import VerificationBadge from '../components/VerificationBadge'
 import { useVerification } from '../hooks/useVerification'
@@ -1323,15 +1323,17 @@ const [skillRow, setSkillRow] = useState<SkillRow | null>(null)
                   ) : readme === null ? (
                     <p className="repo-detail-placeholder">No README available.</p>
                   ) : (
-                    <ReadmeRenderer
-                      content={deferredReadmeContent || (readme as string)}
-                      repoOwner={owner ?? ''}
-                      repoName={name ?? ''}
-                      branch={repo?.default_branch ?? 'main'}
-                      onNavigateToFile={handleNavigateToFile}
-                      onTocReady={handleTocReady}
-                      readmeBodyRef={readmeBodyRef}
-                    />
+                    <Suspense fallback={<div style={{ minHeight: 200 }} />}>
+                      <ReadmeRenderer
+                        content={deferredReadmeContent || (readme as string)}
+                        repoOwner={owner ?? ''}
+                        repoName={name ?? ''}
+                        branch={repo?.default_branch ?? 'main'}
+                        onNavigateToFile={handleNavigateToFile}
+                        onTocReady={handleTocReady}
+                        readmeBodyRef={readmeBodyRef}
+                      />
+                    </Suspense>
                   )
                 )}
 
@@ -1677,17 +1679,21 @@ const [skillRow, setSkillRow] = useState<SkillRow | null>(null)
                       <span>Detecting…</span>
                     </div>
                   ) : typeof storybookState === 'string' ? (
-                    <StorybookExplorer
-                      storybookUrl={storybookState}
-                      repoName={name ?? ''}
-                    />
+                    <Suspense fallback={null}>
+                      <StorybookExplorer
+                        storybookUrl={storybookState}
+                        repoName={name ?? ''}
+                      />
+                    </Suspense>
                   ) : (
-                    <ComponentExplorer
-                      key={`${owner ?? ''}/${name ?? ''}`}
-                      owner={owner ?? ''}
-                      name={name ?? ''}
-                      branch={repo?.default_branch ?? 'main'}
-                    />
+                    <Suspense fallback={null}>
+                      <ComponentExplorer
+                        key={`${owner ?? ''}/${name ?? ''}`}
+                        owner={owner ?? ''}
+                        name={name ?? ''}
+                        branch={repo?.default_branch ?? 'main'}
+                      />
+                    </Suspense>
                   )
                 )}
               </>
