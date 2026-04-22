@@ -686,14 +686,15 @@ ipcMain.handle('github:getRelatedRepos', async (_event, owner: string, name: str
   const capped = topics.slice(0, 5)
   if (capped.length === 0) return []
 
-  const rows: Record<string, unknown>[] = []
-  for (const topic of capped) {
-    const escaped = topic.replace(/[%_]/g, '\\$&')
-    const found = db.prepare(
-      `SELECT * FROM repos WHERE topics LIKE ? ESCAPE '\\' AND NOT (owner = ? AND name = ?) LIMIT 10`
-    ).all(`%"${escaped}"%`, owner, name) as Record<string, unknown>[]
-    rows.push(...found)
-  }
+  const escaped = capped.map(t => `%"${t.replace(/[%_]/g, '\\$&')}"%`)
+  const placeholders = capped.map(() => `topics LIKE ? ESCAPE '\\'`).join(' OR ')
+  const rows = db.prepare(
+    `SELECT * FROM repos
+     WHERE (${placeholders})
+     AND NOT (owner = ? AND name = ?)
+     ORDER BY stars DESC
+     LIMIT 50`
+  ).all(...escaped, owner, name) as Record<string, unknown>[]
 
   const seen = new Set<string>()
   return rows
@@ -703,7 +704,6 @@ ipcMain.handle('github:getRelatedRepos', async (_event, owner: string, name: str
       seen.add(key)
       return true
     })
-    .sort((a, b) => ((b.stars as number) ?? 0) - ((a.stars as number) ?? 0))
     .slice(0, 3)
 })
 
