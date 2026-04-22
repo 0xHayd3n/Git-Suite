@@ -37,7 +37,14 @@ export default function ViewportWindow({
   }, [rootMargin])
 
   return (
-    <div ref={ref} className={className} style={{ minHeight: placeholderHeight }}>
+    <div
+      ref={ref}
+      className={className}
+      style={visible
+        ? { display: 'flex', flexDirection: 'column' }
+        : { height: placeholderHeight }
+      }
+    >
       {visible ? children : null}
     </div>
   )
