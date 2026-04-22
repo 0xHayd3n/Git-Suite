@@ -64,11 +64,11 @@ beforeEach(() => {
 })
 
 describe('App onboarding gate', () => {
-  it('renders nothing while checking settings', () => {
-    // settings.get never resolves → stays in checking state
+  it('renders the app shell immediately without waiting for settings', () => {
+    // settings.get never resolves — app should render optimistically instead of blocking
     window.api.settings.get = vi.fn().mockReturnValue(new Promise(() => {}))
     const { container } = render(<App />)
-    expect(container).toBeEmptyDOMElement()
+    expect(container).not.toBeEmptyDOMElement()
   })
 
   it('shows onboarding when onboarding_complete is not set', async () => {

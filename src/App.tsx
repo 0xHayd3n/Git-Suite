@@ -35,7 +35,6 @@ function AppContent() {
   const navigate = useNavigate()
   const location = useLocation()
   const { background } = useAppearance()
-  const [isChecking, setIsChecking] = useState(true)
   const [aiOpen, setAiOpen] = useState(false)
   const { text: tooltipText, nodeRef: tooltipRef } = useTooltip()
   const isDiscoverPage = location.pathname === '/' || location.pathname.startsWith('/discover') || location.pathname.startsWith('/library') || location.pathname.startsWith('/repo/')
@@ -50,14 +49,10 @@ function AppContent() {
       } else {
         window.api.github.getStarred().catch(() => {})
       }
-      setIsChecking(false)
     }).catch(() => {
       navigate('/onboarding')
-      setIsChecking(false)
     })
   }, [navigate])
-
-  if (isChecking) return null
 
   return (
     <div className={`app-shell${background === 'dither' ? ' app-shell--dither' : ''}`}>
