@@ -7,15 +7,24 @@ import type { ComponentScanResult, Framework, ScannedComponent } from '../src/ty
 
 async function batchFetch<T>(
   items: string[],
-  batchSize: number,
+  concurrency: number,
   fn: (item: string) => Promise<T | null>,
 ): Promise<(T | null)[]> {
-  const results: (T | null)[] = []
-  for (let i = 0; i < items.length; i += batchSize) {
-    const batch = items.slice(i, i + batchSize)
-    const batchResults = await Promise.all(batch.map(fn))
-    results.push(...batchResults)
+  const results: (T | null)[] = new Array(items.length).fill(null)
+  let cursor = 0
+
+  async function worker(): Promise<void> {
+    while (cursor < items.length) {
+      const idx = cursor++
+      results[idx] = await fn(items[idx]).catch(() => null)
+    }
   }
+
+  const workers = Array.from(
+    { length: Math.min(concurrency, items.length) },
+    () => worker(),
+  )
+  await Promise.all(workers)
   return results
 }
 
