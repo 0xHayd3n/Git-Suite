@@ -259,6 +259,7 @@ export function useBayerDither(
   const frameRef = useRef(0)
   const phaseRef = useRef(Math.floor(Math.random() * TOTAL_CYCLE))
   const visibleRef = useRef(true)
+  const renderFnRef = useRef<((now: number) => void) | null>(null)
 
   const cleanup = useCallback(() => {
     if (animRef.current) {
@@ -283,7 +284,7 @@ export function useBayerDither(
 
     // Pause animation when card is not visible (performance optimization)
     let cancelled = false
-    const renderFnRef: { fn: ((now: number) => void) | null } = { fn: null }
+    renderFnRef.current = null
 
     const io = new IntersectionObserver(
       ([entry]) => {
@@ -291,12 +292,12 @@ export function useBayerDither(
         visibleRef.current = entry.isIntersecting
         if (!entry.isIntersecting) {
           if (animRef.current) { cancelAnimationFrame(animRef.current); animRef.current = 0 }
-        } else if (wasHidden && !cancelled && renderFnRef.fn && !animRef.current) {
+        } else if (wasHidden && !cancelled && renderFnRef.current && !animRef.current) {
           // Delay past any collapse/expand CSS transition (~260ms) before resuming
           // expensive rendering, so the transition isn't competing with renderCamera.
           setTimeout(() => {
-            if (!cancelled && renderFnRef.fn && visibleRef.current && !animRef.current) {
-              animRef.current = requestAnimationFrame(renderFnRef.fn)
+            if (!cancelled && renderFnRef.current && visibleRef.current && !animRef.current) {
+              animRef.current = requestAnimationFrame(renderFnRef.current)
             }
           }, 350)
         }
@@ -399,7 +400,7 @@ export function useBayerDither(
         animRef.current = requestAnimationFrame(render)
       }
 
-      renderFnRef.fn = render
+      renderFnRef.current = render
       if (visibleRef.current) {
         animRef.current = requestAnimationFrame(render)
       }
@@ -413,8 +414,25 @@ export function useBayerDither(
 
     return () => {
       cancelled = true
+      renderFnRef.current = null
       io.disconnect()
       cleanup()
     }
   }, [avatarUrl, containerWidth, containerHeight, canvasRef, cleanup])
+
+  useEffect(() => {
+    if (staticFrame) return
+    function onVisChange() {
+      if (document.visibilityState === 'hidden') {
+        if (animRef.current) {
+          cancelAnimationFrame(animRef.current)
+          animRef.current = 0
+        }
+      } else if (visibleRef.current && renderFnRef.current && !animRef.current) {
+        animRef.current = requestAnimationFrame(renderFnRef.current)
+      }
+    }
+    document.addEventListener('visibilitychange', onVisChange)
+    return () => document.removeEventListener('visibilitychange', onVisChange)
+  }, [staticFrame])
 }
