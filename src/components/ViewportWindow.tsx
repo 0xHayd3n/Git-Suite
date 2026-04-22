@@ -40,10 +40,7 @@ export default function ViewportWindow({
     <div
       ref={ref}
       className={className}
-      style={visible
-        ? { display: 'flex', flexDirection: 'column' }
-        : { height: placeholderHeight }
-      }
+      {...(visible ? { 'data-vw': '' } : { style: { height: placeholderHeight } })}
     >
       {visible ? children : null}
     </div>
