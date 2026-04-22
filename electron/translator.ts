@@ -90,27 +90,28 @@ export async function translate(
       chunks.push(protectedText.slice(i, i + CHUNK))
     }
 
-    let detectedLang = sourceLang
-    const translatedParts: string[] = []
-
-    for (const chunk of chunks) {
+    const responses = await Promise.all(chunks.map(chunk => {
       const url =
         `${GT_URL}?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&dt=ld` +
         `&q=${encodeURIComponent(chunk)}`
-      const res = await fetch(url, { signal: AbortSignal.timeout(15000) })
-      if (!res.ok) return null
-      const data = await res.json()
+      return fetch(url, { signal: AbortSignal.timeout(15000) })
+        .then(res => res.ok ? res.json() : null)
+        .catch(() => null)
+    }))
 
-      // Concatenate translated sentence fragments
-      const translated = (data[0] as Array<[string, ...unknown[]]>)
+    // If any chunk failed, bail — translator contract returns null on failure
+    if (responses.some(r => r === null)) return null
+
+    const translatedParts = responses.map(data => {
+      return (data[0] as Array<[string, ...unknown[]]>)
         .map(pair => pair[0] ?? '')
         .join('')
-      translatedParts.push(translated)
+    })
 
-      // Pick up detected language from first chunk
-      if (detectedLang === 'auto' && data[2]) {
-        detectedLang = data[2] as string
-      }
+    // Pick up detected language from first chunk
+    let detectedLang = sourceLang
+    if (detectedLang === 'auto' && responses[0]?.[2]) {
+      detectedLang = responses[0][2] as string
     }
 
     let result = translatedParts.join('')
