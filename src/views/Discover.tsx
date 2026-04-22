@@ -168,13 +168,13 @@ export default function Discover() {
   const fetchGeneration = useRef(0)
   const sentinelRef = useRef<HTMLDivElement>(null)
   const loadMoreRef = useRef<() => void>(() => {})
-  const renderLimitRef = useRef(renderLimit)
   const allVisibleLengthRef = useRef(0)
   const loadingMoreRef = useRef(false)
   const loadingRef = useRef(false)
 
   const RENDER_CHUNK = 20
   const [renderLimit, setRenderLimit] = useState(RENDER_CHUNK)
+  const renderLimitRef = useRef(renderLimit)
 
   const handleLayoutChange = (prefs: LayoutPrefs) => {
     setLayoutPrefs(prefs)
