@@ -23,7 +23,7 @@ export default function ViewportWindow({
   className,
 }: ViewportWindowProps) {
   const ref = useRef<HTMLDivElement>(null)
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(true)
 
   useEffect(() => {
     if (!ref.current) return
