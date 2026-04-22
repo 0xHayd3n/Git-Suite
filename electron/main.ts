@@ -43,6 +43,7 @@ import type { CollectionRow, CollectionRepoRow } from '../src/types/repo'
 import { classifyRepoBucket } from '../src/lib/classifyRepoType'
 import { cascadeRepoId } from './db-helpers'
 import { LRUCache } from './lruCache'
+import { poolAll } from './concurrency'
 
 // ── Community collections seed data ─────────────────────────────
 export const COMMUNITY_COLLECTIONS = [
@@ -440,19 +441,16 @@ ipcMain.handle('github:getStarred', async (_, force?: boolean) => {
 
   // Non-blocking: extract dominant colour for starred repos missing banner_color
   setImmediate(() => {
-    for (const item of starredItems) {
+    const needColor = starredItems.filter(item => item.repo.owner.avatar_url)
+    void poolAll(needColor, 3, async (item) => {
       const repo = item.repo
-      if (!repo.owner.avatar_url) continue
       const row = db.prepare('SELECT banner_color FROM repos WHERE owner = ? AND name = ?')
         .get(repo.owner.login, repo.name) as { banner_color: string | null } | undefined
-      if (row?.banner_color) continue
-      extractDominantColor(repo.owner.avatar_url)
-        .then(color => {
-          db.prepare('UPDATE repos SET banner_color = ? WHERE owner = ? AND name = ?')
-            .run(JSON.stringify(color), repo.owner.login, repo.name)
-        })
-        .catch(() => {/* non-critical */})
-    }
+      if (row?.banner_color) return
+      const color = await extractDominantColor(repo.owner.avatar_url!)
+      db.prepare('UPDATE repos SET banner_color = ? WHERE owner = ? AND name = ?')
+        .run(JSON.stringify(color), repo.owner.login, repo.name)
+    })
   })
 })
 
@@ -533,18 +531,15 @@ ipcMain.handle('github:searchRepos', async (_event, query: string, sort?: string
 
   // Non-blocking: extract dominant colour for repos that don't have one yet
   setImmediate(() => {
-    for (const repo of items) {
-      if (!repo.owner.avatar_url) continue
+    const needColor = items.filter(r => r.owner.avatar_url)
+    void poolAll(needColor, 3, async (repo) => {
       const row = db.prepare('SELECT banner_color FROM repos WHERE owner = ? AND name = ?')
         .get(repo.owner.login, repo.name) as { banner_color: string | null } | undefined
-      if (row?.banner_color) continue
-      extractDominantColor(repo.owner.avatar_url)
-        .then(color => {
-          db.prepare('UPDATE repos SET banner_color = ? WHERE owner = ? AND name = ?')
-            .run(JSON.stringify(color), repo.owner.login, repo.name)
-        })
-        .catch(() => {/* non-critical */})
-    }
+      if (row?.banner_color) return
+      const color = await extractDominantColor(repo.owner.avatar_url!)
+      db.prepare('UPDATE repos SET banner_color = ? WHERE owner = ? AND name = ?')
+        .run(JSON.stringify(color), repo.owner.login, repo.name)
+    })
   })
 
   // Look up each result by owner/name — avoids stale discover_query overwrite bug

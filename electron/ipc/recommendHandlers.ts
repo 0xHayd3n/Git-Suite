@@ -4,6 +4,7 @@ import { getDb } from '../db'
 import { getToken } from '../store'
 import { classifyRepoBucket } from '../../src/lib/classifyRepoType'
 import { extractDominantColor } from '../color-extractor'
+import { poolAll } from '../concurrency'
 import type Database from 'better-sqlite3'
 import {
   buildUserProfile,
@@ -97,18 +98,15 @@ function upsertCandidates(
 
   // Non-blocking: extract dominant colour
   setImmediate(() => {
-    for (const repo of candidates) {
-      if (!repo.owner.avatar_url) continue
+    const needColor = candidates.filter(r => r.owner.avatar_url)
+    void poolAll(needColor, 3, async (repo) => {
       const row = db.prepare('SELECT banner_color FROM repos WHERE owner = ? AND name = ?')
         .get(repo.owner.login, repo.name) as { banner_color: string | null } | undefined
-      if (row?.banner_color) continue
-      extractDominantColor(repo.owner.avatar_url)
-        .then(color => {
-          db.prepare('UPDATE repos SET banner_color = ? WHERE owner = ? AND name = ?')
-            .run(JSON.stringify(color), repo.owner.login, repo.name)
-        })
-        .catch(() => {/* non-critical */})
-    }
+      if (row?.banner_color) return
+      const color = await extractDominantColor(repo.owner.avatar_url!)
+      db.prepare('UPDATE repos SET banner_color = ? WHERE owner = ? AND name = ?')
+        .run(JSON.stringify(color), repo.owner.login, repo.name)
+    })
   })
 }
 
