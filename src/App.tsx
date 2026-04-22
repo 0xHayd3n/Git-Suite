@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { createPortal } from 'react-dom'
 import { MemoryRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { useTooltip } from './hooks/useTooltip'
@@ -12,15 +12,17 @@ import ProfileOverlay from './components/ProfileOverlay'
 import Titlebar from './components/Titlebar'
 import Dock from './components/Dock'
 import AiDialogue from './components/AiDialogue'
-import Discover from './views/Discover'
-import Library from './views/Library'
-import Starred from './views/Starred'
-import Profile from './views/Profile'
-import RepoDetail from './views/RepoDetail'
-import Onboarding from './views/Onboarding'
-import Settings from './views/Settings'
-import Create from './views/Create'
-import LocalProjectDetail from './views/LocalProjectDetail'
+import AppLoadingFallback from './components/AppLoadingFallback'
+
+const Discover = lazy(() => import('./views/Discover'))
+const Library = lazy(() => import('./views/Library'))
+const Starred = lazy(() => import('./views/Starred'))
+const Profile = lazy(() => import('./views/Profile'))
+const RepoDetail = lazy(() => import('./views/RepoDetail'))
+const Onboarding = lazy(() => import('./views/Onboarding'))
+const Settings = lazy(() => import('./views/Settings'))
+const Create = lazy(() => import('./views/Create'))
+const LocalProjectDetail = lazy(() => import('./views/LocalProjectDetail'))
 
 function ProfileOverlayPortal() {
   const { profileState } = useProfileOverlay()
@@ -61,20 +63,22 @@ function AppContent() {
       <div className={`app-main-column${isDiscoverPage ? ' titlebar-overlay' : ''}`}>
         <Titlebar />
         <main className={`main-content${aiOpen ? ' ai-dialogue-tilt' : ''}`}>
-          <Routes>
-            <Route path="/" element={<Navigate to="/library" replace />} />
-            <Route path="/discover" element={<Discover />} />
-            <Route path="/library/*" element={<Library />} />
-            <Route path="/collections" element={<Navigate to="/library" replace />} />
-            <Route path="/local-project" element={<LocalProjectDetail />} />
-            <Route path="/create" element={<Create />} />
-            <Route path="/create/:sessionId" element={<Create />} />
-            <Route path="/starred" element={<Starred />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/repo/:owner/:name" element={<RepoDetail />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/settings" element={<Settings />} />
-          </Routes>
+          <Suspense fallback={<AppLoadingFallback />}>
+            <Routes>
+              <Route path="/" element={<Navigate to="/library" replace />} />
+              <Route path="/discover" element={<Discover />} />
+              <Route path="/library/*" element={<Library />} />
+              <Route path="/collections" element={<Navigate to="/library" replace />} />
+              <Route path="/local-project" element={<LocalProjectDetail />} />
+              <Route path="/create" element={<Create />} />
+              <Route path="/create/:sessionId" element={<Create />} />
+              <Route path="/starred" element={<Starred />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/repo/:owner/:name" element={<RepoDetail />} />
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/settings" element={<Settings />} />
+            </Routes>
+          </Suspense>
           <ProfileOverlayPortal />
         </main>
       </div>
