@@ -13,7 +13,10 @@ vi.mock('react-router-dom', async (importOriginal) => {
   }
 })
 
+let registeredOAuthCb: ((p: { code?: string; error?: string }) => void) | null = null
+
 function makeApi(overrides = {}) {
+  registeredOAuthCb = null
   return {
     windowControls: { minimize: vi.fn(), maximize: vi.fn(), close: vi.fn() },
     github: {
@@ -22,8 +25,12 @@ function makeApi(overrides = {}) {
       getUser: vi.fn().mockResolvedValue({ login: 'alice', avatarUrl: '', publicRepos: 5 }),
       getStarred: vi.fn().mockResolvedValue(undefined),
       disconnect: vi.fn(),
-      onCallback: vi.fn(),
-      offCallback: vi.fn(),
+      onCallback: vi.fn((cb: (p: { code?: string; error?: string }) => void) => {
+        registeredOAuthCb = cb
+      }),
+      offCallback: vi.fn(() => {
+        registeredOAuthCb = null
+      }),
     },
     settings: {
       get: vi.fn().mockResolvedValue('5'),
@@ -119,11 +126,9 @@ describe('Screen 1 — Connect GitHub', () => {
   })
 
   it('after successful OAuth, Continue becomes enabled and shows connected state', async () => {
-    // Simulate the onCallback being called with a code
-    window.api.github.onCallback = vi.fn().mockImplementation((cb: (code: string) => void) => {
-      setTimeout(() => cb('test-code'), 0)
-    })
     fireEvent.click(screen.getByText('Connect'))
+    // The callback was registered on mount; fire it to simulate OAuth return.
+    registeredOAuthCb?.({ code: 'test-code' })
     await waitFor(() => {
       expect(window.api.github.exchange).toHaveBeenCalledWith('test-code')
       expect(window.api.github.getUser).toHaveBeenCalled()
@@ -134,10 +139,8 @@ describe('Screen 1 — Connect GitHub', () => {
   })
 
   it('Continue advances to screen 2 when connected', async () => {
-    window.api.github.onCallback = vi.fn().mockImplementation((cb: (code: string) => void) => {
-      setTimeout(() => cb('code'), 0)
-    })
     fireEvent.click(screen.getByText('Connect'))
+    registeredOAuthCb?.({ code: 'code' })
     await waitFor(() => screen.getByText('Continue →').closest('button')?.disabled === false)
     fireEvent.click(screen.getByText('Continue →'))
     expect(screen.getByTestId('onboarding-screen-2')).toBeInTheDocument()
@@ -156,10 +159,8 @@ describe('Screen 2 — Done', () => {
   async function goToScreen2() {
     renderOnboarding()
     fireEvent.click(screen.getByText('Connect GitHub →'))
-    window.api.github.onCallback = vi.fn().mockImplementation((cb: (code: string) => void) => {
-      setTimeout(() => cb('code'), 0)
-    })
     fireEvent.click(screen.getByText('Connect'))
+    registeredOAuthCb?.({ code: 'code' })
     await waitFor(() => expect(window.api.github.exchange).toHaveBeenCalled())
     await waitFor(() => {
       const btn = screen.getByText('Continue →')

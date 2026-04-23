@@ -63,8 +63,8 @@ declare global {
         getUser:       () => Promise<{ login: string; avatarUrl: string; publicRepos: number }>
         getStarred:    (force?: boolean) => Promise<void>
         disconnect:    () => Promise<void>
-        onCallback:    (cb: (code: string) => void) => void
-        offCallback:   (cb: (code: string) => void) => void
+        onCallback:    (cb: (payload: { code?: string; error?: string }) => void) => void
+        offCallback:   (cb: (payload: { code?: string; error?: string }) => void) => void
         searchRepos:   (query: string, sort?: string, order?: string, page?: number) => Promise<RepoRow[]>
         getRepo:       (owner: string, name: string) => Promise<RepoRow>
         getReadme:        (owner: string, name: string) => Promise<string | null>

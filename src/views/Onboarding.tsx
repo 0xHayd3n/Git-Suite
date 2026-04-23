@@ -102,31 +102,48 @@ function ConnectScreen({
 }) {
   const [connectState, setConnectState] = useState<ConnectState>('idle')
   const [connectedUser, setConnectedUser] = useState<string | null>(null)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  const handleCode = useCallback(async (code: string) => {
+  const handleCallback = useCallback(async (payload: { code?: string; error?: string }) => {
+    if (payload.error) {
+      setErrorMsg(payload.error)
+      setConnectState('idle')
+      return
+    }
+    if (!payload.code) return
     try {
-      await window.api.github.exchange(code)
+      await window.api.github.exchange(payload.code)
       const user = await window.api.github.getUser()
       await window.api.settings.set('github_username', user.login)
       flushSync(() => {
         setConnectedUser(user.login)
         setConnectState('connected')
+        setErrorMsg(null)
       })
-    } catch {
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Failed to complete sign-in')
       setConnectState('idle')
     }
   }, [])
 
+  // Register the OAuth callback listener on mount so a deep link that arrives
+  // during a window reload or before the user re-clicks Connect isn't lost.
+  // The preload also signals the main process that we're ready, flushing any
+  // queued deep link.
   useEffect(() => {
+    window.api.github.onCallback(handleCallback)
     return () => {
-      window.api.github.offCallback(handleCode)
+      window.api.github.offCallback(handleCallback)
     }
-  }, [handleCode])
+  }, [handleCallback])
 
   function handleConnect() {
+    setErrorMsg(null)
     setConnectState('connecting')
-    window.api.github.connect().catch(() => setConnectState('idle'))
-    window.api.github.onCallback(handleCode)
+    window.api.github.connect().catch(() => {
+      setErrorMsg('Failed to open browser')
+      setConnectState('idle')
+    })
   }
 
   const btnLabel =
@@ -170,6 +187,8 @@ function ConnectScreen({
           <p className={`permission-card-sub${connectState === 'connected' ? ' connected' : ''}`}>
             {connectState === 'connected' && connectedUser
               ? `@${connectedUser}`
+              : errorMsg
+              ? errorMsg
               : 'Not connected'}
           </p>
           <div className="permission-divider" />

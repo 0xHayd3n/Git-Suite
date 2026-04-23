@@ -35,15 +35,17 @@ contextBridge.exposeInMainWorld('api', {
     getTree:    (owner: string, name: string, treeSha: string) => ipcRenderer.invoke('github:getTree', owner, name, treeSha),
     getBlob:    (owner: string, name: string, blobSha: string) => ipcRenderer.invoke('github:getBlob', owner, name, blobSha),
     getRawFile: (owner: string, name: string, branch: string, path: string) => ipcRenderer.invoke('github:getRawFile', owner, name, branch, path),
-    onCallback:    (cb: (code: string) => void) => {
+    onCallback:    (cb: (payload: { code?: string; error?: string }) => void) => {
       const wrapper = (...args: unknown[]) => {
-        const code = args[1] as string
-        cb(code)
+        const payload = args[1] as { code?: string; error?: string } | string
+        // Back-compat: main process used to send a bare code string.
+        cb(typeof payload === 'string' ? { code: payload } : payload)
       }
       callbackWrappers.set(cb, wrapper)
       ipcRenderer.on('oauth:callback', wrapper)
+      ipcRenderer.send('oauth:ready')
     },
-    offCallback: (cb: (code: string) => void) => {
+    offCallback: (cb: (payload: { code?: string; error?: string }) => void) => {
       const wrapper = callbackWrappers.get(cb)
       if (wrapper) {
         ipcRenderer.removeListener('oauth:callback', wrapper)

@@ -176,6 +176,7 @@ interface WindowStoreSchema {
 const windowStore = new Store<WindowStoreSchema>()
 let mainWindow: BrowserWindow | null = null
 let pendingDeepLinkUrl: string | null = null
+let rendererReadyForOAuth = false
 let mcpProcess: ReturnType<typeof spawn> | null = null
 
 // ── MCP helpers ──────────────────────────────────────────────────────────────
@@ -211,13 +212,36 @@ function startMCPServer(): void {
 }
 
 // ── Deep link handler ───────────────────────────────────────────
+// Dispatching is best-effort: webContents.send is silently dropped if the
+// renderer hasn't mounted its 'oauth:callback' listener yet, so we queue the
+// URL and replay it once the renderer signals it's ready (see 'oauth:ready').
 function handleDeepLink(url: string): void {
   try {
-    const code = new URL(url).searchParams.get('code')
-    if (code) mainWindow?.webContents.send('oauth:callback', code)
+    const parsed = new URL(url)
+    const code = parsed.searchParams.get('code')
+    const error = parsed.searchParams.get('error_description') ?? parsed.searchParams.get('error')
+    if (!code && !error) return
+
+    if (!mainWindow || mainWindow.webContents.isLoading() || !rendererReadyForOAuth) {
+      pendingDeepLinkUrl = url
+      return
+    }
+
+    if (error) {
+      mainWindow.webContents.send('oauth:callback', { error })
+    } else if (code) {
+      mainWindow.webContents.send('oauth:callback', { code })
+    }
   } catch {
     // malformed URL — ignore
   }
+}
+
+function flushPendingDeepLink(): void {
+  if (!pendingDeepLinkUrl) return
+  const url = pendingDeepLinkUrl
+  pendingDeepLinkUrl = null
+  handleDeepLink(url)
 }
 
 // Register badge:// as a privileged scheme for image loading (must precede app.ready)
@@ -242,22 +266,18 @@ if (!gotLock) {
 } else {
   app.on('second-instance', (_event, argv) => {
     const url = argv.find((a) => a.startsWith('gitsuite://'))
-    if (url) handleDeepLink(url)
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore()
       mainWindow.focus()
     }
+    if (url) handleDeepLink(url)
   })
 }
 
-// macOS deep link — queue if window not yet ready
+// macOS deep link — handleDeepLink handles its own queueing.
 app.on('open-url', (event, url) => {
   event.preventDefault()
-  if (mainWindow) {
-    handleDeepLink(url)
-  } else {
-    pendingDeepLinkUrl = url
-  }
+  handleDeepLink(url)
 })
 
 // ── Window ──────────────────────────────────────────────────────
@@ -322,12 +342,10 @@ function createWindow(): void {
     }
   })
 
-  // Replay any deep link that arrived before the window was ready (macOS cold launch)
-  mainWindow.webContents.once('did-finish-load', () => {
-    if (pendingDeepLinkUrl) {
-      handleDeepLink(pendingDeepLinkUrl)
-      pendingDeepLinkUrl = null
-    }
+  // Reset the renderer-ready gate on navigation/reload so a pending deep link
+  // is only dispatched after the React app has re-registered its listener.
+  mainWindow.webContents.on('did-start-loading', () => {
+    rendererReadyForOAuth = false
   })
 }
 
@@ -343,6 +361,13 @@ ipcMain.on('window:close', () => mainWindow?.close())
 ipcMain.handle('shell:openExternal', (_event, url: string) => shell.openExternal(url))
 
 // ── GitHub IPC ──────────────────────────────────────────────────
+// Renderer signals it has mounted the 'oauth:callback' listener. This closes
+// the race where a deep link arrives before React finishes hydrating.
+ipcMain.on('oauth:ready', () => {
+  rendererReadyForOAuth = true
+  flushPendingDeepLink()
+})
+
 ipcMain.handle('github:connect', async () => {
   try {
     await shell.openExternal(OAUTH_URL)
