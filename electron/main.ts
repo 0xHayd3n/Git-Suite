@@ -252,7 +252,15 @@ function createWindow(): void {
     // displays since minWidth overrides the half-screen target.
     minWidth: 640,
     minHeight: 660,
-    frame: false,
+    // On Windows, `frame: false` strips the native frame entirely which
+    // disables Aero drag-to-edge snap — dragging the titlebar to the screen
+    // edge used to leave the window at its current (often ~2/3-screen) size
+    // instead of snapping to half. `titleBarStyle: 'hidden'` alone gives a
+    // frameless look while keeping the native frame for snap.
+    // On macOS, `titleBarStyle: 'hidden'` without `frame: false` reveals the
+    // traffic lights, which conflict with the app's custom controls — so
+    // keep the frameless setup on non-Windows platforms.
+    frame: process.platform !== 'win32' ? false : undefined,
     titleBarStyle: 'hidden',
     backgroundColor: '#0a0a0e',
     icon: path.join(__dirname, '../../resources/icon.png'),
