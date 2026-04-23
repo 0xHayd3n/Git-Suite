@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef, useDeferredValue, lazy, Suspense } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Brain, FileDown, GitBranch } from 'lucide-react'
+import { Brain, FileDown, GitBranch, GitFork } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useParams, useNavigate } from 'react-router-dom'
@@ -10,6 +10,7 @@ import {
   SiPatreon, SiMastodon,
 } from 'react-icons/si'
 import { getLangConfig } from '../components/BannerSVG'
+import { getLangColor } from '../lib/languages'
 import { classifyRepoBucket } from '../lib/classifyRepoType'
 import { getSubTypeConfig, getBucketGradient, getBucketColor } from '../config/repoTypeConfig'
 import DitherBackground from '../components/DitherBackground'
@@ -821,6 +822,11 @@ const [skillRow, setSkillRow] = useState<SkillRow | null>(null)
   }
 
   // ── Handlers ──────────────────────────────────────────────────────
+  const handleFork = () => {
+    if (!owner || !name) return
+    window.api.openExternal(`https://github.com/${owner}/${name}/fork`)
+  }
+
   const handleStar = async () => {
     if (starWorking || !owner || !name) return
     setStarWorking(true)
@@ -1005,19 +1011,16 @@ const [skillRow, setSkillRow] = useState<SkillRow | null>(null)
   const titleExtrasNode = (repo?.language && repo.language !== '—') || typeConfig ? (
     <>
       {repo?.language && repo.language !== '—' && (
-        <span className="repo-detail-header-pill">
-          <LanguageIcon lang={repo.language} size={16} boxed />
+        <span className="repo-detail-header-pill" style={{ '--pill-color': getLangColor(repo.language) } as React.CSSProperties}>
+          <LanguageIcon lang={repo.language} size={24} boxed />
           <span className="repo-detail-header-pill-label">{repo.language}</span>
         </span>
       )}
       {typeConfig && (() => {
         const CatIcon = typeConfig.icon
         return (
-          <span className="repo-detail-header-pill">
-            <span
-              className="repo-detail-header-pill-cat-icon"
-              style={{ background: typeConfig.accentColor }}
-            >
+          <span className="repo-detail-header-pill" style={{ '--pill-color': typeConfig.accentColor } as React.CSSProperties}>
+            <span className="repo-detail-header-pill-cat-icon" style={{ background: typeConfig.accentColor }}>
               {CatIcon && <CatIcon size={14} fill="#fff" stroke="#fff" />}
             </span>
             <span className="repo-detail-header-pill-label">{typeConfig.label}</span>
@@ -1055,12 +1058,14 @@ const [skillRow, setSkillRow] = useState<SkillRow | null>(null)
           <SidebarLabel>Stats</SidebarLabel>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {([
+              { key: 'Stars',   val: formatCount(repo.stars),       icon: 'star'  as const },
               { key: 'Forks',   val: formatCount(repo.forks),       icon: 'fork'  as const },
               { key: 'Issues',  val: formatCount(repo.open_issues), icon: 'issue' as const },
               ...(version !== '—' ? [{ key: 'Version', val: version, icon: 'tag' as const }] : []),
             ]).map(({ key, val, icon }) => (
               <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
                 <span style={{ fontFamily: 'Inter, sans-serif', color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  {icon === 'star'  && <span style={{ fontSize: 12 }}>★</span>}
                   {icon === 'fork'  && <span style={{ fontSize: 12 }}>⑂</span>}
                   {icon === 'issue' && <span style={{ fontSize: 12 }}>◎</span>}
                   {icon === 'tag'   && <span style={{ fontSize: 12 }}>🏷</span>}
@@ -1238,32 +1243,6 @@ const [skillRow, setSkillRow] = useState<SkillRow | null>(null)
         </div>
       )}
 
-      {/* ── Related repos tile ── */}
-      {sidebarRelated.length > 0 && (
-        <div className="stats-tile">
-          <SidebarLabel>Related repos</SidebarLabel>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {sidebarRelated.map(r => (
-              <div key={r.id} className="sidebar-related-card" onClick={() => navigate(`/repo/${r.owner.login}/${r.name}`)}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3 }}>
-                  <img src={r.owner.avatar_url} alt={r.owner.login} style={{ width: 16, height: 16, borderRadius: '50%', border: '1px solid var(--border)', flexShrink: 0 }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
-                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--t1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {r.name}
-                  </span>
-                </div>
-                {r.description && (
-                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: 'var(--t3)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: 4 }}>
-                    {r.description}
-                  </div>
-                )}
-                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 3 }}>
-                  ★ {formatCount(r.stargazers_count)}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
     </div>
   ) : null
@@ -1302,12 +1281,11 @@ const [skillRow, setSkillRow] = useState<SkillRow | null>(null)
             description={repo?.description ? <>{repo.description}</> : undefined}
             tabs={tabsNode}
             scrollRef={articleBodyRef}
-            bodyScrollRef={bodyContentRef}
             tocSlot={
               activeTab === 'readme' && tocHeadings.length >= 2
                 ? <TocNav
                     headings={tocHeadings}
-                    scrollContainerRef={bodyContentRef}
+                    scrollContainerRef={articleBodyRef}
                     headingsContainerRef={readmeBodyRef}
                   />
                 : undefined
@@ -1709,6 +1687,7 @@ const [skillRow, setSkillRow] = useState<SkillRow | null>(null)
                 onLearn={handleLearn}
                 onUnlearn={handleUnlearn}
                 onStar={handleStar}
+                onFork={handleFork}
                 translationStatus={activeTab === 'readme' ? {
                   translating,
                   translated: readmeTranslated,
@@ -1751,6 +1730,7 @@ type RepoArticleActionRowProps = {
   onLearn: () => void
   onUnlearn: () => void
   onStar: () => void
+  onFork: () => void
   /** Translation status — rendered on the right when on the readme tab and translation is active */
   translationStatus?: {
     translating: boolean
@@ -1764,7 +1744,7 @@ type RepoArticleActionRowProps = {
 function RepoArticleActionRow({
   learnState, starred, starWorking, starCount,
   cloneOpen, onToggleClone,
-  onLearn, onUnlearn, onStar,
+  onLearn, onUnlearn, onStar, onFork,
   translationStatus,
 }: RepoArticleActionRowProps) {
   const learnBusy = learnState === 'LEARNING'
@@ -1817,7 +1797,16 @@ function RepoArticleActionRow({
         <svg viewBox="0 0 16 16" width={14} height={14} fill={starred ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5">
           <path d="M8 1.5l1.85 3.75 4.15.6-3 2.93.7 4.1L8 10.77l-3.7 1.96.7-4.1-3-2.93 4.15-.6z" />
         </svg>
-        <span>{formatCount(starCount)}</span>
+        <span>Star</span>
+      </button>
+
+      <button
+        className="article-action-btn"
+        onClick={onFork}
+        title="Fork on GitHub"
+      >
+        <GitFork size={14} />
+        <span>Fork</span>
       </button>
 
       {translationStatus && (translationStatus.translating || translationStatus.translated) && (

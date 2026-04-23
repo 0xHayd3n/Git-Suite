@@ -23,18 +23,24 @@ export default function ViewportWindow({
   className,
 }: ViewportWindowProps) {
   const ref = useRef<HTMLDivElement>(null)
-  const [visible, setVisible] = useState(true)
+  const [visible, setVisible] = useState(false)
 
   useEffect(() => {
+    if (visible) return
     if (!ref.current) return
     const el = ref.current
     const observer = new IntersectionObserver(
-      ([entry]) => setVisible(entry.isIntersecting),
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true)
+          observer.disconnect()
+        }
+      },
       { rootMargin },
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [rootMargin])
+  }, [rootMargin, visible])
 
   return (
     <div

@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import './DiscoverHero.css'
 import DitherBackground from './DitherBackground'
 import LanguageIcon from './LanguageIcon'
-import { formatCount } from './RepoCard'
 import { getLangColor } from '../lib/languages'
 import { getSubTypeConfig } from '../config/repoTypeConfig'
 import type { RepoRow } from '../types/repo'
@@ -64,42 +63,44 @@ function HeroLayer({ repo, animClass }: LayerProps) {
     <div className={`discover-hero-layer ${animClass}`}>
       <DitherBackground avatarUrl={repo.avatar_url} />
       <div className="discover-hero-fade" />
-      {repo.avatar_url && (
-        <div className="discover-hero-avatar">
-          <img className="discover-hero-avatar-img" src={repo.avatar_url} alt={repo.owner} />
-          <span className="discover-hero-owner">{repo.owner}</span>
-        </div>
-      )}
       <div className="discover-hero-content">
-        <div className="discover-hero-label">Featured · Top Recommended</div>
-        <div className="discover-hero-title">{repo.name}</div>
-        {desc && <div className="discover-hero-desc">{desc}</div>}
-        <div className="discover-hero-meta">
-          {repo.language && (
-            <span className="discover-hero-meta-item discover-hero-badge" style={{ '--badge-color': langColor } as React.CSSProperties}>
-              <LanguageIcon lang={repo.language} size={14} boxed />
-              <span>{repo.language}</span>
-            </span>
-          )}
-          {typeConfig && (
-            <span className="discover-hero-meta-item discover-hero-badge" style={{ '--badge-color': typeConfig.accentColor } as React.CSSProperties}>
-              {typeConfig.icon && (
-                <span className="discover-hero-type-icon" style={{ backgroundColor: typeConfig.accentColor }}>
-                  <typeConfig.icon size={10} fill="#fff" stroke="#fff" strokeWidth={0.75} />
-                </span>
-              )}
-              <span>{typeConfig.label}</span>
-            </span>
-          )}
-          {repo.stars != null && (
-            <span className="discover-hero-star-badge">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+        <div className="discover-hero-text">
+          <div className="discover-hero-title-row">
+            {repo.avatar_url && (
+              <img className="discover-hero-avatar-img" src={repo.avatar_url} alt={repo.owner} />
+            )}
+            <div className="discover-hero-title">{repo.name}</div>
+          </div>
+          {desc && <div className="discover-hero-desc">{desc}</div>}
+          {repo.owner && (
+            <div className="discover-hero-owner-row">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" className="discover-hero-owner-icon">
+                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
               </svg>
-              <span>{formatCount(repo.stars)}</span>
-            </span>
+              <span className="discover-hero-owner">{repo.owner}</span>
+            </div>
           )}
         </div>
+        {(repo.language || typeConfig) && (
+          <div className="discover-hero-badges">
+            {typeConfig && (
+              <div className="discover-hero-icon-badge" style={{ '--badge-color': typeConfig.accentColor } as React.CSSProperties}>
+                <div className="discover-hero-icon-badge-text">{typeConfig.label}</div>
+                <div className="discover-hero-icon-badge-icon" style={{ backgroundColor: typeConfig.accentColor }}>
+                  {typeConfig.icon && <typeConfig.icon size={18} fill="#fff" stroke="#fff" strokeWidth={0.75} />}
+                </div>
+              </div>
+            )}
+            {repo.language && (
+              <div className="discover-hero-icon-badge" style={{ '--badge-color': langColor } as React.CSSProperties}>
+                <div className="discover-hero-icon-badge-text">{repo.language}</div>
+                <div className="discover-hero-icon-badge-icon">
+                  <LanguageIcon lang={repo.language} size={32} boxed />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

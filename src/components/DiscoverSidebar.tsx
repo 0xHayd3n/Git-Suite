@@ -97,6 +97,9 @@ export interface DiscoverSidebarProps {
   layoutPrefs?: import('./LayoutDropdown').LayoutPrefs
   onLayoutChange?: (prefs: import('./LayoutDropdown').LayoutPrefs) => void
 
+  // Nav compact state (passed down from scroll tracking)
+  compact?: boolean
+
   // Library mode extensions
   mode?: 'discover' | 'library'
   skillStatus?: SkillStatusFilter

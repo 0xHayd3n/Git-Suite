@@ -38,7 +38,8 @@
     "remark-emoji": "^5.0.2",
     "remark-gfm": "^4.0.1",
     "shiki": "^4.0.2",
-    "smol-toml": "^1.6.1"
+    "smol-toml": "^1.6.1",
+    "tex-linebreak": "^0.8.1"
   },
   "devDependencies": {
     "@electron/rebuild": "^3.6.0",

@@ -3,7 +3,6 @@
   position: fixed;
   pointer-events: none;
   z-index: 2147483647;
-  transform: translate(10px, -100%);
   padding: 4px 10px;
   font-size: 11px;
   font-weight: 500;
@@ -259,32 +258,36 @@ a {
    they are always painted on top and always receive pointer events. */
 .titlebar-controls {
   position: fixed;
-  top: 0;
-  right: 0;
+  top: 10px;
+  right: 10px;
   z-index: 2147483647;
   display: flex;
   align-items: center;
   gap: 0;
+  background: #252525;
+  border-radius: 20px;
+  padding: 0 2px;
+  overflow: hidden;
   -webkit-app-region: no-drag;
 }
 .titlebar-ctrl {
   -webkit-app-region: no-drag;
-  width: 34px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
   border-radius: 0;
   background: transparent;
-  color: var(--t3);
+  color: #ffffff;
   cursor: pointer;
   transition: background 0.12s, color 0.12s;
 }
 
 .titlebar-ctrl:hover {
   background: rgba(255, 255, 255, 0.12);
-  color: var(--t1);
+  color: #ffffff;
 }
 
 .titlebar-ctrl-close:hover {
@@ -1391,7 +1394,7 @@ a {
   flex-direction: column;
   overflow: hidden;
   position: relative;
-  background: var(--bg3);
+  background: var(--bg);
 }
 
 /* Real drag strip — Electron's drag-region hit-test uses elementFromPoint,
@@ -1669,11 +1672,11 @@ a {
 }
 
 .discover-content-inner {
-  padding: 4px 20px 24px 20px;
+  padding: 0 20px 24px 20px;
 }
 
 .discover-content-inner .grid-header {
-  padding: 6px 0;
+  padding: 12px 0;
 }
 
 /* ── Discover Landing ──────────────────────────────────────────── */
@@ -1858,14 +1861,19 @@ a {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.6);
 }
-.repo-card:hover .repo-card-stats { border-top-color: rgba(255, 255, 255, 0.15); }
-.repo-card:hover .repo-card-stat-item { color: rgba(255, 255, 255, 0.8); }
-.repo-card:hover .repo-card-badge-br {
-  background: rgba(0, 0, 0, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  color: var(--t1);
-}
-.repo-card:hover .repo-card-badge-br.starred { color: #f59e0b; border-color: rgba(245,158,11,0.5); }
+.repo-card:hover .repo-card-footer { border-top-color: rgba(255, 255, 255, 0.15); }
+.repo-card:hover .repo-card-stat { color: rgba(255, 255, 255, 0.8); }
+/* Golden glow for starred cards */
+.repo-card-starred { border-color: rgba(245,158,11,0.35); box-shadow: 0 0 12px rgba(245,158,11,0.15), inset 0 0 12px rgba(245,158,11,0.04); }
+.repo-card-starred:hover { border-color: rgba(245,158,11,0.55); box-shadow: 0 0 18px rgba(245,158,11,0.25), inset 0 0 12px rgba(245,158,11,0.06); }
+/* Purple glow for learned cards — overrides gold */
+.repo-card-learned { border-color: rgba(139,92,246,0.35); box-shadow: 0 0 12px rgba(139,92,246,0.2), inset 0 0 12px rgba(139,92,246,0.06); }
+.repo-card-learned:hover { border-color: rgba(139,92,246,0.55); box-shadow: 0 0 18px rgba(139,92,246,0.3), inset 0 0 12px rgba(139,92,246,0.08); }
+.repo-card-starred.repo-card-learned { border-color: rgba(139,92,246,0.35); box-shadow: 0 0 12px rgba(139,92,246,0.2), inset 0 0 12px rgba(139,92,246,0.06); }
+.repo-card-starred.repo-card-learned:hover { border-color: rgba(139,92,246,0.55); box-shadow: 0 0 18px rgba(139,92,246,0.3), inset 0 0 12px rgba(139,92,246,0.08); }
+.repo-card:hover .repo-card-badge-br,
+.repo-card:hover .repo-card-badge-learn { color: rgba(255,255,255,0.9); }
+.repo-card:hover .repo-card-badge-br.starred { color: #f59e0b; }
 
 /* ── Dither background ────────────────────────────────────────── */
 .dither-canvas {
@@ -1938,54 +1946,146 @@ a {
 
 /* ── Two-zone card layout ──────────────────────────────────────── */
 .repo-card-dither { position: relative; height: 65px; overflow: hidden; }
+.repo-card-actions { display: flex; flex-direction: row; gap: 5px; }
 .repo-card-badge-br {
-  position: absolute; bottom: 5px; right: 6px; z-index: 2;
-  display: flex; flex-direction: column; align-items: center; gap: 1px;
-  background: rgba(0,0,0,0.75); padding: 4px 6px 3px; border-radius: 5px;
-  font-size: 9px; color: rgba(255,255,255,0.9);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  background: rgba(255,255,255,0.06); border-radius: 0;
+  font-size: 9px; color: rgba(255,255,255,0.5);
   border: 1px solid transparent; cursor: pointer;
+  width: 36px; height: 36px; flex-shrink: 0;
 }
-.repo-card-badge-br:hover { background: rgba(0,0,0,0.9); border-color: rgba(255,255,255,0.3); }
+.repo-card-badge-br:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.9); }
+.repo-card-badge-learn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  background: rgba(255,255,255,0.06); border-radius: 0;
+  font-size: 9px; color: rgba(255,255,255,0.5);
+  border: 1px solid transparent; cursor: pointer;
+  width: 36px; height: 36px; flex-shrink: 0;
+}
+.repo-card-badge-learn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.9); }
+.repo-card-badge-learn.learned { color: var(--accent-light); border-color: rgba(139,92,246,0.5); box-shadow: 0 0 8px rgba(139,92,246,0.4), 0 0 3px rgba(139,92,246,0.2); }
+.repo-card-badge-learn:disabled { cursor: default; opacity: 0.6; }
 .repo-card-badge-br.starred { color: #f59e0b; }
 .repo-card-badge-br:disabled { cursor: default; opacity: 0.6; }
 .repo-card-badge-tl { position: absolute; top: 5px; left: 6px; background: rgba(245,158,11,0.2); padding: 1px 5px; border-radius: 3px; font-size: 8px; color: #f59e0b; font-weight: 600; z-index: 2; }
 
-/* Golden glow for starred cards */
-.repo-card-starred { border-color: rgba(245,158,11,0.35); box-shadow: 0 0 12px rgba(245,158,11,0.15), inset 0 0 12px rgba(245,158,11,0.04); }
-.repo-card-starred:hover { border-color: rgba(245,158,11,0.55); box-shadow: 0 0 18px rgba(245,158,11,0.25), inset 0 0 12px rgba(245,158,11,0.06); }
-.repo-card-info { padding: 10px 10px 10px; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); flex: 1; display: flex; flex-direction: column; }
+.repo-card-info {
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: background 0.2s;
+}
 .repo-card:hover .repo-card-info { background: rgba(0, 0, 0, 0.88); }
-.repo-card-top { display: flex; gap: 8px; margin-bottom: 2px; }
+
+.repo-card-top {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.repo-card-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  object-fit: cover;
+}
 .repo-card-top-text { flex: 1; min-width: 0; }
-.repo-card-avatar { width: 36px; height: 36px; border-radius: 6px; flex-shrink: 0; object-fit: cover; }
-.repo-card-name { font-size: 12.5px; font-weight: 700; color: var(--t1); margin-bottom: 3px; display: flex; align-items: center; gap: 5px; }
+.repo-card-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--t1);
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .repo-card-name .vb-wrap { flex-shrink: 0; }
-.repo-card-desc { font-size: 10px; color: var(--t3); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 2px; }
-.repo-card-stat-owner { cursor: pointer; max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
+.repo-card-desc {
+  font-size: 11.5px;
+  color: var(--t3);
+  line-height: 1.45;
+  max-height: calc(11.5px * 1.45 * 4);
+  overflow: hidden;
+  overflow-wrap: break-word;
+}
+.repo-card-grow { flex: 1; min-height: 4px; }
+
+/* ── Card footer ────────────────────────────────────────────────── */
+.repo-card-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+  gap: 4px;
+}
+.repo-card-footer-left {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.repo-card-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  color: var(--t4);
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+.repo-card-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.repo-card-stat-owner {
+  max-width: 80px;
+  cursor: pointer;
+}
 .repo-card-stat-owner:hover { color: var(--t1); }
-.repo-card-grow { flex: 1; min-height: 8px; }
+
+.repo-card-footer-badges {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
 
 .repo-card-tags {
   display: flex;
   gap: 3px;
-  margin-top: 7px;
-  margin-bottom: 0;
-  flex-wrap: wrap;
-  justify-content: flex-start;
+  overflow: hidden;
+  flex-wrap: nowrap;
 }
 .repo-card-tag {
   position: relative;
   display: inline-flex;
   align-items: center;
   font-family: 'Inter', sans-serif;
-  font-size: 8px;
+  font-size: 8.5px;
   padding: 1px 5px;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.06);
   color: var(--t3);
   border-radius: 3px;
   border: 1px solid transparent;
   cursor: pointer;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60px;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 .repo-card-tag:not(.active):hover {
@@ -2024,83 +2124,29 @@ a {
   transform: translateY(-50%) scale(1);
 }
 
-/* ── Card footer wrapper ────────────────────────────────────────── */
-.repo-card-footer {
-  display: flex;
-  align-items: stretch;
-  margin-top: 8px;
-  border-top: 1px solid var(--border);
-}
-.repo-card-footer-left {
-  flex: 1;
-  min-width: 0;
-  min-height: 40px;
-  padding-top: 7px;
-}
-
-/* ── Card footer stat row ───────────────────────────────────────── */
-.repo-card-stats {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 9px;
-  color: var(--t3);
-}
-.repo-card-stat-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-family: 'Inter', sans-serif;
-  font-size: 9px;
-  color: var(--t3);
-  white-space: nowrap;
-  flex-shrink: 0;
-  line-height: 1;
-}
-.repo-card-lang-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.repo-card-license {}
-.repo-card-stats .repo-card-stat-item + .repo-card-stat-item::before {
-  content: '·';
-  margin-right: 6px;
-  color: var(--t3);
-  opacity: 0.5;
-}
-
-/* ── Footer right: icon badges ─────────────────────────────────── */
-.repo-card-footer-right {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-left: auto;
-  padding-left: 8px;
-  border-left: 1px solid var(--border);
-  margin-right: 0;
-}
-
 /* Icon badge: shows icon by default, text slides out on hover */
 .repo-card-icon-badge {
   position: relative;
   display: flex;
-  align-items: stretch;
+  align-items: center;
+  justify-content: center;
   cursor: default;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
 }
 .repo-card-icon-badge-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
   z-index: 1;
 }
 .repo-card-icon-badge-icon > span[style] {
-  width: 22px !important;
-  height: 22px !important;
+  width: 24px !important;
+  height: 24px !important;
 }
 .repo-card-icon-badge-text {
   position: absolute;
@@ -2115,7 +2161,7 @@ a {
   align-items: center;
   padding: 0 6px;
   background: var(--badge-color);
-  height: 22px;
+  height: 18px;
   max-width: 0;
   opacity: 0;
   overflow: hidden;
@@ -2193,6 +2239,7 @@ a {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: var(--bg);
 }
 
 /* Browser-style navigation bar (global) */
@@ -2223,14 +2270,20 @@ a {
 }
 .app-navbar {
   background: transparent;
-  padding: 8px 20px;
+  padding: 0 20px;
+  min-height: 48px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   flex-shrink: 0;
   -webkit-app-region: no-drag;
+  position: relative;
 }
 .app-navbar-controls {
+  position: absolute;
+  left: 10px;
+  top: 10px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -2243,8 +2296,8 @@ a {
   width: 28px;
   height: 28px;
   border: none;
-  border-radius: 6px;
-  background: transparent;
+  border-radius: 50%;
+  background: #1a1a1a;
   color: rgba(255, 255, 255, 0.85);
   cursor: pointer;
   transition: color 0.15s, opacity 0.15s;
@@ -2315,17 +2368,16 @@ a {
 
 /* ── Settings dropdown ─────────────────────────────────────── */
 .app-navbar-url {
-  flex: 1 1 0;
+  flex: 0 1 auto;
   min-width: 0;
   display: flex;
   align-items: center;
   gap: 7px;
-  height: 32px;
-  padding: 0 14px;
-  border-radius: 0;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  height: 28px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border-radius: 20px;
+  background: #252525;
   border: none;
   transition: background 0.15s;
 }
@@ -2395,18 +2447,16 @@ a {
   z-index: 2;
   flex: 1;
   min-height: 0;
-  margin: 0 16px;
-  padding-top: 12px;
-  padding-bottom: 96px; /* clears the floating dock; margin-bottom can't be used with overflow:hidden */
+  margin: 0;
+  padding: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1100px);
-  justify-content: center;
+  grid-template-columns: minmax(0, 1fr);
   overflow: hidden;
 }
 
 /* Files/Components tab: panel expands to fill available width */
 .repo-detail-layout[data-fullbleed-tab] {
-  grid-template-columns: minmax(0, 1600px);
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .repo-detail-panel {
@@ -2415,12 +2465,6 @@ a {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
 }
 
 .repo-detail-install-error {
@@ -2484,10 +2528,6 @@ a {
   display: flex;
   align-items: center;
   padding: 8px 16px;
-  background: rgba(26, 26, 30, 0.45);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   flex-wrap: wrap;
@@ -3382,6 +3422,20 @@ a {
 }
 .rm-hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 .rm-img { max-width: 100%; width: auto; height: auto; object-fit: contain; border-radius: 4px; margin: 6px 0; display: block; }
+
+/* ── Honor align="center" from README HTML (div, p, center) ── */
+.readme-body div[align="center"],
+.readme-body p[align="center"],
+.readme-body center {
+  text-align: center;
+}
+/* Block images inside centered containers need margin:auto to center as blocks */
+.readme-body div[align="center"] img,
+.readme-body p[align="center"] img,
+.readme-body center img {
+  margin-left: auto;
+  margin-right: auto;
+}
 .rm-img-clickable { cursor: zoom-in; transition: opacity 0.15s; }
 .rm-img-clickable:hover { opacity: 0.88; }
 
@@ -5424,25 +5478,29 @@ a {
 
 .repo-detail-header-pill {
   display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  align-items: stretch;
+  border-radius: 0;
+  overflow: hidden;
   font-family: 'Inter', sans-serif;
 }
 
 .repo-detail-header-pill-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--t2);
+  background: var(--pill-color);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
 }
 
 .repo-detail-header-pill-cat-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 3px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
 }
 
@@ -9537,12 +9595,9 @@ a {
   display: none;
 }
 
-.discover-grid[data-cols="7"] .repo-card-footer-right,
-.discover-grid[data-cols="8"] .repo-card-footer-right {
+.discover-grid[data-cols="7"] .repo-card-footer-badges,
+.discover-grid[data-cols="8"] .repo-card-footer-badges {
   flex-direction: column;
-  border-left: none;
-  padding-left: 0;
-  margin-left: 0;
   gap: 3px;
 }
 

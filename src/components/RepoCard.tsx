@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useMemo, memo } from 'react'
-import { Plus } from 'lucide-react'
+import { useState, useEffect, useLayoutEffect, useRef, useMemo, memo } from 'react'
+import { justifyContent, unjustifyContent } from 'tex-linebreak'
+import { Plus, Brain } from 'lucide-react'
 import { parseTopics, type RepoRow } from '../types/repo'
 import type { Anchor } from '../types/recommendation'
 import DitherBackground from './DitherBackground'
@@ -45,12 +46,12 @@ export function formatRecency(dateStr: string | null | undefined): string | null
   const mins = Math.floor(ms / 60000)
   if (mins < 60) return 'just now'
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs}h ago`
+  if (hrs < 24) return `${hrs}h`
   const days = Math.floor(hrs / 24)
-  if (days < 30) return `${days}d ago`
+  if (days < 30) return `${days}d`
   const months = Math.floor(days / 30)
-  if (months < 12) return `${months}mo ago`
-  return `${Math.floor(months / 12)}y ago`
+  if (months < 12) return `${months}mo`
+  return `${Math.floor(months / 12)}y`
 }
 
 // ── Emoji shortcode parser ─────────────────────────────────────────
@@ -133,14 +134,16 @@ interface RepoCardProps {
   onStar?: (repoId: string, starred: boolean) => void
   onLanguageClick?: (lang: string) => void
   onSubtypeClick?: (subtypeId: string) => void
+  learnState?: 'UNLEARNED' | 'LEARNING' | 'LEARNED'
+  onLearn?: () => void
 }
 
-const RepoCard = memo(function RepoCard({ repo, onNavigate, onTagClick, onOwnerClick, typeSub, typeBucket, verificationTier, verificationSignals, verificationResolving, activeTags, focused, viewMode, anchors, onStar, onLanguageClick, onSubtypeClick }: RepoCardProps) {
+const RepoCard = memo(function RepoCard({ repo, onNavigate, onTagClick, onOwnerClick, typeSub, typeBucket, verificationTier, verificationSignals, verificationResolving, activeTags, focused, viewMode, anchors, onStar, onLanguageClick, onSubtypeClick, learnState, onLearn }: RepoCardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (focused && cardRef.current) {
-      cardRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+      cardRef.current.scrollIntoView({ block: 'nearest', behavior: 'instant' })
     }
   }, [focused])
 
@@ -225,35 +228,80 @@ const RepoCard = memo(function RepoCard({ repo, onNavigate, onTagClick, onOwnerC
   const typeConfig = getSubTypeConfig(typeSub)
   const gradient = getBucketGradient(typeConfig?.accentColor ?? getBucketColor(typeBucket))
   const parsedDescription = useMemo(() => parseEmoji(displayDescription), [displayDescription])
+  const parsedDescHtml = useMemo(() =>
+    parsedDescription.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'),
+    [parsedDescription]
+  )
 
-  const footerStats: { label: string; value: string }[] = []
+  const descRef = useRef<HTMLParagraphElement>(null)
+  useLayoutEffect(() => {
+    const el = descRef.current
+    if (!el) return
+    const apply = () => {
+      try {
+        justifyContent(el)
+        // Clamp lines where Knuth-Plass had to over-stretch — revert those to
+        // natural spacing so they read as ragged-right rather than gappy.
+        const maxWs = parseFloat(getComputedStyle(el).fontSize) * 0.38
+        el.querySelectorAll<HTMLSpanElement>('span[style*="word-spacing"]').forEach(span => {
+          const ws = parseFloat(span.style.wordSpacing)
+          if (!isNaN(ws) && ws > maxWs) span.style.wordSpacing = 'normal'
+        })
+      } catch {}
+    }
+    apply()
+    const ro = new ResizeObserver(apply)
+    ro.observe(el)
+    return () => { ro.disconnect(); try { unjustifyContent(el) } catch {} }
+  }, [parsedDescHtml])
+
+  const recency = formatRecency(repo.pushed_at)
 
   return (
     <div
       ref={cardRef}
-      className={`repo-card${focused ? ' kb-focused' : ''}${starred ? ' repo-card-starred' : ''}`}
+      className={`repo-card${focused ? ' kb-focused' : ''}${starred ? ' repo-card-starred' : ''}${learnState === 'LEARNED' ? ' repo-card-learned' : ''}`}
       onClick={() => onNavigate(`/repo/${repo.owner}/${repo.name}`)}
     >
-      {/* Zone 1: Dithered header */}
+      {/* Zone 1: Dithered header with star + learn overlays */}
       <div className="repo-card-dither">
         <DitherBackground avatarUrl={repo.avatar_url} fallbackGradient={gradient} />
-        <button
-          className={`repo-card-badge-br${starred ? ' starred' : ''}`}
-          onClick={handleStar}
-          disabled={starWorking}
-          title={starred ? 'Unstar' : 'Star'}
-          aria-label={starred ? 'Unstar' : 'Star'}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill={starred ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
-          <span>{formatCount(repo.stars)}</span>
-        </button>
+        <div className="repo-card-actions">
+          <button
+            className={`repo-card-badge-br${starred ? ' starred' : ''}`}
+            onClick={handleStar}
+            disabled={starWorking}
+            title={starred ? 'Unstar' : 'Star'}
+            aria-label={starred ? 'Unstar' : 'Star'}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill={starred ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+            <span>{formatCount(repo.stars)}</span>
+          </button>
+          <button
+            className={`repo-card-badge-learn${learnState === 'LEARNED' ? ' learned' : ''}`}
+            onClick={e => { e.stopPropagation(); onLearn?.() }}
+            disabled={learnState === 'LEARNING'}
+            title={learnState === 'LEARNED' ? 'Learned' : learnState === 'LEARNING' ? 'Learning…' : 'Learn'}
+            aria-label={learnState === 'LEARNED' ? 'Learned' : 'Learn'}
+          >
+            {learnState === 'LEARNING' ? (
+              <span className="spin-ring" style={{ width: 12, height: 12 }} />
+            ) : learnState === 'LEARNED' ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="4 12 9 17 20 6" />
+              </svg>
+            ) : (
+              <Brain size={14} />
+            )}
+            <span>{learnState === 'LEARNED' ? 'Learned' : learnState === 'LEARNING' ? 'Learning…' : 'Learn'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Zone 2: Info panel */}
       <div className="repo-card-info">
-        {/* Top: avatar + name/description */}
         <div className="repo-card-top">
           {repo.avatar_url && (
             <img className="repo-card-avatar" src={repo.avatar_url} alt="" />
@@ -270,33 +318,39 @@ const RepoCard = memo(function RepoCard({ repo, onNavigate, onTagClick, onOwnerC
               />
             </div>
             {displayDescription && (
-              <p className="repo-card-desc">{parsedDescription}</p>
+              <p
+                ref={descRef}
+                className="repo-card-desc"
+                dangerouslySetInnerHTML={{ __html: parsedDescHtml }}
+              />
             )}
           </div>
         </div>
 
-        {/* Spacer pushes stats + tags to bottom */}
         <div className="repo-card-grow" />
 
-        {/* Footer */}
         <div className="repo-card-footer">
           <div className="repo-card-footer-left">
             <div className="repo-card-stats">
-              <span
-                className="repo-card-stat-item repo-card-stat-owner"
-                onClick={e => { e.stopPropagation(); onOwnerClick?.(repo.owner) }}
-              >
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
-                {repo.owner}
-                {isVerified && <span style={{ color: 'var(--t1)', marginLeft: 2 }}><VerifiedBadge size={8} /></span>}
-              </span>
-              {footerStats.map(s => (
-                <span key={s.label} className="repo-card-stat-item">{s.label} {s.value}</span>
-              ))}
-              {formatRecency(repo.pushed_at) && (
-                <span className="repo-card-stat-item">{formatRecency(repo.pushed_at)}</span>
+              {repo.owner && (
+                <span
+                  className="repo-card-stat repo-card-stat-owner"
+                  onClick={e => { e.stopPropagation(); onOwnerClick?.(repo.owner) }}
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+                  {repo.owner}
+                  {isVerified && <VerifiedBadge size={8} />}
+                </span>
               )}
-              <span className="repo-card-stat-item repo-card-license">{repo.license && repo.license !== 'NOASSERTION' ? repo.license : 'N/A'}</span>
+              {recency && (
+                <span className="repo-card-stat">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  {recency}
+                </span>
+              )}
             </div>
             {topics.length > 0 && (
               <CardTags
@@ -306,38 +360,36 @@ const RepoCard = memo(function RepoCard({ repo, onNavigate, onTagClick, onOwnerC
               />
             )}
           </div>
-          {(repo.language || typeConfig) && (
-            <div className="repo-card-footer-right">
-              {repo.language && (
-                <span
-                  className="repo-card-icon-badge"
-                  style={{ '--badge-color': getLangColor(repo.language), cursor: onLanguageClick ? 'pointer' : undefined } as React.CSSProperties}
-                  onClick={onLanguageClick ? (e) => { e.stopPropagation(); onLanguageClick(repo.language!) } : undefined}
-                >
+          <div className="repo-card-footer-badges">
+            {repo.language && (
+              <span
+                className="repo-card-icon-badge"
+                style={{ '--badge-color': getLangColor(repo.language), cursor: onLanguageClick ? 'pointer' : undefined } as React.CSSProperties}
+                onClick={onLanguageClick ? (e) => { e.stopPropagation(); onLanguageClick(repo.language!) } : undefined}
+              >
+                <span className="repo-card-icon-badge-icon">
+                  <LanguageIcon lang={repo.language} size={18} boxed />
+                </span>
+                <span className="repo-card-icon-badge-text">{repo.language}</span>
+              </span>
+            )}
+            {typeConfig && typeSub && (
+              <span
+                className="repo-card-icon-badge"
+                style={{ '--badge-color': typeConfig.accentColor, cursor: onSubtypeClick ? 'pointer' : undefined } as React.CSSProperties}
+                onClick={onSubtypeClick ? (e) => { e.stopPropagation(); onSubtypeClick(typeSub) } : undefined}
+              >
+                {typeConfig.icon && (
                   <span className="repo-card-icon-badge-icon">
-                    <LanguageIcon lang={repo.language} size={18} boxed />
-                  </span>
-                  <span className="repo-card-icon-badge-text">{repo.language}</span>
-                </span>
-              )}
-              {typeConfig && typeSub && (
-                <span
-                  className="repo-card-icon-badge"
-                  style={{ '--badge-color': typeConfig.accentColor, cursor: onSubtypeClick ? 'pointer' : undefined } as React.CSSProperties}
-                  onClick={onSubtypeClick ? (e) => { e.stopPropagation(); onSubtypeClick(typeSub) } : undefined}
-                >
-                  {typeConfig.icon && (
-                    <span className="repo-card-icon-badge-icon">
-                      <span className="repo-card-subtype-icon" style={{ backgroundColor: typeConfig.accentColor }}>
-                        <typeConfig.icon size={14} fill="#fff" stroke="#fff" strokeWidth={0.75} />
-                      </span>
+                    <span className="repo-card-subtype-icon" style={{ backgroundColor: typeConfig.accentColor }}>
+                      <typeConfig.icon size={12} fill="currentColor" />
                     </span>
-                  )}
-                  <span className="repo-card-icon-badge-text">{typeConfig.label}</span>
-                </span>
-              )}
-            </div>
-          )}
+                  </span>
+                )}
+                <span className="repo-card-icon-badge-text">{typeConfig.label}</span>
+              </span>
+            )}
+          </div>
         </div>
       </div>
       {/* Zone 3: Anchor attribution strip (recommended-mode only) */}

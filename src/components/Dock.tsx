@@ -64,9 +64,9 @@ function AiIcon() {
 // ── Nav items config ──────────────────────────────────────────────
 
 const NAV_ITEMS = [
-  { label: 'Library',  path: '/library',  icon: <LibraryIcon /> },
-  { label: 'Projects', path: '/create',   icon: <CreateIcon /> },
   { label: 'Discover', path: '/discover', icon: <DiscoverIcon /> },
+  { label: 'Projects', path: '/create',   icon: <CreateIcon /> },
+  { label: 'Library',  path: '/library',  icon: <LibraryIcon /> },
   { label: 'Profile',  path: '/profile',  icon: <ProfileIcon /> },
 ]
 

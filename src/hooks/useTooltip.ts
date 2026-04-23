@@ -6,7 +6,6 @@ export function useTooltip() {
   const currentText = useRef<string | null>(null)
   const lastOwner = useRef<Element | null>(null)
 
-  // Latest captured mouse values — updated on every event, consumed once per frame
   const pendingX = useRef(0)
   const pendingY = useRef(0)
   const pendingTarget = useRef<Element | null>(null)
@@ -29,8 +28,22 @@ export function useTooltip() {
         const target = pendingTarget.current
 
         if (nodeRef.current) {
-          nodeRef.current.style.left = x + 'px'
-          nodeRef.current.style.top = y + 'px'
+          const el = nodeRef.current
+          el.style.left = x + 'px'
+          el.style.top = y + 'px'
+
+          // Apply default position, then check bounds and flip if needed
+          el.style.transform = 'translate(10px, -100%)'
+          const rect = el.getBoundingClientRect()
+          const vw = window.innerWidth
+          const margin = 8
+
+          const flipX = rect.right > vw - margin
+          const flipY = rect.top < margin
+
+          const tx = flipX ? -(rect.width + 10) : 10
+          const tyStr = flipY ? '16px' : '-100%'
+          el.style.transform = `translate(${tx}px, ${tyStr})`
         }
 
         if (!target) return

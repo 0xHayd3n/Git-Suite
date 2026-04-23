@@ -30,6 +30,40 @@ function DiscoverRowCardItem({
 }) {
   const [starred, setStarred] = useState(!!repo.starred_at)
   const [starWorking, setStarWorking] = useState(false)
+  const [desc, setDesc] = useState<string | null>(() => {
+    if (repo.detected_language && repo.detected_language !== 'en' && repo.translated_description) {
+      return repo.translated_description
+    }
+    return repo.description
+  })
+
+  useEffect(() => {
+    setDesc(() => {
+      if (repo.detected_language && repo.detected_language !== 'en' && repo.translated_description) {
+        return repo.translated_description
+      }
+      return repo.description
+    })
+    if (!repo.description || repo.description.length < 6) return
+    async function maybeTranslate() {
+      try {
+        const preferredLang = await window.api.settings.getPreferredLanguage().catch(() => 'en')
+        if (repo.translated_description && repo.translated_description_lang === preferredLang) {
+          setDesc(repo.translated_description)
+          return
+        }
+        const scriptLang = await window.api.translate.check(repo.description!, preferredLang, 6).catch(() => null)
+        if (!scriptLang) return
+        const result = await window.api.translate.translate(repo.description!, preferredLang).catch(() => null)
+        if (!result) return
+        setDesc(result.translatedText)
+        if (repo.id) {
+          window.api.db.cacheTranslatedDescription(repo.id, result.translatedText, preferredLang, scriptLang).catch(() => {})
+        }
+      } catch { /* non-critical */ }
+    }
+    maybeTranslate()
+  }, [repo.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { setStarred(!!repo.starred_at) }, [repo.starred_at])
 
@@ -66,9 +100,10 @@ function DiscoverRowCardItem({
   const recency = formatRecency(repo.pushed_at)
   const licenseText = repo.license && repo.license !== 'NOASSERTION' ? repo.license : 'N/A'
   const firstSentence = (() => {
-    if (!repo.description) return ''
-    const match = repo.description.match(/^.*?[.!?](?=\s|$)/)
-    return match ? match[0] : repo.description
+    const src = desc ?? repo.description
+    if (!src) return ''
+    const match = src.match(/^.*?[.!?](?=\s|$)/)
+    return match ? match[0] : src
   })()
 
   return (

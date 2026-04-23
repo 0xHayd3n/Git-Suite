@@ -642,6 +642,116 @@ function rehypeFootnoteLinks() {
   }
 }
 
+// ── Rehype plugin: rescue content for an EMPTY center div ────────────────────
+// Defense-in-depth fallback. The markdown preprocessing step `collapseHeroBlanks`
+// usually keeps the entire <div align="center">...</div> as one HTML block, so the
+// div arrives with its picture/h1/h3/links already inside. This plugin only kicks
+// in for the rare case where the parser produced a truly empty center div (e.g.
+// malformed source where the opening tag exists with nothing inside it).
+//
+// We DO NOT touch a div that already has content — doing so caused description
+// paragraphs to be wrongly centered when the plugin absorbed them as siblings.
+function rehypeFixCenterDivs() {
+  return (tree: Root) => {
+    const rootChildren = (tree as any).children as any[]
+
+    for (let i = 0; i < rootChildren.length; i++) {
+      const node = rootChildren[i] as Element
+      if (node.type !== 'element') continue
+      if (node.tagName !== 'div' && node.tagName !== 'center') continue
+
+      const isCenter = node.tagName === 'center' || node.properties?.align === 'center'
+      if (!isCenter) continue
+
+      // Skip if div already has substantial content — preprocessing handled it.
+      const hasContent = node.children.some(
+        (c: any) => c.type === 'element' || (c.type === 'text' && (c as Text).value.trim() !== '')
+      )
+      if (hasContent) continue
+
+      // Empty center div — absorb following siblings up to the next section heading
+      // or another structural boundary, with a hard cap.
+      const toMove: any[] = []
+      let j = i + 1
+      while (j < rootChildren.length && toMove.length < 8) {
+        const sib = rootChildren[j] as Element
+        if (
+          sib.type === 'element' && sib.tagName === 'div' &&
+          !sib.properties?.align &&
+          !sib.children.some((c: any) => c.type === 'element' || (c.type === 'text' && (c as Text).value.trim() !== ''))
+        ) {
+          rootChildren.splice(j, 1)
+          break
+        }
+        if (sib.type === 'element' && /^h[1-6]$/.test(sib.tagName) && toMove.length > 0) break
+        toMove.push(sib)
+        j++
+      }
+
+      if (toMove.length > 0) {
+        node.children = toMove as any
+        rootChildren.splice(i + 1, toMove.length)
+      }
+    }
+  }
+}
+
+// ── Markdown preprocessing: collapse blank lines inside centered HTML blocks ──
+// CommonMark ends type-6 HTML blocks at blank lines. When a README has
+//   <div align="center">
+//   <picture>…</picture>
+//                                ← blank line: HTML block ends here
+//   <h1>…</h1>                  ← becomes a SEPARATE block
+//   …
+//   </div>                       ← orphan closing tag, dropped by parse5
+// the parsed HAST has the picture inside the div but h1/h3/p as outside siblings.
+// rehypeFixCenterDivs would then have to guess where the hero ends and risk
+// absorbing real body paragraphs (which centers them — incorrect).
+//
+// This pass scans for <div align="center"> / <center> openings, finds the matching
+// closing tag with simple depth tracking, and removes blank lines in between so
+// the entire centered region survives as ONE HTML block. Description paragraphs
+// after </div> remain at the document root, correctly left-aligned.
+function collapseHeroBlanks(src: string): string {
+  const lines = src.split('\n')
+  const out: string[] = []
+  let i = 0
+  while (i < lines.length) {
+    const line = lines[i]
+    const isCenterOpen = /<(?:div\s+align=["']?center["']?[^>]*|center\b[^>]*)>/i.test(line)
+    if (!isCenterOpen) {
+      out.push(line)
+      i++
+      continue
+    }
+    const opens  = (line.match(/<(?:div|center)\b/gi)  || []).length
+    const closes = (line.match(/<\/(?:div|center)>/gi) || []).length
+    let depth = opens - closes
+    const collected: string[] = [line]
+    let j = i + 1
+    const MAX_LOOKAHEAD = 200
+    while (j < lines.length && depth > 0 && (j - i) < MAX_LOOKAHEAD) {
+      const inner = lines[j]
+      const innerOpens  = (inner.match(/<(?:div|center)\b/gi)  || []).length
+      const innerCloses = (inner.match(/<\/(?:div|center)>/gi) || []).length
+      depth += innerOpens - innerCloses
+      // Skip blank lines while still inside the centered block
+      if (depth > 0 && inner.trim() === '') { j++; continue }
+      collected.push(inner)
+      j++
+    }
+    if (depth <= 0) {
+      out.push(...collected)
+      i = j
+    } else {
+      // No matching close in range — leave original line, don't collapse
+      out.push(line)
+      i++
+    }
+  }
+  return out.join('\n')
+}
+
 // ── Rehype plugin: stamp image-only <a> elements ──────────────────────────
 // Runs BEFORE rehype-sanitize so data-* properties survive sanitization.
 // Purpose: lets the `a` component override skip the link preview popover
@@ -676,9 +786,12 @@ const sanitizeSchema = {
       'width',
       'height',
     ],
-    img: [...(defaultSchema.attributes?.img ?? []), 'src', 'alt', 'width', 'height', 'align'],
-    a:   [...(defaultSchema.attributes?.a   ?? []), 'href', 'title'],
-    div: ['align', 'class'],
+    img:    [...(defaultSchema.attributes?.img ?? []), 'src', 'alt', 'width', 'height', 'align'],
+    a:      [...(defaultSchema.attributes?.a   ?? []), 'href', 'title'],
+    // hast-util-sanitize matches by HAST property name (camelCase), not HTML attribute name.
+    // 'srcset' (lowercase) would be stripped → picture sources lose their image URL → logo missing.
+    source: ['srcSet', 'media', 'type', 'sizes'],
+    div:    ['align', 'class'],
     p:   ['align'],
     td:  ['align', 'valign'],
     th:  ['align', 'valign'],
@@ -1132,20 +1245,39 @@ function ReadmeRenderer({ content, repoOwner, repoName, branch = 'main', basePat
       return out.join('\n')
     })()
 
-    // Step 0b: strip everything before the first h2+ heading (skips h1 title,
-    // badges after the title, language switchers, and any other preamble noise
-    // between the h1 and the first real section).  Falls back to first heading
-    // of any level when no h2 exists (e.g. simple single-section READMEs).
+    // Step 0b: strip content before the first h2+ heading ONLY when the preamble
+    // is thin (just an h1, badges, and blank lines). Repos like Daytona have
+    // meaningful prose paragraphs before the first h2 — those must be kept.
     const noPreamble = (() => {
       const lines = noToc.split('\n')
-      // First pass: look for h2+ ATX heading or setext h2 (--- underline)
+
+      // Find the first h2+ ATX heading or setext h2 (--- underline)
+      let h2Idx = -1
       for (let i = 0; i < lines.length; i++) {
-        if (/^#{2,6}\s/.test(lines[i])) return lines.slice(i).join('\n')
+        if (/^#{2,6}\s/.test(lines[i])) { h2Idx = i; break }
         if (lines[i].trim() && i + 1 < lines.length && /^-{3,}\s*$/.test(lines[i + 1])) {
-          return lines.slice(i).join('\n')
+          h2Idx = i; break
         }
       }
-      // Fallback: any heading (h1 or setext h1) when no h2 exists
+
+      if (h2Idx > 0) {
+        // Check whether the preamble contains prose text (starts with a letter,
+        // length > 10, not a heading). Badge lines are already stripped by the
+        // badge parser before this component runs.
+        const hasProse = lines.slice(0, h2Idx).some(line => {
+          const t = line.trim()
+          if (!t) return false
+          // Prose text starting with a letter
+          if (t.length > 10 && /^[a-zA-Z\u00C0-\u024F]/.test(t)) return true
+          // HTML blocks (hero sections, logo blocks) are meaningful preamble
+          if (t.startsWith('<') && t.length > 3) return true
+          return false
+        })
+        if (!hasProse) return lines.slice(h2Idx).join('\n')
+        return noToc  // meaningful preamble — keep everything
+      }
+
+      // No h2 found: fallback to first heading of any level
       for (let i = 0; i < lines.length; i++) {
         if (/^#{1,6}\s/.test(lines[i])) return lines.slice(i).join('\n')
         if (lines[i].trim() && i + 1 < lines.length && /^={3,}\s*$/.test(lines[i + 1])) {
@@ -1155,8 +1287,13 @@ function ReadmeRenderer({ content, repoOwner, repoName, branch = 'main', basePat
       return noToc
     })()
 
+    // Step 0c: collapse blank lines inside <div align="center">...</div> so
+    // CommonMark keeps the entire hero section as one HTML block. Without this,
+    // h1/h3/p siblings end up outside the div and cannot be reliably reattached.
+    const heroCollapsed = collapseHeroBlanks(noPreamble)
+
     // Step 1: fix relative image paths → absolute GitHub raw URLs
-    const fixedContent = noPreamble
+    const fixedContent = heroCollapsed
       .replace(
         /!\[([^\]]*)\]\((?!https?:\/\/)([^)]+)\)/g,
         (_, alt, src) =>
@@ -1167,7 +1304,19 @@ function ReadmeRenderer({ content, repoOwner, repoName, branch = 'main', basePat
         (_, src) =>
           `src="https://raw.githubusercontent.com/${repoOwner}/${repoName}/${branch}/${src.replace(/^\.\//, '')}"`
       )
-      // Step 1b: convert github.com blob URLs for images to raw.githubusercontent.com
+      // Step 1b: fix relative srcset paths (for <source> elements inside <picture> blocks)
+      .replace(
+        /srcset="([^"]+)"/g,
+        (match, srcset) => {
+          const fixed = srcset.replace(
+            /(^|,\s*)(?!https?:\/\/)(\S+)/g,
+            (_: string, prefix: string, url: string) =>
+              `${prefix}https://raw.githubusercontent.com/${repoOwner}/${repoName}/${branch}/${url.replace(/^\.\//, '')}`
+          )
+          return fixed !== srcset ? `srcset="${fixed}"` : match
+        }
+      )
+      // Step 1c: convert github.com blob URLs for images to raw.githubusercontent.com
       // GitHub renders these transparently on their site but they return HTML in <img> tags
       .replace(
         /!\[([^\]]*)\]\(https:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/([^)]+)\)/g,
@@ -1615,24 +1764,34 @@ function ReadmeRenderer({ content, repoOwner, repoName, branch = 'main', basePat
       // Existing classification logic follows unchanged
       const isLinked = node?.properties?.dataLinked === true
       const headingCtx = (node?.properties?.dataHeadingCtx as string) ?? ''
-      const declaredWidth  = typeof node?.properties?.width  === 'number' ? node.properties.width  : parseInt(String(node?.properties?.width  ?? '')) || undefined
+
+      // Parse width — distinguish percentage (e.g. "40%") from pixel values.
+      // Percentage widths must be applied as inline CSS style; class CSS (width:auto)
+      // would otherwise override the HTML attribute.
+      const rawWidth  = node?.properties?.width
+      const widthStr  = String(rawWidth ?? '')
+      const isPctW    = widthStr.endsWith('%')
+      const declaredWidth  = isPctW ? undefined : (typeof rawWidth === 'number' ? rawWidth : parseInt(widthStr) || undefined)
       const declaredHeight = typeof node?.properties?.height === 'number' ? node.properties.height : parseInt(String(node?.properties?.height ?? '')) || undefined
+      const pctStyle: React.CSSProperties = isPctW ? { width: widthStr, maxWidth: '100%' } : {}
 
       const treatment = classifyImage({ src: src ?? '', isLinked, nearestHeadingText: headingCtx, declaredWidth, declaredHeight })
 
       if (treatment === 'logo') {
         return (
           <img src={src} alt={alt ?? ''} className="rm-img-logo" loading="lazy"
+            style={pctStyle}
             {...(declaredHeight ? { height: declaredHeight } : {})}
-            {...(declaredWidth  ? { width:  declaredWidth  } : {})}
+            {...(!isPctW && declaredWidth ? { width: declaredWidth } : {})}
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
         )
       }
 
       return (
         <img src={src} alt={alt ?? ''} className="rm-img-content" loading="lazy"
+          style={pctStyle}
           {...(declaredHeight ? { height: declaredHeight } : {})}
-          {...(declaredWidth  ? { width:  declaredWidth  } : {})}
+          {...(!isPctW && declaredWidth ? { width: declaredWidth } : {})}
           onClick={() => src && setLightbox({ src, alt: alt ?? '' })}
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
           onLoad={(e) => {
@@ -1663,7 +1822,7 @@ function ReadmeRenderer({ content, repoOwner, repoName, branch = 'main', basePat
       <div className="rm-content">
         <ReactMarkdown
           remarkPlugins={[remarkGfm, [remarkEmoji, { accessible: false }]]}
-          rehypePlugins={[rehypeRaw, [rehypeSanitize, sanitizeSchema], rehypeRemoveTocSection, rehypeRemoveLocaleSwitcher, rehypeExtractMentions, rehypeImageClassifier, rehypeAddHeadingIds, rehypeYouTubeLinks, rehypeGitHubRepoLinks, rehypeBlobLinks(repoOwner, repoName, basePath), rehypeFootnoteLinks, rehypeImageOnlyLinks, [rehypeTtsAnnotate, { output: ttsOutput.current }]]}
+          rehypePlugins={[rehypeRaw, [rehypeSanitize, sanitizeSchema], rehypeFixCenterDivs, rehypeRemoveTocSection, rehypeRemoveLocaleSwitcher, rehypeExtractMentions, rehypeImageClassifier, rehypeAddHeadingIds, rehypeYouTubeLinks, rehypeGitHubRepoLinks, rehypeBlobLinks(repoOwner, repoName, basePath), rehypeFootnoteLinks, rehypeImageOnlyLinks, [rehypeTtsAnnotate, { output: ttsOutput.current }]]}
           urlTransform={(url) => url.startsWith('badge://') ? url : defaultUrlTransform(url)}
           components={mdComponents}
         >
