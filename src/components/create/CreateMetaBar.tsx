@@ -30,8 +30,7 @@ export default function CreateMetaBar({ session, onNameChange, onRemoveRepo, onP
     } catch (e: unknown) {
       const err = e as { message?: string }
       if (err.message === 'SCOPE_MISSING') {
-        alert('GitHub permission needed. Please reconnect your GitHub account to grant repo creation access.')
-        window.api.github.connect()
+        alert('GitHub permission needed. Please disconnect GitHub in Settings and reconnect to grant repo creation access.')
       }
     } finally {
       setPublishing(false)

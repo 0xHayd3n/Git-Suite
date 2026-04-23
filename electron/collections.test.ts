@@ -58,8 +58,8 @@ vi.mock('./store', () => ({
 }))
 
 vi.mock('./github', () => ({
-  OAUTH_URL: 'https://mock-oauth-url',
-  exchangeCode: vi.fn(),
+  startDeviceFlow: vi.fn(),
+  pollDeviceToken: vi.fn(),
   getUser: vi.fn(),
   getStarred: vi.fn(),
   getRepo: vi.fn(),

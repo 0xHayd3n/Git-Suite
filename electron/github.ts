@@ -1,9 +1,6 @@
 export const CLIENT_ID = 'Ov23liJxy53KWDh27mQx'
-const CLIENT_SECRET = '<redacted>'
 const BASE = 'https://api.github.com'
-
-export const OAUTH_URL =
-  `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&scope=read:user,repo&redirect_uri=gitsuite://oauth/callback`
+const SCOPE = 'read:user,repo'
 
 // Accept null — omit Authorization header for unauthenticated calls (60 req/hr)
 export function githubHeaders(token: string | null): Record<string, string> {
@@ -176,18 +173,106 @@ export async function isRepoStarred(token: string | null, owner: string, name: s
   return res.status === 204
 }
 
-export async function exchangeCode(code: string): Promise<string> {
-  const res = await fetch('https://github.com/login/oauth/access_token', {
+// ── GitHub Device Flow ──────────────────────────────────────────
+// https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#device-flow
+//
+// Device flow authenticates without a client secret, which is ideal for
+// desktop apps where an embedded secret is not actually confidential.
+// Enable "Device flow" in the OAuth App settings at github.com/settings/developers.
+//
+// 1. POST /login/device/code → { device_code, user_code, verification_uri, interval }
+// 2. App shows user_code; user visits verification_uri_complete and approves.
+// 3. App polls /login/oauth/access_token every `interval` seconds until the
+//    token is issued or the device_code expires (default 15 minutes).
+
+export interface DeviceFlowStart {
+  deviceCode: string
+  userCode: string
+  verificationUri: string
+  verificationUriComplete: string
+  expiresIn: number
+  interval: number
+}
+
+interface DeviceCodeResponse {
+  device_code: string
+  user_code: string
+  verification_uri: string
+  verification_uri_complete?: string
+  expires_in: number
+  interval: number
+}
+
+interface DeviceTokenResponse {
+  access_token?: string
+  error?: string
+  error_description?: string
+  interval?: number
+}
+
+export async function startDeviceFlow(): Promise<DeviceFlowStart> {
+  const res = await fetch('https://github.com/login/device/code', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({ client_id: CLIENT_ID, client_secret: CLIENT_SECRET, code }),
+    body: JSON.stringify({ client_id: CLIENT_ID, scope: SCOPE }),
   })
-  if (!res.ok) throw new Error(`OAuth exchange failed: ${res.status}`)
-  const data = (await res.json()) as { access_token?: string; error_description?: string }
-  if (!data.access_token) {
-    throw new Error(data.error_description ?? 'OAuth exchange failed')
+  if (!res.ok) throw new Error(`Device flow start failed: ${res.status}`)
+  const data = (await res.json()) as DeviceCodeResponse & { error?: string; error_description?: string }
+  if (data.error) {
+    throw new Error(
+      data.error === 'device_flow_disabled'
+        ? 'Device Flow is not enabled on this OAuth App. Enable it at github.com/settings/developers.'
+        : data.error_description ?? data.error
+    )
   }
-  return data.access_token
+  return {
+    deviceCode: data.device_code,
+    userCode: data.user_code,
+    verificationUri: data.verification_uri,
+    verificationUriComplete: data.verification_uri_complete ?? `${data.verification_uri}?user_code=${encodeURIComponent(data.user_code)}`,
+    expiresIn: data.expires_in,
+    interval: data.interval,
+  }
+}
+
+export async function pollDeviceToken(deviceCode: string, interval: number, signal?: AbortSignal): Promise<string> {
+  // Poll at `interval` seconds; GitHub returns slow_down to ask us to back off.
+  let delayMs = Math.max(1, interval) * 1000
+  while (true) {
+    if (signal?.aborted) throw new Error('Authentication cancelled')
+    await new Promise<void>((resolve, reject) => {
+      const t = setTimeout(resolve, delayMs)
+      signal?.addEventListener('abort', () => { clearTimeout(t); reject(new Error('Authentication cancelled')) }, { once: true })
+    })
+
+    const res = await fetch('https://github.com/login/oauth/access_token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        client_id: CLIENT_ID,
+        device_code: deviceCode,
+        grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
+      }),
+    })
+    const data = (await res.json()) as DeviceTokenResponse
+
+    if (data.access_token) return data.access_token
+
+    switch (data.error) {
+      case 'authorization_pending':
+        continue
+      case 'slow_down':
+        // GitHub tells us the new minimum interval; add a small buffer.
+        delayMs = ((data.interval ?? interval) + 1) * 1000
+        continue
+      case 'expired_token':
+        throw new Error('The device code expired before you approved. Please try again.')
+      case 'access_denied':
+        throw new Error('Authorization was denied.')
+      default:
+        throw new Error(data.error_description ?? data.error ?? 'Device flow failed')
+    }
+  }
 }
 
 export async function fetchGitHubTopics(token: string): Promise<string[]> {

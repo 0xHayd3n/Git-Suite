@@ -4,7 +4,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
-import { getUser, getStarred, exchangeCode, getRepo, searchRepos, getReadme, getReleases } from './github'
+import { getUser, getStarred, startDeviceFlow, pollDeviceToken, getRepo, searchRepos, getReadme, getReleases } from './github'
 
 function makeResponse(body: unknown, headers: Record<string, string> = {}, ok = true) {
   return {
@@ -74,32 +74,64 @@ describe('getStarred', () => {
   })
 })
 
-describe('exchangeCode', () => {
+describe('startDeviceFlow', () => {
   beforeEach(() => mockFetch.mockReset())
 
-  it('returns access_token on success', async () => {
-    mockFetch.mockResolvedValue(makeResponse({ access_token: 'gho_abc123' }))
-    const token = await exchangeCode('code123')
-    expect(token).toBe('gho_abc123')
+  it('returns device/user codes on success', async () => {
+    mockFetch.mockResolvedValue(makeResponse({
+      device_code: 'dev-code',
+      user_code: 'ABCD-1234',
+      verification_uri: 'https://github.com/login/device',
+      verification_uri_complete: 'https://github.com/login/device?user_code=ABCD-1234',
+      expires_in: 900,
+      interval: 5,
+    }))
+    const flow = await startDeviceFlow()
+    expect(flow.deviceCode).toBe('dev-code')
+    expect(flow.userCode).toBe('ABCD-1234')
+    expect(flow.interval).toBe(5)
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://github.com/login/oauth/access_token',
+      'https://github.com/login/device/code',
       expect.objectContaining({ method: 'POST' })
     )
   })
 
-  it('throws when access_token is missing', async () => {
-    mockFetch.mockResolvedValue(makeResponse({ error: 'bad_verification_code', error_description: 'The code passed is incorrect' }))
-    await expect(exchangeCode('bad')).rejects.toThrow('The code passed is incorrect')
+  it('throws a helpful error when device flow is disabled', async () => {
+    mockFetch.mockResolvedValue(makeResponse({ error: 'device_flow_disabled' }))
+    await expect(startDeviceFlow()).rejects.toThrow(/Device Flow is not enabled/)
   })
 
-  it('throws with fallback message when error_description missing', async () => {
-    mockFetch.mockResolvedValue(makeResponse({ error: 'unknown' }))
-    await expect(exchangeCode('bad')).rejects.toThrow('OAuth exchange failed')
+  it('falls back to a constructed verification_uri_complete when omitted', async () => {
+    mockFetch.mockResolvedValue(makeResponse({
+      device_code: 'dev', user_code: 'A-1',
+      verification_uri: 'https://github.com/login/device',
+      expires_in: 900, interval: 5,
+    }))
+    const flow = await startDeviceFlow()
+    expect(flow.verificationUriComplete).toContain('user_code=A-1')
+  })
+})
+
+describe('pollDeviceToken', () => {
+  beforeEach(() => mockFetch.mockReset())
+
+  it('returns the access token once the user approves', async () => {
+    mockFetch
+      .mockResolvedValueOnce(makeResponse({ error: 'authorization_pending' }))
+      .mockResolvedValueOnce(makeResponse({ access_token: 'gho_ok' }))
+    const token = await pollDeviceToken('dev-code', 0)
+    expect(token).toBe('gho_ok')
+    expect(mockFetch).toHaveBeenCalledTimes(2)
   })
 
-  it('throws on non-ok HTTP response from token endpoint', async () => {
-    mockFetch.mockResolvedValue(makeResponse({}, {}, false))
-    await expect(exchangeCode('code')).rejects.toThrow('OAuth exchange failed: 401')
+  it('throws when the user denies authorization', async () => {
+    mockFetch.mockResolvedValue(makeResponse({ error: 'access_denied' }))
+    await expect(pollDeviceToken('dev-code', 0)).rejects.toThrow(/denied/)
+  })
+
+  it('throws when the device code expires', async () => {
+    mockFetch.mockResolvedValue(makeResponse({ error: 'expired_token' }))
+    await expect(pollDeviceToken('dev-code', 0)).rejects.toThrow(/expired/)
   })
 })
 
