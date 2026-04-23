@@ -236,7 +236,10 @@ function createWindow(): void {
 
   mainWindow = new BrowserWindow({
     ...saved,
-    minWidth: 1000,
+    // Low enough that Windows' half-screen snap produces an actual 1/2 split
+    // on 1280+ screens. Prior value of 1000 forced a ~2/3 width on 1500px
+    // displays since minWidth overrides the half-screen target.
+    minWidth: 640,
     minHeight: 660,
     frame: false,
     titleBarStyle: 'hidden',
