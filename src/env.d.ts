@@ -58,13 +58,19 @@ declare global {
         close:    () => void
       }
       github: {
-        connect:       () => Promise<void>
-        exchange:      (code: string) => Promise<void>
+        startDeviceFlow: () => Promise<{
+          deviceCode: string
+          userCode: string
+          verificationUri: string
+          verificationUriComplete: string
+          expiresIn: number
+          interval: number
+        }>
+        pollDeviceToken: (deviceCode: string, interval: number) => Promise<void>
+        cancelDeviceFlow: () => Promise<void>
         getUser:       () => Promise<{ login: string; avatarUrl: string; publicRepos: number }>
         getStarred:    (force?: boolean) => Promise<void>
         disconnect:    () => Promise<void>
-        onCallback:    (cb: (payload: { code?: string; error?: string }) => void) => void
-        offCallback:   (cb: (payload: { code?: string; error?: string }) => void) => void
         searchRepos:   (query: string, sort?: string, order?: string, page?: number) => Promise<RepoRow[]>
         getRepo:       (owner: string, name: string) => Promise<RepoRow>
         getReadme:        (owner: string, name: string) => Promise<string | null>

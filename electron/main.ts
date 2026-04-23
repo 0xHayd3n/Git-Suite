@@ -7,7 +7,7 @@ import Store from 'electron-store'
 import type Database from 'better-sqlite3'
 import { getDb, closeDb } from './db'
 import { getToken, setToken, clearToken, setGitHubUser, clearGitHubUser, getApiKey, setApiKey } from './store'
-import { OAUTH_URL, exchangeCode, getUser, getStarred, getRepo, searchRepos, getReadme, getFileContent, getReleases, starRepo, unstarRepo, isRepoStarred, fetchGitHubTopics, getProfileUser, getUserRepos, getMyRepos, getUserStarred, getUserFollowing, getUserFollowers, checkIsFollowing, followUser, unfollowUser, getOrgVerified, getBranch, getTreeBySha, getBlobBySha, getRawFileBytes, getRepoTree } from './github'
+import { startDeviceFlow, pollDeviceToken, getUser, getStarred, getRepo, searchRepos, getReadme, getFileContent, getReleases, starRepo, unstarRepo, isRepoStarred, fetchGitHubTopics, getProfileUser, getUserRepos, getMyRepos, getUserStarred, getUserFollowing, getUserFollowers, checkIsFollowing, followUser, unfollowUser, getOrgVerified, getBranch, getTreeBySha, getBlobBySha, getRawFileBytes, getRepoTree } from './github'
 import { scanFromSources } from './mcp-scanner'
 import type { McpScanResult } from '../src/types/mcp'
 import { extractTags } from './tag-extractor'
@@ -175,9 +175,8 @@ interface WindowStoreSchema {
 }
 const windowStore = new Store<WindowStoreSchema>()
 let mainWindow: BrowserWindow | null = null
-let pendingDeepLinkUrl: string | null = null
-let rendererReadyForOAuth = false
 let mcpProcess: ReturnType<typeof spawn> | null = null
+let deviceFlowAbort: AbortController | null = null
 
 // ── MCP helpers ──────────────────────────────────────────────────────────────
 function getClaudeConfigPath(): string | null {
@@ -211,74 +210,24 @@ function startMCPServer(): void {
   })
 }
 
-// ── Deep link handler ───────────────────────────────────────────
-// Dispatching is best-effort: webContents.send is silently dropped if the
-// renderer hasn't mounted its 'oauth:callback' listener yet, so we queue the
-// URL and replay it once the renderer signals it's ready (see 'oauth:ready').
-function handleDeepLink(url: string): void {
-  try {
-    const parsed = new URL(url)
-    const code = parsed.searchParams.get('code')
-    const error = parsed.searchParams.get('error_description') ?? parsed.searchParams.get('error')
-    if (!code && !error) return
-
-    if (!mainWindow || mainWindow.webContents.isLoading() || !rendererReadyForOAuth) {
-      pendingDeepLinkUrl = url
-      return
-    }
-
-    if (error) {
-      mainWindow.webContents.send('oauth:callback', { error })
-    } else if (code) {
-      mainWindow.webContents.send('oauth:callback', { code })
-    }
-  } catch {
-    // malformed URL — ignore
-  }
-}
-
-function flushPendingDeepLink(): void {
-  if (!pendingDeepLinkUrl) return
-  const url = pendingDeepLinkUrl
-  pendingDeepLinkUrl = null
-  handleDeepLink(url)
-}
-
 // Register badge:// as a privileged scheme for image loading (must precede app.ready)
 protocol.registerSchemesAsPrivileged([
   { scheme: 'badge', privileges: { standard: true, supportFetchAPI: true, corsEnabled: true } },
   { scheme: 'ghimg', privileges: { standard: true, supportFetchAPI: true, corsEnabled: true } },
 ])
 
-// ── Protocol + single-instance (must be module scope) ──────────
-// On Windows, we must pass the app entry path as an extra argument so that
-// when the OS relaunches Electron via the custom protocol, it knows which
-// script to load.  On macOS/Linux the bare registration is sufficient.
-if (process.platform === 'win32') {
-  app.setAsDefaultProtocolClient('gitsuite', process.execPath, [path.resolve(process.argv[1])])
-} else {
-  app.setAsDefaultProtocolClient('gitsuite')
-}
-
+// ── Single-instance: just focus the existing window on relaunch. ────
 const gotLock = app.requestSingleInstanceLock()
 if (!gotLock) {
   app.quit()
 } else {
-  app.on('second-instance', (_event, argv) => {
-    const url = argv.find((a) => a.startsWith('gitsuite://'))
+  app.on('second-instance', () => {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore()
       mainWindow.focus()
     }
-    if (url) handleDeepLink(url)
   })
 }
-
-// macOS deep link — handleDeepLink handles its own queueing.
-app.on('open-url', (event, url) => {
-  event.preventDefault()
-  handleDeepLink(url)
-})
 
 // ── Window ──────────────────────────────────────────────────────
 function createWindow(): void {
@@ -342,11 +291,6 @@ function createWindow(): void {
     }
   })
 
-  // Reset the renderer-ready gate on navigation/reload so a pending deep link
-  // is only dispatched after the React app has re-registered its listener.
-  mainWindow.webContents.on('did-start-loading', () => {
-    rendererReadyForOAuth = false
-  })
 }
 
 // ── Window control IPC ──────────────────────────────────────────
@@ -361,25 +305,30 @@ ipcMain.on('window:close', () => mainWindow?.close())
 ipcMain.handle('shell:openExternal', (_event, url: string) => shell.openExternal(url))
 
 // ── GitHub IPC ──────────────────────────────────────────────────
-// Renderer signals it has mounted the 'oauth:callback' listener. This closes
-// the race where a deep link arrives before React finishes hydrating.
-ipcMain.on('oauth:ready', () => {
-  rendererReadyForOAuth = true
-  flushPendingDeepLink()
+// GitHub OAuth Device Flow — no client secret required.
+// The renderer calls startDeviceFlow to get a user_code + verification URL,
+// opens the browser for the user to approve, then calls pollDeviceToken which
+// blocks until approval (or timeout / rejection).
+
+ipcMain.handle('github:startDeviceFlow', async () => {
+  deviceFlowAbort?.abort()
+  deviceFlowAbort = new AbortController()
+  const start = await startDeviceFlow()
+  // Auto-open the browser at the pre-filled verification page.
+  shell.openExternal(start.verificationUriComplete).catch(() => {})
+  return start
 })
 
-ipcMain.handle('github:connect', async () => {
-  try {
-    await shell.openExternal(OAUTH_URL)
-  } catch {
-    throw new Error('Failed to open browser')
-  }
-})
-
-ipcMain.handle('github:exchange', async (_event, code: string) => {
-  const token = await exchangeCode(code)
+ipcMain.handle('github:pollDeviceToken', async (_event, deviceCode: string, interval: number) => {
+  const controller = deviceFlowAbort ?? new AbortController()
+  const token = await pollDeviceToken(deviceCode, interval, controller.signal)
   setToken(token)
   initTopicCache(token).catch(() => {}) // Non-blocking
+})
+
+ipcMain.handle('github:cancelDeviceFlow', () => {
+  deviceFlowAbort?.abort()
+  deviceFlowAbort = null
 })
 
 ipcMain.handle('github:getUser', async () => {

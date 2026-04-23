@@ -1214,6 +1214,51 @@ a {
   color: var(--t3);
 }
 
+/* Device-flow code display */
+.device-code-box {
+  margin: 0 14px 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-soft);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.device-code-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  color: var(--accent-text);
+  text-align: center;
+  padding: 6px 0;
+  user-select: all;
+}
+
+.device-code-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.device-code-btn {
+  flex: 1;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--t1);
+}
+
+.device-code-btn:hover {
+  background: var(--accent-soft);
+}
+
 /* Connect button states */
 .connect-btn {
   padding: 5px 12px;

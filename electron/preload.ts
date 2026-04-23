@@ -12,8 +12,17 @@ contextBridge.exposeInMainWorld('api', {
   },
 
   github: {
-    connect:       () => ipcRenderer.invoke('github:connect'),
-    exchange:      (code: string) => ipcRenderer.invoke('github:exchange', code),
+    startDeviceFlow: () => ipcRenderer.invoke('github:startDeviceFlow') as Promise<{
+      deviceCode: string
+      userCode: string
+      verificationUri: string
+      verificationUriComplete: string
+      expiresIn: number
+      interval: number
+    }>,
+    pollDeviceToken: (deviceCode: string, interval: number) =>
+      ipcRenderer.invoke('github:pollDeviceToken', deviceCode, interval),
+    cancelDeviceFlow: () => ipcRenderer.invoke('github:cancelDeviceFlow'),
     getUser:       () => ipcRenderer.invoke('github:getUser'),
     getStarred:    (force?: boolean) => ipcRenderer.invoke('github:getStarred', force),
     disconnect:    () => ipcRenderer.invoke('github:disconnect'),
@@ -35,23 +44,6 @@ contextBridge.exposeInMainWorld('api', {
     getTree:    (owner: string, name: string, treeSha: string) => ipcRenderer.invoke('github:getTree', owner, name, treeSha),
     getBlob:    (owner: string, name: string, blobSha: string) => ipcRenderer.invoke('github:getBlob', owner, name, blobSha),
     getRawFile: (owner: string, name: string, branch: string, path: string) => ipcRenderer.invoke('github:getRawFile', owner, name, branch, path),
-    onCallback:    (cb: (payload: { code?: string; error?: string }) => void) => {
-      const wrapper = (...args: unknown[]) => {
-        const payload = args[1] as { code?: string; error?: string } | string
-        // Back-compat: main process used to send a bare code string.
-        cb(typeof payload === 'string' ? { code: payload } : payload)
-      }
-      callbackWrappers.set(cb, wrapper)
-      ipcRenderer.on('oauth:callback', wrapper)
-      ipcRenderer.send('oauth:ready')
-    },
-    offCallback: (cb: (payload: { code?: string; error?: string }) => void) => {
-      const wrapper = callbackWrappers.get(cb)
-      if (wrapper) {
-        ipcRenderer.removeListener('oauth:callback', wrapper)
-        callbackWrappers.delete(cb)
-      }
-    },
   },
 
   settings: {

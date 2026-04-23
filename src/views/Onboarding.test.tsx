@@ -13,24 +13,24 @@ vi.mock('react-router-dom', async (importOriginal) => {
   }
 })
 
-let registeredOAuthCb: ((p: { code?: string; error?: string }) => void) | null = null
-
 function makeApi(overrides = {}) {
-  registeredOAuthCb = null
   return {
+    openExternal: vi.fn().mockResolvedValue(undefined),
     windowControls: { minimize: vi.fn(), maximize: vi.fn(), close: vi.fn() },
     github: {
-      connect: vi.fn().mockResolvedValue(undefined),
-      exchange: vi.fn().mockResolvedValue(undefined),
+      startDeviceFlow: vi.fn().mockResolvedValue({
+        deviceCode: 'dev-code',
+        userCode: 'ABCD-1234',
+        verificationUri: 'https://github.com/login/device',
+        verificationUriComplete: 'https://github.com/login/device?user_code=ABCD-1234',
+        expiresIn: 900,
+        interval: 5,
+      }),
+      pollDeviceToken: vi.fn().mockResolvedValue(undefined),
+      cancelDeviceFlow: vi.fn().mockResolvedValue(undefined),
       getUser: vi.fn().mockResolvedValue({ login: 'alice', avatarUrl: '', publicRepos: 5 }),
       getStarred: vi.fn().mockResolvedValue(undefined),
       disconnect: vi.fn(),
-      onCallback: vi.fn((cb: (p: { code?: string; error?: string }) => void) => {
-        registeredOAuthCb = cb
-      }),
-      offCallback: vi.fn(() => {
-        registeredOAuthCb = null
-      }),
     },
     settings: {
       get: vi.fn().mockResolvedValue('5'),
@@ -117,20 +117,18 @@ describe('Screen 1 — Connect GitHub', () => {
     expect(screen.getByTestId('onboarding-screen-0')).toBeInTheDocument()
   })
 
-  it('Connect calls github.connect and registers callback', async () => {
+  it('Connect starts the device flow and shows the user code', async () => {
     fireEvent.click(screen.getByText('Connect'))
     await waitFor(() => {
-      expect(window.api.github.connect).toHaveBeenCalled()
-      expect(window.api.github.onCallback).toHaveBeenCalled()
+      expect(window.api.github.startDeviceFlow).toHaveBeenCalled()
+      expect(screen.getByText('ABCD-1234')).toBeInTheDocument()
     })
   })
 
-  it('after successful OAuth, Continue becomes enabled and shows connected state', async () => {
+  it('after approval, Continue becomes enabled and shows connected state', async () => {
     fireEvent.click(screen.getByText('Connect'))
-    // The callback was registered on mount; fire it to simulate OAuth return.
-    registeredOAuthCb?.({ code: 'test-code' })
     await waitFor(() => {
-      expect(window.api.github.exchange).toHaveBeenCalledWith('test-code')
+      expect(window.api.github.pollDeviceToken).toHaveBeenCalledWith('dev-code', 5)
       expect(window.api.github.getUser).toHaveBeenCalled()
     })
     await waitFor(() => {
@@ -140,17 +138,16 @@ describe('Screen 1 — Connect GitHub', () => {
 
   it('Continue advances to screen 2 when connected', async () => {
     fireEvent.click(screen.getByText('Connect'))
-    registeredOAuthCb?.({ code: 'code' })
     await waitFor(() => screen.getByText('Continue →').closest('button')?.disabled === false)
     fireEvent.click(screen.getByText('Continue →'))
     expect(screen.getByTestId('onboarding-screen-2')).toBeInTheDocument()
   })
 
-  it('calls offCallback on unmount', () => {
+  it('cancels device flow on unmount', () => {
     const { unmount } = renderOnboarding()
     fireEvent.click(screen.getByText('Connect GitHub →')) // go to screen 1
     unmount()
-    expect(window.api.github.offCallback).toHaveBeenCalled()
+    expect(window.api.github.cancelDeviceFlow).toHaveBeenCalled()
   })
 })
 
@@ -160,8 +157,7 @@ describe('Screen 2 — Done', () => {
     renderOnboarding()
     fireEvent.click(screen.getByText('Connect GitHub →'))
     fireEvent.click(screen.getByText('Connect'))
-    registeredOAuthCb?.({ code: 'code' })
-    await waitFor(() => expect(window.api.github.exchange).toHaveBeenCalled())
+    await waitFor(() => expect(window.api.github.pollDeviceToken).toHaveBeenCalled())
     await waitFor(() => {
       const btn = screen.getByText('Continue →')
       if ((btn as HTMLButtonElement).disabled) throw new Error('still disabled')

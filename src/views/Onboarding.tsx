@@ -91,7 +91,7 @@ function WelcomeScreen({ onConnect, onSkip }: { onConnect: () => void; onSkip: (
 }
 
 // ── Screen 1 — Connect GitHub ────────────────────────────────────
-type ConnectState = 'idle' | 'connecting' | 'connected'
+type ConnectState = 'idle' | 'awaiting' | 'connected'
 
 function ConnectScreen({
   onBack,
@@ -103,52 +103,58 @@ function ConnectScreen({
   const [connectState, setConnectState] = useState<ConnectState>('idle')
   const [connectedUser, setConnectedUser] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [userCode, setUserCode] = useState<string | null>(null)
+  const [verificationUri, setVerificationUri] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
-  const handleCallback = useCallback(async (payload: { code?: string; error?: string }) => {
-    if (payload.error) {
-      setErrorMsg(payload.error)
-      setConnectState('idle')
-      return
+  // Cancel any in-flight device-flow poll if the user leaves the screen.
+  useEffect(() => {
+    return () => {
+      window.api.github.cancelDeviceFlow().catch(() => {})
     }
-    if (!payload.code) return
+  }, [])
+
+  async function handleConnect() {
+    setErrorMsg(null)
+    setCopied(false)
+    setConnectState('awaiting')
     try {
-      await window.api.github.exchange(payload.code)
+      const flow = await window.api.github.startDeviceFlow()
+      setUserCode(flow.userCode)
+      setVerificationUri(flow.verificationUri)
+      await window.api.github.pollDeviceToken(flow.deviceCode, flow.interval)
       const user = await window.api.github.getUser()
       await window.api.settings.set('github_username', user.login)
       flushSync(() => {
         setConnectedUser(user.login)
         setConnectState('connected')
-        setErrorMsg(null)
+        setUserCode(null)
       })
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Failed to complete sign-in')
       setConnectState('idle')
+      setUserCode(null)
     }
-  }, [])
+  }
 
-  // Register the OAuth callback listener on mount so a deep link that arrives
-  // during a window reload or before the user re-clicks Connect isn't lost.
-  // The preload also signals the main process that we're ready, flushing any
-  // queued deep link.
-  useEffect(() => {
-    window.api.github.onCallback(handleCallback)
-    return () => {
-      window.api.github.offCallback(handleCallback)
+  async function handleCopyCode() {
+    if (!userCode) return
+    try {
+      await navigator.clipboard.writeText(userCode)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {
+      // clipboard may be blocked; fall back silently
     }
-  }, [handleCallback])
+  }
 
-  function handleConnect() {
-    setErrorMsg(null)
-    setConnectState('connecting')
-    window.api.github.connect().catch(() => {
-      setErrorMsg('Failed to open browser')
-      setConnectState('idle')
-    })
+  function handleOpenVerification() {
+    if (verificationUri) window.api.openExternal(verificationUri)
   }
 
   const btnLabel =
     connectState === 'idle' ? 'Connect'
-    : connectState === 'connecting' ? 'Connecting...'
+    : connectState === 'awaiting' ? 'Waiting on GitHub…'
     : '✓ Connected'
 
   return (
@@ -179,7 +185,7 @@ function ConnectScreen({
             <button
               className={`connect-btn${connectState === 'connected' ? ' connected' : ''}`}
               onClick={handleConnect}
-              disabled={connectState === 'connecting' || connectState === 'connected'}
+              disabled={connectState === 'awaiting' || connectState === 'connected'}
             >
               {btnLabel}
             </button>
@@ -189,8 +195,26 @@ function ConnectScreen({
               ? `@${connectedUser}`
               : errorMsg
               ? errorMsg
+              : connectState === 'awaiting' && userCode
+              ? 'Enter this code on GitHub to approve'
               : 'Not connected'}
           </p>
+
+          {connectState === 'awaiting' && userCode && (
+            <div className="device-code-box">
+              <div className="device-code-value" aria-label="One-time code">
+                {userCode}
+              </div>
+              <div className="device-code-actions">
+                <button type="button" className="device-code-btn" onClick={handleCopyCode}>
+                  {copied ? 'Copied ✓' : 'Copy code'}
+                </button>
+                <button type="button" className="device-code-btn" onClick={handleOpenVerification}>
+                  Open GitHub
+                </button>
+              </div>
+            </div>
+          )}
           <div className="permission-divider" />
           <div className="permission-row">
             <span className="permission-badge">★</span>
