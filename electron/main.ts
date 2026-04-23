@@ -231,14 +231,36 @@ if (!gotLock) {
 
 // ── Window ──────────────────────────────────────────────────────
 function createWindow(): void {
-  const saved = windowStore.get('windowBounds', { width: 1200, height: 720 })
+  const DEFAULT_BOUNDS = { width: 1200, height: 720 }
+  const savedRaw = windowStore.get('windowBounds', DEFAULT_BOUNDS)
   const wasMaximized = windowStore.get('windowMaximized', true)
+
+  // Older versions shipped with minWidth: 1000. On ~1500px displays, Windows'
+  // half-screen snap clamped the window to 1000px wide and that stale
+  // "2/3 of the screen" width persisted into windowStore, re-applying on
+  // every restart and masquerading as a broken half-snap. If we see that
+  // exact width, treat it as a migration and fall back to defaults.
+  const saved =
+    savedRaw.width === 1000
+      ? { ...savedRaw, width: DEFAULT_BOUNDS.width, height: DEFAULT_BOUNDS.height }
+      : savedRaw
 
   mainWindow = new BrowserWindow({
     ...saved,
-    minWidth: 1000,
+    // Low enough that Windows' half-screen snap produces an actual 1/2 split
+    // on 1280+ screens. Prior value of 1000 forced a ~2/3 width on 1500px
+    // displays since minWidth overrides the half-screen target.
+    minWidth: 640,
     minHeight: 660,
-    frame: false,
+    // On Windows, `frame: false` strips the native frame entirely which
+    // disables Aero drag-to-edge snap — dragging the titlebar to the screen
+    // edge used to leave the window at its current (often ~2/3-screen) size
+    // instead of snapping to half. `titleBarStyle: 'hidden'` alone gives a
+    // frameless look while keeping the native frame for snap.
+    // On macOS, `titleBarStyle: 'hidden'` without `frame: false` reveals the
+    // traffic lights, which conflict with the app's custom controls — so
+    // keep the frameless setup on non-Windows platforms.
+    frame: process.platform !== 'win32' ? false : undefined,
     titleBarStyle: 'hidden',
     backgroundColor: '#0a0a0e',
     icon: path.join(__dirname, '../../resources/icon.png'),
