@@ -1,5 +1,10 @@
 export const CLIENT_ID = 'Ov23liJxy53KWDh27mQx'
-const CLIENT_SECRET = '<redacted>'
+// Paste your GitHub OAuth App client secret here, or set the
+// GITHUB_CLIENT_SECRET environment variable (e.g. via a .env file loaded by
+// your shell before launching electron).  The secret embedded in a desktop
+// app is inherently not confidential — GitHub's "OAuth App" model treats it
+// as a shared credential; this is the documented pattern for native apps.
+const CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET ?? '<redacted>'
 const BASE = 'https://api.github.com'
 
 export const OAUTH_URL =
@@ -177,6 +182,13 @@ export async function isRepoStarred(token: string | null, owner: string, name: s
 }
 
 export async function exchangeCode(code: string): Promise<string> {
+  if (!CLIENT_SECRET || CLIENT_SECRET === '<redacted>') {
+    throw new Error(
+      'GitHub OAuth client secret is not configured. Set GITHUB_CLIENT_SECRET ' +
+      'in your environment, or edit electron/github.ts and paste your OAuth ' +
+      "App's client secret in place of '<redacted>'."
+    )
+  }
   const res = await fetch('https://github.com/login/oauth/access_token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
