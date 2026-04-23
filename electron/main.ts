@@ -231,8 +231,19 @@ if (!gotLock) {
 
 // ── Window ──────────────────────────────────────────────────────
 function createWindow(): void {
-  const saved = windowStore.get('windowBounds', { width: 1200, height: 720 })
+  const DEFAULT_BOUNDS = { width: 1200, height: 720 }
+  const savedRaw = windowStore.get('windowBounds', DEFAULT_BOUNDS)
   const wasMaximized = windowStore.get('windowMaximized', true)
+
+  // Older versions shipped with minWidth: 1000. On ~1500px displays, Windows'
+  // half-screen snap clamped the window to 1000px wide and that stale
+  // "2/3 of the screen" width persisted into windowStore, re-applying on
+  // every restart and masquerading as a broken half-snap. If we see that
+  // exact width, treat it as a migration and fall back to defaults.
+  const saved =
+    savedRaw.width === 1000
+      ? { ...savedRaw, width: DEFAULT_BOUNDS.width, height: DEFAULT_BOUNDS.height }
+      : savedRaw
 
   mainWindow = new BrowserWindow({
     ...saved,
